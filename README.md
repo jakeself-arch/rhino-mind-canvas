@@ -1,9 +1,10 @@
 # Rhino Mind Canvas
 
 Parametric building assemblies inside Rhino 8: draw a curve, pick an assembly, and get
-every layer of the wall as real geometry — sheathing, insulation, individual studs and
-tracks, individual bricks with mortar joints, ties and flashing — on material layers with
-section hatches, ready for detailed section drawings.
+every layer of the wall, floor or roof as real geometry — sheathing, insulation, individual studs,
+joists and rafters, individual bricks with mortar joints, ties and flashing, curtain-wall mullions,
+shingle courses, fascia and gutters — on material layers with section hatches, ready for detailed
+section drawings.
 
 ## Install (once)
 1. Open Rhino 8.
@@ -26,12 +27,16 @@ section hatches, ready for detailed section drawings.
 | `MCEditOpening` | Change the type, size, sill, swing / hinge, head course or SnapHead of selected windows / doors (click their line or any of their parts), or `Remove` them |
 | `MCCurtainWall` | Pick a curtain-wall assembly, then select curves (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
 | `MCEditCurtainWall` | Grid (Equal / Fixed / List, Spacing, Bays), Transoms, Rows (infill per row), Cell (click panels to cycle vision / spandrel / shadow box), Style, Mullion profile, Spandrel (Glass / Metal), Slabs (anchors), Stack (unitized), Location, Flip, Detail, Height, BaseOffset |
-| `MCUpdate` | Rebuild selected walls (Enter = all), e.g. after editing library files |
-| `MCLive` | Toggle live update (walls follow their curves while you edit them) |
-| `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²), a window / door schedule (type, size, sill, count) and a curtain-wall panel schedule (panels per infill type, glass / panel area), optional CSV |
+| `MCFloor` | Pick a floor assembly, then select closed boundary curves (or `Draw`). Options: Elevation (framing bottom, e.g. the wall height), Span (Short / Long / Edge: click the edge the joists bear on), System (Keep / Wood / Metal), Detail |
+| `MCEditFloor` | Elevation, Reference (FramingBottom / FramingTop / Top / Bottom), Span (Short / Long / Edge / Rotate90), SpacingInches, System, Detail |
+| `MCRoof` | Pick a roof assembly, then select closed boundary curves (the plate line; or `Draw`). Options: PlateHeight, Shape (Flat / Shed / Gable), Pitch (x in 12), Overhang, Rake, Ridge (Long / Short / Edge), Flip (shed high side), System, Detail |
+| `MCEditRoof` | The same options on selected roofs |
+| `MCUpdate` | Rebuild selected assemblies (Enter = all), e.g. after editing library files |
+| `MCLive` | Toggle live update (walls, floors and roofs follow their curves while you edit them) |
+| `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²), a window / door schedule (type, size, sill, count), a curtain-wall panel schedule (panels per infill type, glass / panel area), a floor / roof schedule (area, joist / rafter count, member, spacing, span, pitch, ridge and plate heights) and a joist / rafter cut list (member, length, count), optional CSV |
 | `MCPurge` | Remove orphaned parts, openings whose wall is gone, and unused member blocks |
 | `MCLibrary` | Reload the library, list assemblies, open the library folder |
-| `MCSectionCut` | Click a wall or curtain wall: clipping plane perpendicular to it + a saved wall-section view. `Plan=Yes`: a horizontal cut at the picked height (or `CutHeightInches` above the base) and a top view, for plan details |
+| `MCSectionCut` | Click a wall, curtain wall, floor or roof: clipping plane perpendicular to it + a saved section view (floors are cut along the joists, roofs along the slope of the face you click). `Plan=Yes`: a horizontal cut at the picked height (or `CutHeightInches` above the base) and a top view, for plan details |
 | `MCDisplaySetup` | Apply a drawing scale's section styles and the *MC Section* display mode to the view |
 | `MCDrawing` | Finished 2D drawing of the current view (SVG with true line weights + PNG, or baked curves): cut poché, material hatches, tone hatching, stipple. `Window` crops it |
 | `MCDrawingTag` | Mark objects as Ground (stippled), NoTone, Exclude or NoCut for drawings |
@@ -130,6 +135,54 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
 - `MCSchedule` lists panels per curtain wall and infill type with their glass area; the
   takeoff totals mullion / transom / cap lengths and glass area per material.
 
+## Floors and roofs
+- **The closed curve is the floor / roof.** A floor's boundary is the outside face of its rim
+  (= the outside face of the wall framing below); a roof's boundary is the **plate line** (the
+  outside face of the wall framing it bears on). Edit the curve and the floor / roof rebuilds.
+- **Stacking on walls** (until Phase 7 joins them): give a floor `Elevation` = the wall height (its
+  joists bear on the top plates) and the wall above `BaseOffset` = the top of the subfloor; give a
+  roof `PlateHeight` = the wall height. Ceilings stop `inset` inside the boundary (6" = a 2x6 wall
+  + 1/2" gypsum) and the finish floor stops at the wall above.
+- **Floors** (`Floor - 2x10 Wood Joists, Plywood`, `... 11-7/8" I-Joist, OSB`,
+  `... 10" Metal Joists, Plywood`, `... Concrete on Metal Deck / 10" Metal Joists`): layers top →
+  bottom (finish, subfloor / deck + concrete, joists, ceiling). Joists run across the **short** way
+  by default (`Span`: Long, an angle, or click the edge they bear on), every `spacing` from the
+  boundary, between the rim joists all around (wood: 2x rim / rim board plies; metal: joist track
+  with the C-joists inside it). L-shapes and notches work: a joist only exists where both of its
+  sides are inside the rim. Detail adds solid blocking rows (metal: C blocking + a flat strap under
+  the bottom flanges) at most 8' apart and insulation between the joists (`cavity_fill`,
+  `fill_depth`). A composite metal deck has ribs across the joists and the concrete topping is
+  poured into its flutes as one solid. A span longer than the typical table in
+  `library/framing/joists.json` gives a warning.
+- **Wood ↔ metal** is one line, as for walls: `System=Metal` (or
+  `engine.set_override(doc, floor, "Framing", "system", "metal")`); a 2x10 becomes a 10" C-joist.
+- **Roofs** (`Roof - Asphalt Shingle / 2x8 Rafters, Vented Attic`, `... 2x10 Rafters, Cathedral`,
+  `... 2x10 Rafters, Shed`, `Roof - Low Slope Membrane / 2x10 Joists`):
+  - **Gable**: the ridge runs along the long side (`Ridge`: Short, an angle, or the edge you click),
+    centred between the eave walls. Rafters every `spacing` with a **birdsmouth** on the plate (seat
+    = full wall depth), a ridge board one size deeper than the rafter plumb cut, end rafters over the
+    gable walls, barge rafters at the rake overhang carried by flat 2x4 lookouts.
+  - **Shed**: one slope; rafters bear on both walls (the high wall's plate height is in
+    `MCSchedule`); `Flip` puts the high side on the other side.
+  - **Flat** (low slope): level joists, the slope comes from **tapered insulation** (`taper`: in /
+    ft, thickening away from the low eave), stacked 2x nailers around the edge, membrane wrapped
+    over them under the edge metal.
+  - `Pitch` is rise in 12; `Overhang` is the eave (plate line to the face of the fascia), `Rake` the
+    gable-end / side overhang.
+  - Layers on the roof plane follow it out to the fascia (roofing, underlayment with an **ice and
+    water shield** strip from the eave to 24" inside the wall, sheathing); layers under the rafters
+    (cathedral ceilings) stop at the inside of the walls. An attic `ceiling` stack puts ceiling
+    joists beside every rafter (heel-cut under the roof), blown insulation between and over them
+    (kept under the roof with a vent gap) and the gypsum ceiling.
+  - **Detail** (vs Design): shingle courses (5" exposure, each course a thin wedge so the section
+    shows the overlap), ice shield, drip edges, K-style gutters on the low eaves, vented soffit with
+    a soffit nailer, vented bird blocks between the rafters on the plate, lookouts, ridge cap,
+    insulation. Design has rafters, ridge, fascia, sub-fascia, soffit, rake boards. Schematic
+    shows every layer as a solid slab.
+- **Drawings**: `MCSectionCut` on a floor cuts along the joists, on a roof along the slope. See
+  `docs/drawings/e_roof_eave_section_1-1-2.png`, `e_roof_flat_edge_1-1-2.png`,
+  `e_floor_section_1-1-2.png`, `e_floor_deck_section_1-1-2.png`.
+
 ### Example: two-sided brick wall
 Select a brick-veneer wall → `MCLayers` → `Replace` → pick the last layer (Gypsum) →
 choose the brick layer from the list → optionally `Insert` an "Air Space" before it →
@@ -182,6 +235,35 @@ files load alphabetically and later entries with the same name win. Run `MCLibra
   ```
   Mullion profiles live in `library/profiles/curtainwall.json` (`width`, `depth`, `t`, `material`,
   `solid` for timber).
+- **Floor** (`library/assemblies/*.json`, `"kind": "floor"`): layers TOP → BOTTOM; components
+  `solid` / `membrane` / `void` (option `inset`), `joists` (`system`, `joist`, `spacing`, `rim`,
+  `rim_plies`, `blocking`, `blocking_spacing`, `cavity_fill`, `fill_depth`), `deck` (`profile`,
+  `fill`):
+  ```json
+  "My Floor": {
+    "kind": "floor",
+    "layers": [
+      {"name": "Subfloor", "component": "solid",  "material": "Plywood Sheathing", "thickness": "3/4"},
+      {"name": "Framing",  "component": "joists", "material": "Wood Framing", "thickness": "11-1/4",
+       "core": true, "options": {"system": "wood", "spacing": 12, "cavity_fill": "Mineral Wool Batt"}},
+      {"name": "Ceiling",  "component": "solid",  "material": "Gypsum Board", "thickness": "5/8",
+       "options": {"inset": 6}}
+    ]
+  }
+  ```
+- **Roof** (`"kind": "roof"`): `shape` (flat / shed / gable), `pitch`, `overhang`, `rake`, `ridge`,
+  `wall_depth` / `wall_ext` / `wall_int` (the bearing walls), `trim` (any key of `TRIM` in
+  `mindcanvas/roofs/shape.py`: fascia, sub-fascia, soffit + vent + nailer, drip edge, gutter
+  (`"k"` or null), rake board, barge, lookout, bird blocks, ridge cap, edge nailer), `layers` on
+  the roof plane TOP → BOTTOM around the `rafters` layer (`system`, `rafter`, `spacing`,
+  `cavity_fill`, `fill_depth`), layer options `taper` (in / ft), `eave_membrane`
+  (`{"material", "width"}`), `region` (overhang / interior), shingles `exposure` / `tip`, and an
+  optional attic `ceiling` stack (a `joists` layer = ceiling joists). See the comment at the top of
+  `library/assemblies/roofs.json`.
+- **Joists and rafters** (`library/framing/joists.json`): the `wood_joists` / `metal_joists`
+  systems (member family, spacing, rim plies, blocking, strap, ridge family, typical spans,
+  member names). Members are profiles in `library/profiles/floors_roofs.json` (lumber, I-joists
+  `"type": "i_joist"`, rim boards, metal C-joists + joist tracks, composite decks).
 - **Layer preset** (`library/layers/*.json`): a reusable layer ("Gypsum Board 5/8",
   "Metal Studs 6"). Appears in `MCLayers`; assemblies can use `{"preset": "Gypsum Board 5/8"}`
   and override any key. Every layer used in any assembly also shows up in `MCLayers`,

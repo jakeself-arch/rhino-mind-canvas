@@ -145,11 +145,60 @@ stack and no components; the kind builds everything itself.
 - Drawing: `drawing.sectioncut.wall_frame` works for any kind with bands (a curtain wall uses the
   bay chord under the point); `sectioncut.make_plan` makes a horizontal cut for plan details.
 
+## Floors and roofs
+Kinds `floor` (`kinds/floor.py`, code in `mindcanvas/floors/`) and `roof` (`kinds/roof.py`, code
+in `mindcanvas/roofs/`). Both are driven by a **closed horizontal boundary**: for floors the outside
+face of the rim, for roofs the plate line (outside face of the wall framing). Shared geometry is in
+`mindcanvas/hgeo.py`.
+
+- **Local frames** (`hgeo.Frame(xdir)`): x = a horizontal direction, y = Z × x, z = world z
+  (frames sit at z = 0). Members are **section polygons in (x, z) extruded along y**
+  (`hgeo.prism_xz`), built once at y = 0 and placed as block instances
+  (`frame.placed(y, x) * Translation(0, 0, z)`); block names hash the section and the extrusion
+  length (`hgeo.tag`). Never cache a block by length only when its geometry sits at an absolute y.
+- **Irregular footprints**: `hgeo.slab_between(poly, below=[lines], above=[lines])` builds the
+  solid over a plan polygon between lines z = a + b·x from planar faces (strips where the
+  envelope changes line, unioned). Avoid `Brep.Trim(plane)` (it sometimes keeps the wrong side —
+  `hgeo.keep_below` checks the centroid and falls back to `Brep.Split`) and Booleans against a
+  footprint prism (coplanar end faces fail).
+- **Floor bands**: `LayerBand.d_ext` / `d_int` are absolute top / bottom z. `reference`
+  (framing_bottom | framing_top | top | bottom) + `base_offset` place the stack; the joist layer is
+  the first `joists` (or `core`) layer. `ctx.jdir` = joist direction (`span`: short | long |
+  degrees), `ctx.poly_world`, `ctx.local_poly(frame)`. Builders per component in
+  `floors/build.py` (`BUILDERS`: solid / membrane / void / joists / deck); add a component there.
+- **Joist systems**: `floors/joists.system(lib, "wood")` → `wood_joists` (`library/framing/joists.json`,
+  `"use": "joists"`); `select_member` picks by layer thickness or keeps the nominal depth across a
+  system swap; `layer_thickness` fits the layer (metal + 2 × track t). `JoistLayout`: rim inset,
+  joists every `spacing` from the boundary's low y, segments = chords of the rim's inside polygon
+  for both joist sides (L-shapes work), blocking `rows()`, `neighbors()`.
+- **Roof settings** (`roofs/shape.py`): `DEFAULTS` ← assembly ← params (`trim` merges). `faces()`
+  returns one `Face` per roof plane: frame (x = uphill, y = ridge direction), `poly` (overhang
+  footprint, CCW, clipped at the ridge for gables), `plate` (boundary), `v_ridge`, slope `p`,
+  `zb` (rafter bottom line: wood through the inner edge of the eave wall at plate height = full
+  birdsmouth seat; metal through the outer edge), `zt`, and `lines[band.index] = (bottom, top)`
+  for every roof-plane layer (normal offsets; `taper` layers tilt their top). Roof bands carry
+  normal offsets from the rafter bottom; ceiling bands (`ctx.ceiling_bands`) absolute z.
+- **Roof builder** (`roofs/build.py`, `Builder.run`): roof-plane layers per face (shingle courses,
+  eave membrane split, edge nailers on low-slope roofs), rafters per footprint chord with
+  birdsmouths at each bearing (low: seat at the inner edge; high: at the outer edge), barge
+  rafters, ridge, eave trim (fascia, sub-fascia, soffit + vent + nailer, drip edge, K gutter on
+  low eaves), rake trim (rake board, drip, lookouts), oblique-edge fascia bands, ridge cap,
+  ceiling stack (ceiling joists beside the rafters, heel-cut under the rafter tops; insulation and
+  blankets kept under the roof minus `baffle_gap`). `self.layer` sets the parts' `mc.layer`.
+- **Schedule / drawing**: `kinds.floor.summary`, `kinds.roof.summary` feed `schedule.floors_roofs`;
+  `schedule.framing_members` is the joist / rafter cut list (roles in `FRAMING_ROLES`). A kind may
+  define `section_frame(ctx, point) -> (plane, extents)`; `drawing.sectioncut.wall_frame` uses it
+  (floors: along the joists; roofs: along the slope of the face under the point).
+- **Phase 7 hooks**: floors / roofs know nothing about walls yet: `base_offset` (wall height),
+  roof `wall_depth` / `wall_ext` / `wall_int`, floor layer `inset`.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,
 `library/openings/<topic>.json`. Curtain walls: `library/assemblies/curtainwalls.json`,
-`library/profiles/curtainwall.json`, `library/materials/curtainwall.json`.
+`library/profiles/curtainwall.json`, `library/materials/curtainwall.json`. Floors and roofs:
+`library/assemblies/floors.json`, `library/assemblies/roofs.json`, `library/framing/joists.json`,
+`library/profiles/floors_roofs.json`, `library/materials/floors_roofs.json`.
 Material entries: see `library/materials/core.json` (color, render, section, print).
 
 ## Commands

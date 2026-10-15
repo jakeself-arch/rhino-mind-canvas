@@ -34,6 +34,15 @@ mindcanvas/            Python package (the engine)
     wall.py
     opening.py         hosted kind: an opening builds through its host
     curtainwall.py     phase 5: curtain walls (grid of mullions, transoms, infill)
+    floor.py           phase 6: floors (closed boundary + layer stack top -> bottom)
+    roof.py            phase 6: roofs (closed plate-line boundary, flat / shed / gable)
+  floors/              phase 6: joist systems + member selection + JoistLayout (joists.py), layer
+                       builders: slabs, rim / joists / blocking / bridging / fill, metal deck (build.py)
+  roofs/               phase 6: settings + faces (shape.py: local frame per roof plane, overhang
+                       footprint, rafter bottom line), Builder (build.py: rafters with birdsmouth,
+                       ridge, barge, lookouts, ceiling joists, layers, shingle courses, eave / rake trim)
+  hgeo.py              phase 6: local frames, (x, z) section polygons extruded along y, plan
+                       polygon helpers (chords, offsets, clipping), slab_between (planar-face solids)
   curtainwall/         phase 5: settings (defaults <- assembly <- params), grid (runs, bays,
                        vertices, rows), sections (2D member sections per joint style), build
                        (3D members as hashed block instances, corners, infill, anchors, seals)
@@ -85,28 +94,67 @@ docs/                  findings, user guide
 | 4 | Openings: windows/doors, headers, jambs, sills, lintels, soldier courses | Done (`MCOpening`/`MCEditOpening`; PR jakeself-arch/rhino-mind-canvas#1) |
 | — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
-| 6 | Floors + roofs: joists, rafters, flat/shed/gable | |
+| 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; branch `phase6-floors-roofs`) |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-15): Phase 5 (curtain wall) done and merged to main.** Phases 0, 0.5,
-1–5 done and verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`,
+**Current state (2026-10-15): Phase 6 (floors + roofs) done and merged to main.** Phases 0, 0.5,
+1–6 done and verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
-`test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~40 s), `test_phase5.py`
-(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~30 s). Run each in an empty, unsaved
-document of your own `spawn_slot` (they clear the doc; `test_phase5` asserts `not doc.Path`).
+`test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py`
+(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~45 s), `test_phase6.py`
+(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~25 s; `only="drawings"` runs just the
+details). Run each in an empty, unsaved document of your own `spawn_slot` (they clear the doc;
+`test_phase5`/`test_phase6` assert `not doc.Path`). After a run, `git checkout` the regenerated
+images of earlier phases (`git diff --name-only -- docs | xargs git checkout --`).
 Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`,
 `c_window_section_1-1-2.png`, `d_curtainwall_plan_<style>.png` (1-1/2" plans at a vertical
 mullion for captured / ssg4 / ssg2 / butt / unitized), `d_curtainwall_plan_corner.png`,
 `d_curtainwall_section_spandrel.png` and `d_curtainwall_section_unitized.png` (1-1/2" sections
-at a transom / spandrel / slab edge with anchors and safing).
+at a transom / spandrel / slab edge with anchors and safing), `e_roof_eave_section_1-1-2.png`
+(gable eave on a 2x6 wall), `e_roof_flat_edge_1-1-2.png` (low-slope edge),
+`e_floor_section_1-1-2.png` (platform frame: wall, rim, joist, subfloor, wall above) and
+`e_floor_deck_section_1-1-2.png` (concrete on composite deck over C-joists).
 
-**Workflow for phases 6–8 (user, 2026-10-15):** continue through every remaining phase without
+**Workflow for phases 7–8 (user, 2026-10-15):** continue through every remaining phase without
 review stops, one phase per session: branch `phase<N>-<topic>` from main, PR, merge when the
-tests pass, then the next session starts from main. **Next: Phase 6 (floors + roofs).**
+tests pass, then the next session starts from main. **Next: Phase 7 (joins: L/T wall joins,
+wall↔floor, wall↔roof).** Hooks for Phase 7: floors and roofs only know their boundary + datum
+(`base_offset`: floor framing bottom = wall top; roof plate height = wall top) and the roof's
+`wall_depth` / `wall_ext` / `wall_int`; floor ceilings / finish floors use a fixed `inset`. The
+test details extend the lower wall's exterior layers over the rim with `extend_top` overrides;
+Phase 7 should compute these from the actual walls (rim/band covered by sheathing, ceiling and
+finish insets from the wall stack, gable-end wall tops following the rake, high shed walls).
+
+**Phase 6 summary** (branch `phase6-floors-roofs`): kinds `floor` (`kinds/floor.py` +
+`mindcanvas/floors/`) and `roof` (`kinds/roof.py` + `mindcanvas/roofs/`), shared geometry in
+`mindcanvas/hgeo.py`. Library: `library/assemblies/floors.json` (2x10 wood, 11-7/8" I-joist,
+10" metal C-joist, concrete on metal deck), `library/assemblies/roofs.json` (gable vented attic,
+cathedral gable, shed, low-slope membrane with tapered insulation), joist / rafter systems
+`wood_joists` / `metal_joists` in `library/framing/joists.json` (`"use": "joists"`, so MCFraming
+does not list them), profiles in `library/profiles/floors_roofs.json` (boards, I-joists, rim
+boards, metal joists + joist tracks, flat strap, composite decks; new profile type `i_joist`),
+materials in `library/materials/floors_roofs.json`, drawing styles for them in `base.json`.
+Commands `MCFloor`, `MCEditFloor`, `MCRoof`, `MCEditRoof`; `MCSectionCut` cuts floors (along the
+joists) and roofs (along the slope); `MCSchedule` adds a floor / roof schedule and a joist /
+rafter cut list (`_Framing.csv`); `MCDrawing SetLOD`, `MCUpdate`, `MCPurge`, live mode work.
+
+**Phase 6 known limitations:** floors have no holes / stair openings; joists are square-cut where
+they meet an oblique rim (small gap); the rim is one continuous ring per ply (one part); blocking
+rows are spaced over the overall joist run; no hangers, web stiffeners, squash blocks or clip
+angles; I-joists are one solid (one material). Roofs: one ridge per roof (no hips, valleys or
+cross gables) — a gable on an L uses one ridge over the whole footprint (notch eaves sit higher
+than the plate), so L-shapes are meant for flat / shed; the shed's high side follows the boundary
+(longest edge, clockwise) — use `Flip`; metal rafters have no birdsmouth or clips (the bottom
+passes over the outer plate corner) and no lookouts / bird blocks; full trim (fascia, sub-fascia,
+soffit, gutter, rake board, barge, lookouts) only on edges parallel / perpendicular to the ridge,
+oblique edges get a fascia band; rake soffits, gutter hangers / downspouts, ridge vents, vent
+baffles (only the air gap) and gable-end walls are not modeled; ceiling joists butt at the ridge
+line; shingles are continuous courses (no tabs); low-slope edge nailers only on rectangular
+footprints (irregular flat roofs keep the insulation to the edge).
 
 **Phase 5 summary** (branch `phase5-curtain-wall`, PR jakeself-arch/rhino-mind-canvas#2): kind `curtain_wall` (`kinds/curtainwall.py` + `mindcanvas/curtainwall/`),
 assemblies in `library/assemblies/curtainwalls.json`, mullion profiles in
