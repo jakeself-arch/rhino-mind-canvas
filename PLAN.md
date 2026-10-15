@@ -32,6 +32,9 @@ mindcanvas/            Python package (the engine)
     masonry.py         bricks, mortar, ties, flashing, weeps (phase 2)
   kinds/               assembly kinds (how a driver becomes layer bands)
     wall.py
+    opening.py         hosted kind: an opening builds through its host
+  openings/            phase 4: opening drivers + placement (core), section sweeps / mitered
+                       frames (geom), window + door units, trim, sill pan, drip (units)
   engine.py            build / rebuild / delete for a driver
   live.py              watches driver edits and rebuilds (toggle)
   schedule.py          quantity takeoff -> CSV
@@ -74,8 +77,9 @@ docs/                  findings, user guide
 | 1 | Framed walls: wood + metal, swappable systems, plates/tracks, corners, cavity fill, bridging | Done (`MCFraming`; known: track legs overlap sheathing by steel thickness, fill passes through bridging, mitered plates) |
 | 2 | Brick veneer: bricks, bonds, mortar, ties, flashing, weeps, shelf angle | Done (two-sided brick via MCLayers verified; known: curved-segment corners approximate, shelf angle/flashing not tied to modeled structure) |
 | 3 | Drawing system: display mode, MCDrawing, line weights, MCToneHatch, MCStipple, scale presets | Done (MCDrawing/MCSectionCut/MCDisplaySetup/MCDrawingTag; tone + stipple are MCDrawing options; outputs in docs/drawings/) |
+| — | **Review checkpoint with user** | Done (user approved, Phase 4 started) |
+| 4 | Openings: windows/doors, headers, jambs, sills, lintels, soldier courses | Done (`MCOpening`/`MCEditOpening`; PR jakeself-arch/rhino-mind-canvas#1) |
 | — | **Review checkpoint with user** | |
-| 4 | Openings: windows/doors, headers, jambs, sills, lintels, soldier courses | |
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | |
@@ -84,26 +88,49 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-14): REVIEW CHECKPOINT.** Phases 0, 0.5, 1, 2, 3 done and verified in Rhino.
-All tests pass: `tests/test_phase0.py`, `test_phase1.py`, `test_phase2.py`, `test_layers.py`,
-`test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`). Extra beyond plan: per-wall layer editing
-(`MCLayers`, `mindcanvas/stack.py`, `library/layers/`) incl. two-sided brick; `MCDrawing Window` crop.
-Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`.
+**Current state (2026-10-14): Phase 4 reviewed + merged to main; waiting before Phase 5.** Phases 0, 0.5, 1, 2, 3, 4 done and
+verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`, `test_phase2.py`,
+`test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`), `test_phase4.py`
+(`run(doc, drawing_on=True, captures=True)`, ~25 s). Phase 4 was developed on branch `phase4-openings`,
+PR jakeself-arch/rhino-mind-canvas#1 (merged into main after the review comments were addressed).
+Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`,
+`c_window_section_1-1-2.png` (window head + sill, brick veneer / 6" metal stud).
 
-**Waiting on the user's review** before Phase 4 (openings). Do not start Phase 4 until they say so.
+**Waiting for the user's go-ahead** before Phase 5 (curtain wall). Do not start Phase 5
+until they say so.
 
-**Open items noted at review:** 1/8" style tuning vs the reference (layer lines inside cut walls,
-floor textures, denser tone); track legs overlap sheathing by steel thickness; insulation passes
-through bridging; plates mitered not lapped; brick corners at curved segments approximate.
+**Phase 4 review (2026-10-14), addressed:** frames sit at the insulation line (brick returns get
+sheet-metal closures + sealant at the brick face; `"position": "brick"` keeps the old placement);
+SnapHead (default on) puts heads on the brick coursing; window liners get lighter tone in drawings
+(material style `"tone": <spacing multiplier>`).
+
+**Phase 4 known limitations:** with SnapHead off, a head off the coursing leaves a gap under the
+lintel (warned);
+jamb closures are cut at the masonry opening line (no bonding-out of the opening width); openings
+on curved walls are straight units with planar jambs, members along the wall follow the curve;
+end dams are thin plates that slightly overlap the brick at the lintel ends; the L-header sits on
+the wall's top track (not with a deflection track); door frames wrap walls up to 8-3/4" thick,
+thicker walls get a 4-3/4" frame + liners; no hinges / hardware; no opening can straddle a
+corner (it is pushed clear); interior brick sills are cut courses (no stool brick).
+
+**Open items noted at the Phase 3 review:** 1/8" style tuning vs the reference (layer lines inside
+cut walls, floor textures, denser tone); track legs overlap sheathing by steel thickness; insulation
+passes through bridging; plates
+mitered not lapped; brick corners at curved segments approximate.
 
 **Version control:** git repo, remote https://github.com/jakeself-arch/rhino-mind-canvas (private,
 branch `main`). Commit at each milestone (phase done, tests passing) with a clear message and push.
+Since Phase 4, work happens on a branch with a PR (`gh` is at `C:\Program Files\GitHub CLI\gh.exe`,
+not on PATH in the agent shell; signed in as jakeself-arch).
 Pushing from the agent shell may fail with "terminal prompts disabled" if credentials expire — then run
 `git push` in the user's Terminal panel so the GitHub sign-in can appear.
 
 **Testing gotchas:** new Rhino instances stall on the "Autosave Recovery" dialog (user's autosave
 files in `%LOCALAPPDATA%\McNeel\Rhinoceros\8.0\AutoSave` — never delete them). Before running any
-test (they clear the doc), confirm the slot's doc is NOT one of the user's models (check `doc.Path`).
+test (they clear the doc), confirm the slot's doc is NOT one of the user's models (check `doc.Path`)
+— and re-check before EVERY run: the user can open a model in an adopted slot at any time (it
+happened during Phase 4). `spawn_slot` worked without the recovery dialog in Phase 4. Rhino crashed
+once mid-build (not reproducible); write progress to a log file in long test scripts.
 
 ## Drawing scale presets
 | Scale | LOD | Cut appearance |

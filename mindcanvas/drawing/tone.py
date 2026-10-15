@@ -93,8 +93,11 @@ def generate(scene, items, style, mm_per, view, cancel=None, inch=1.0):
             cancel.check()
         if it.small or "notone" in it.flags or it.ground:
             continue
-        if not style.material(it.material).get("tone", True):
+        tv = style.material(it.material).get("tone", True)
+        if not tv:
             continue
+        # a number spaces the lines further apart (lighter tone), e.g. 2.0 = half as dense
+        factor = float(tv) if (isinstance(tv, (int, float)) and not isinstance(tv, bool)) else 1.0
         if it.size_mm < min_face * 2:
             continue
         b = scene.world_brep(it)
@@ -111,6 +114,7 @@ def generate(scene, items, style, mm_per, view, cancel=None, inch=1.0):
             spacing = level(levels, n * sun)
             if spacing is None:
                 continue
+            spacing *= factor
             polys = face_loops(f, tol * 10)
             if not polys:
                 continue

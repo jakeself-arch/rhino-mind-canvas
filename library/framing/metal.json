@@ -1,5 +1,5 @@
 {
-  "_comment": "Cold-formed steel C-stud framing. Studs/tracks are picked from profiles by family + nominal depth + gauge. Tracks wrap the studs (legs outside the stud flanges). deflection_track: deep-leg top track with the studs cut deflection_gap short of its web. Bridging: cold-rolled channel through the stud knockouts every bridging_spacing (detail LOD; 0 = none). gauges: design thickness (in) for reference.",
+  "_comment": "Cold-formed steel C-stud framing. Studs/tracks are picked from profiles by family + nominal depth + gauge. Tracks wrap the studs (legs outside the stud flanges). deflection_track: deep-leg top track with the studs cut deflection_gap short of its web. Bridging: cold-rolled channel through the stud knockouts every bridging_spacing (detail LOD; 0 = none). header: type box (two C's at the wall faces + tracks) | L (angles lapping the top track; layer option header_type overrides) and sizes [[max span, stud profile], ...] by rough-opening width. gauges: design thickness (in) for reference.",
 
   "metal": {
     "type": "metal",
@@ -16,10 +16,13 @@
     "deflection_gap": 0.75,
     "bridging": "1-1/2\" Cold-Rolled Channel, 16 ga",
     "bridging_spacing": 48,
+    "header": {"type": "box", "sizes": [["4'", "6\" Metal Stud, 16 ga"], ["6'", "8\" Metal Stud, 16 ga"],
+                                        ["8'", "10\" Metal Stud, 16 ga"], ["12'", "12\" Metal Stud, 14 ga"]]},
     "names": {
       "stud": "{profile}",
       "track": "{profile}",
-      "bridging": "{profile}"
+      "bridging": "{profile}",
+      "header": "{profile} Header"
     }
   }
 }

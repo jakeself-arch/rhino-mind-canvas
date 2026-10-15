@@ -90,6 +90,9 @@ def run():
     }
     scriptcontext.sticky[STICKY] = params
     for c in curves:
+        if meta.is_driver(c) and meta.get(c, meta.TYPE) != "wall":
+            ui.say("Skipped a {} line (edit it with MCEditOpening).".format(meta.get(c, meta.TYPE)))
+            continue
         if meta.is_driver(c):
             r = engine.set_assembly(doc, c, name)
         else:

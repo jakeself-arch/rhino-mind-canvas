@@ -1,0 +1,15 @@
+{
+  "_comment": "Members used around openings (inches). Lintels: steel angles over brick openings (family 'lintel'; a = horizontal leg under the brick, b = vertical leg, long leg vertical). max_span = largest clear span the angle is picked for when an opening's lintel is 'auto' (smallest that fits). Deeper lumber and metal studs for headers.",
+
+  "L3-1/2x3-1/2x1/4 Lintel": {"type": "angle", "family": "lintel", "a": "3-1/2", "b": "3-1/2", "t": "1/4",  "max_span": "4'"},
+  "L4x3-1/2x5/16 Lintel":    {"type": "angle", "family": "lintel", "a": "3-1/2", "b": 4,       "t": "5/16", "max_span": "6'"},
+  "L5x3-1/2x5/16 Lintel":    {"type": "angle", "family": "lintel", "a": "3-1/2", "b": 5,       "t": "5/16", "max_span": "8'"},
+  "L6x3-1/2x3/8 Lintel":     {"type": "angle", "family": "lintel", "a": "3-1/2", "b": 6,       "t": "3/8",  "max_span": "10'"},
+  "L7x4x3/8 Lintel":         {"type": "angle", "family": "lintel", "a": 4,       "b": 7,       "t": "3/8",  "max_span": "12'"},
+
+  "2x12": {"type": "rect", "width": 1.5, "depth": 11.25, "family": "lumber", "nominal": 12},
+
+  "10\" Metal Stud, 16 ga": {"type": "c_stud", "depth": 10, "flange": "1-5/8", "lip": "1/2", "t": 0.0566, "family": "metal_stud", "nominal": 10, "gauge": 16},
+  "12\" Metal Stud, 16 ga": {"type": "c_stud", "depth": 12, "flange": "1-5/8", "lip": "1/2", "t": 0.0566, "family": "metal_stud", "nominal": 12, "gauge": 16},
+  "12\" Metal Stud, 14 ga": {"type": "c_stud", "depth": 12, "flange": "1-5/8", "lip": "1/2", "t": 0.0713, "family": "metal_stud", "nominal": 12, "gauge": 14}
+}

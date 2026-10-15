@@ -76,7 +76,7 @@ changes. To make your own, add `library/styles/zz_mine.json`:
 | `stipple.density` | Ground dots per mm² near the viewer. `near_p` and `far_p` set the probability that a dot is kept near versus far. `max_samples` caps the work. |
 | `stipple.cut_density`, `stipple.band_mm` | Dot density for ground in section, and the depth of the stippled band under a ground *surface* cut line. |
 | `junction.on` | Draws lines where solids interpenetrate. Off by default because it is slow. |
-| `materials` | Per material name or pattern (`"Brick*"`). Keys: `fill` (`white`, `black`, `grey`, `none`), `hatch` (`{"pattern", "mm", "rot"}`), `batt`, `cross`, `stipple`, `ground`, `inner`, `tone`. The most specific match wins and is merged over `"*"`. |
+| `materials` | Per material name or pattern (`"Brick*"`). Keys: `fill` (`white`, `black`, `grey`, `none`), `hatch` (`{"pattern", "mm", "rot"}`), `batt`, `cross`, `stipple`, `ground`, `inner`, `tone` (`false` = no tone, a number = spacing multiplier, e.g. `2.5` for the lighter tone on window liners). The most specific match wins and is merged over `"*"`. |
 
 Hatch patterns (`mindcanvas/drawing/patterns.py`) all have a unit repeat, so `"mm"` is the repeat on
 paper: MC Brick, MC Brick Coursing, MC Concrete, MC Earth, MC Batt, MC Rigid, MC Plywood, MC Wood,

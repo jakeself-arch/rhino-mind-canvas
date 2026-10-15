@@ -75,3 +75,56 @@ def write_csv(rows, path):
         w.writeheader()
         for r in rows:
             w.writerow(r)
+
+
+# -- openings ------------------------------------------------------------------
+def openings(doc, driver_ids=None):
+    """Window / door schedule: one row per type and size, with the count and the walls.
+    driver_ids: walls (their openings are counted) and/or openings; None = all."""
+    from .openings import core
+    if driver_ids is None:
+        ops = meta.all_drivers(doc, core.KIND)
+    else:
+        ops, seen = [], set()
+        for d in driver_ids:
+            obj = doc.Objects.FindId(d)
+            cands = [obj] if core.is_opening(obj) else core.hosted(doc, d)
+            for o in cands:
+                if str(o.Id) not in seen:
+                    seen.add(str(o.Id))
+                    ops.append(o)
+    rows = {}
+    for o in ops:
+        p = meta.params(o)
+        name = meta.get(o, meta.ASSEMBLY, "?")
+        size = "{} x {}".format(units.format_inches(float(p.get("width", 0))),
+                                units.format_inches(float(p.get("height", 0))))
+        key = (name, size)
+        row = rows.setdefault(key, {"type": name, "size": size, "count": 0, "walls": set(),
+                                    "sill": units.format_inches(float(p.get("sill", 0)))})
+        row["count"] += 1
+        h = meta.get(o, core.HOST)
+        if h:
+            row["walls"].add(h[:8])
+    out = []
+    for key in sorted(rows):
+        r = rows[key]
+        r["walls"] = len(r["walls"])
+        out.append(r)
+    return out
+
+
+def format_openings(rows):
+    lines = ["{:<36} {:<20} {:>10} {:>6} {:>6}".format("Opening type", "Size (W x H)", "Sill", "Count", "Walls")]
+    for r in rows:
+        lines.append("{:<36} {:<20} {:>10} {:>6} {:>6}".format(r["type"][:36], r["size"], r["sill"], r["count"], r["walls"]))
+    lines.append("{:<36} {:<20} {:>10} {:>6}".format("Total", "", "", sum(r["count"] for r in rows)))
+    return "\n".join(lines)
+
+
+def write_openings_csv(rows, path):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["type", "size", "sill", "count", "walls"])
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)

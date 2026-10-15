@@ -73,8 +73,8 @@ def _section_style(doc, spec, color):
     ss.SectionFillRule = _DocObjects.ObjectSectionFillRule.SolidObjects
     bg = white
     if fill == "none":
-        # "None" is a Python keyword, so the enum member needs getattr
-        ss.BackgroundFillMode = getattr(_DocObjects.SectionBackgroundFillMode, "None")
+        # "None" is a Python keyword: pythonnet does not expose the member as an attribute
+        ss.BackgroundFillMode = System.Enum.Parse(_DocObjects.SectionBackgroundFillMode, "None")
     else:
         ss.BackgroundFillMode = _DocObjects.SectionBackgroundFillMode.SolidColor
         bg = white if fill in ("white", "hatch") else _color(spec.get("color"), (0, 0, 0))

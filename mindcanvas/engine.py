@@ -6,6 +6,11 @@
     rebuild_all(doc)
     update_params(doc, driver_obj, changes)        merge param changes + rebuild
     set_assembly(doc, driver_obj, assembly_name)
+    add_opening(doc, host_obj, type_name, params, point)   window / door in a wall + rebuild
+    update_opening(doc, opening_obj, changes, type_name)
+    delete_openings(doc, host_id)
+
+Openings are drivers of a HOSTED kind: build(opening) re-reads its line and builds the host.
 """
 
 import json
@@ -93,9 +98,10 @@ def _bake(doc, ctx, part, driver_id, group_index):
     return doc.Objects.Add(part.geometry, attrs)
 
 
-def build(doc, driver_id, lib=None):
+def build(doc, driver_id, lib=None, sync=True):
     """Regenerate a driver's parts. Parts are computed first, so a failure
-    leaves the previous parts untouched."""
+    leaves the previous parts untouched. For an opening: re-read its line (sync)
+    and build its host."""
     t0 = time.time()
     lib = lib or library.get()
     driver_id = _guid(driver_id)
@@ -104,6 +110,14 @@ def build(doc, driver_id, lib=None):
         raise ValueError("Object {} is not a Mind Canvas driver".format(driver_id))
     kind = meta.get(obj, meta.TYPE, "wall")
     kmod = kinds.get(kind)
+    if getattr(kmod, "HOSTED", False):
+        host = kmod.host_of(doc, obj)
+        if host is None:
+            return BuildResult(driver_id, [], ["Opening has no host; delete it or run MCPurge."],
+                               time.time() - t0)
+        if sync:
+            kmod.sync(doc, obj, host)
+        return build(doc, host.Id, lib)
     ctx = kmod.make_context(doc, lib, obj, meta.get(obj, meta.ASSEMBLY), meta.params(obj))
     parts = kmod.build(ctx)
 
@@ -116,6 +130,7 @@ def build(doc, driver_id, lib=None):
             ids.append(pid)
         else:
             ctx.warn("A '{}' part on layer '{}' could not be added.".format(p.role, p.layer_name))
+    _place_opening_lines(doc, ctx)
     warnings = list(ctx.warnings) + list(lib.warnings)
     if not tolerance_ok(doc):
         warnings.insert(0, "Model tolerance is coarser than 1/256\"; thin layers may be "
@@ -123,9 +138,124 @@ def build(doc, driver_id, lib=None):
     return BuildResult(driver_id, ids, warnings, time.time() - t0)
 
 
+def _place_opening_lines(doc, ctx):
+    """Move each opening's line to where its host put it (follows host curve edits)."""
+    from . import live
+    tol = doc.ModelAbsoluteTolerance
+    with live.quiet():
+        for op in getattr(ctx, "openings", None) or []:
+            line = op.driver_line()
+            cur = op.obj.Geometry
+            if (isinstance(cur, Rhino.Geometry.Curve) and cur.PointAtStart.DistanceTo(line.PointAtStart) < tol
+                    and cur.PointAtEnd.DistanceTo(line.PointAtEnd) < tol):
+                continue
+            doc.Objects.Replace(op.id, line)
+
+
+def hosted_kind(obj):
+    return getattr(kinds.KINDS.get(meta.get(obj, meta.TYPE, "wall")), "HOSTED", False)
+
+
 def rebuild_all(doc, kind=None, lib=None):
     lib = lib or library.get()
-    return [build(doc, d.Id, lib) for d in meta.all_drivers(doc, kind)]
+    return [build(doc, d.Id, lib) for d in meta.all_drivers(doc, kind) if not hosted_kind(d)]
+
+
+def build_many(doc, drivers, lib=None):
+    """Build drivers (hosted ones through their host), each host once."""
+    lib = lib or library.get()
+    out, seen = [], set()
+    for d in drivers:
+        if hosted_kind(d):
+            kmod = kinds.get(meta.get(d, meta.TYPE))
+            host = kmod.host_of(doc, d)
+            if host is None or str(host.Id) in seen:
+                continue
+            kmod.sync(doc, d, host)
+            d = host
+        if str(d.Id) in seen:
+            continue
+        seen.add(str(d.Id))
+        out.append(build(doc, d.Id, lib))
+    return out
+
+
+# -- openings -----------------------------------------------------------------
+def add_opening(doc, host_obj, type_name, params=None, point=None, lib=None):
+    """Add a window / door to a host (point: where along it) and rebuild the host.
+    Returns (opening object, BuildResult)."""
+    from .openings import core
+    lib = lib or library.get()
+    with _quiet():
+        op = core.create(doc, host_obj, type_name, params, point, lib)
+    r = build(doc, host_obj.Id, lib)
+    return doc.Objects.FindId(op.Id), r
+
+
+def snap_to_coursing(doc, host_obj, type_name, params, lib=None):
+    """Move a window (its sill; a door: its height) so its head + sealant joint lands on the
+    nearest bed joint of the host's brick (exterior brick first, else any masonry layer).
+    Returns (params, delta inches); delta 0.0 when the host has no brick or it already fits."""
+    from .components import masonry
+    from .openings import core
+    lib = lib or library.get()
+    if meta.get(host_obj, meta.TYPE) != "wall":
+        return dict(params), 0.0
+    kmod = kinds.get("wall")
+    ctx = kmod.make_context(doc, lib, host_obj, meta.get(host_obj, meta.ASSEMBLY), meta.params(host_obj))
+    bands = [b for b in ctx.bands if b.component == "masonry"]
+    if not bands:
+        return dict(params), 0.0
+    ext = [b for b in bands if masonry.exposed_side(ctx, b) > 0]
+    v = masonry.layout(ctx, max(ext or bands, key=lambda b: b.d_ext))
+    if len(v.courses) < 2:
+        return dict(params), 0.0
+    t = core.merged_type(lib, type_name, params)
+    sill = units.parse_length(params.get("sill", t["sill"]))
+    height = units.parse_length(params.get("height", t["height"]))
+    gap = units.parse_length(t["joint"] if ext else t["shim"])
+    target = ctx.base_z + (sill + height + gap) * ctx.s
+    best = min((c.z for c in v.courses[1:]), key=lambda z: abs(z - target))
+    delta = (best - target) / ctx.s
+    if abs(delta) < 1.0 / 64:
+        return dict(params), 0.0
+    out = dict(params)
+    if t.get("category") == "door" or sill + delta < 0:
+        out["height"] = round(height + delta, 4)
+    else:
+        out["sill"] = round(sill + delta, 4)
+    return out, delta
+
+
+def update_opening(doc, op_obj, changes=None, type_name=None, lib=None):
+    from .openings import core
+    with _quiet():
+        if type_name:
+            core.set_type(doc, op_obj, type_name)
+            op_obj = doc.Objects.FindId(op_obj.Id)
+        if changes:
+            core.update(doc, op_obj, changes)
+    return build(doc, op_obj.Id, lib, sync=False)
+
+
+def delete_openings(doc, host_id):
+    from .openings import core
+    n = 0
+    with _quiet():
+        for o in core.hosted(doc, host_id):
+            if doc.Objects.Delete(o, True):
+                n += 1
+    return n
+
+
+def orphan_openings(doc):
+    from .openings import core
+    return [o for o in meta.all_drivers(doc, core.KIND) if core.host_of(doc, o) is None]
+
+
+def _quiet():
+    from . import live
+    return live.quiet()
 
 
 def update_params(doc, driver_obj, changes, lib=None):
