@@ -86,6 +86,11 @@ Command logic lives in `mindcanvas/cmd/<name>.py` with `run()`; `commands/MC<Nam
 (`select_drivers`, `pick_from_list`, `pick_assembly`, option helpers, `report`).
 Engine API: `engine.create / build / update_params / set_override / set_assembly / rebuild_all`.
 
+## Version control
+GitHub: `jakeself-arch/rhino-mind-canvas`, branch `main`. Commit when a phase or feature is done
+and its tests pass; run the regression tests (`tests/test_phase*.py`, `test_layers.py`) first.
+Don't commit `docs/captures/` churn from exploratory runs unless the images document a result.
+
 ## Ownership while agents work in parallel
 Only edit the files your brief assigns to you. If you need a change in a shared module
 (`engine.py`, `geo.py`, `components/base.py`, `kinds/wall.py`, `docutil.py`, `cmd/ui.py`),

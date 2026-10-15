@@ -96,6 +96,11 @@ Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_secti
 floor textures, denser tone); track legs overlap sheathing by steel thickness; insulation passes
 through bridging; plates mitered not lapped; brick corners at curved segments approximate.
 
+**Version control:** git repo, remote https://github.com/jakeself-arch/rhino-mind-canvas (private,
+branch `main`). Commit at each milestone (phase done, tests passing) with a clear message and push.
+Pushing from the agent shell may fail with "terminal prompts disabled" if credentials expire — then run
+`git push` in the user's Terminal panel so the GitHub sign-in can appear.
+
 **Testing gotchas:** new Rhino instances stall on the "Autosave Recovery" dialog (user's autosave
 files in `%LOCALAPPDATA%\McNeel\Rhinoceros\8.0\AutoSave` — never delete them). Before running any
 test (they clear the doc), confirm the slot's doc is NOT one of the user's models (check `doc.Path`).
