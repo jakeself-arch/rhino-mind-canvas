@@ -3,12 +3,16 @@
     DEFAULTS                       default driver params
     make_context(doc, lib, driver_obj, assembly_name, params) -> BuildContext
     build(ctx) -> list[Part]
+
+A kind with HOSTED = True (openings) has no parts of its own: building it builds its host
+(host_of(doc, obj)).
 """
 
-from . import wall
+from . import opening, wall
 
 KINDS = {
     "wall": wall,
+    "opening": opening,
 }
 
 

@@ -4,9 +4,14 @@ parts when the driver is deleted.
 Events only queue work; the rebuild happens on the next Idle so Rhino has
 finished the user's command. Nothing is queued while Undo/Redo is running,
 because undo restores the old parts itself.
+
+Openings: editing or deleting an opening's line rebuilds its host; deleting a host deletes
+its openings.
 """
 
 import sys
+
+import System
 
 import scriptcontext
 import Rhino
@@ -51,7 +56,11 @@ def enable():
                 return
             if _meta().is_driver(e.TheObject):
                 # a Replace also fires Delete for the old object; Idle sorts it out
-                state["queue"].append((doc.RuntimeSerialNumber, e.ObjectId))
+                sn = doc.RuntimeSerialNumber
+                state["queue"].append((sn, e.ObjectId))
+                host = e.TheObject.Attributes.GetUserString("mc.host")
+                if host:   # an opening: its host rebuilds without it
+                    state["queue"].append((sn, System.Guid(host)))
         except Exception as ex:
             print("Mind Canvas live (delete): {}".format(ex))
 
@@ -75,8 +84,10 @@ def enable():
                     obj = doc.Objects.FindId(oid)
                     if obj is None or obj.IsDeleted:
                         engine.delete_parts(doc, oid)
+                        engine.delete_openings(doc, oid)   # a deleted wall takes its openings along
                     elif _meta().is_driver(obj):
                         r = engine.build(doc, oid)
+                        seen.add((sn, r.driver_id))     # an opening built its host
                         for w in r.warnings:
                             print("Mind Canvas: " + w)
                 except Exception as ex:
@@ -92,6 +103,23 @@ def enable():
     Rhino.RhinoDoc.DeleteRhinoObject += on_delete
     Rhino.RhinoApp.Idle += on_idle
     scriptcontext.sticky[STICKY_KEY] = state
+
+
+class quiet(object):
+    """Context manager: changes made inside (e.g. moving an opening's line during a host
+    build) do not queue live rebuilds."""
+
+    def __enter__(self):
+        self.state = _state()
+        if self.state is not None:
+            self.prev = self.state["busy"]
+            self.state["busy"] = True
+        return self
+
+    def __exit__(self, *exc):
+        if self.state is not None:
+            self.state["busy"] = self.prev
+        return False
 
 
 def disable():

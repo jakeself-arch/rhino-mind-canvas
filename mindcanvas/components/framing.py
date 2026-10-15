@@ -112,10 +112,27 @@ def _area(curve):
 
 
 class _Stud(object):
-    __slots__ = ("seg", "s", "facing", "kind")
+    """kind: end | corner | field | king | jack | jamb | cripple; opf: the _OpFrame of an
+    opening member."""
+    __slots__ = ("seg", "s", "facing", "kind", "opf")
 
-    def __init__(self, seg, s, facing, kind):
-        self.seg, self.s, self.facing, self.kind = seg, s, facing, kind
+    def __init__(self, seg, s, facing, kind, opf=None):
+        self.seg, self.s, self.facing, self.kind, self.opf = seg, s, facing, kind, opf
+
+
+class _OpFrame(object):
+    """Framing of one opening: x0, x1 = rough opening (along the framing centerline from the
+    opening center), the z-range left unfilled by cavity insulation, member elevations."""
+
+    def __init__(self, op, seg, sc, x0, x1):
+        self.op, self.seg, self.sc, self.x0, self.x1 = op, seg, sc, x0, x1
+        self.head_top = op.rz1          # cripples above start here
+        self.sill_bottom = op.rz0       # cripples below end here (windows)
+        self.jack_top = op.rz1
+
+    @property
+    def door(self):
+        return self.op.door
 
 
 class Layout(object):
@@ -141,6 +158,7 @@ class Layout(object):
         self.length_in = self.center.GetLength() / ctx.s
         self._split()
         self._place()
+        self.ops = self._openings()
 
     def opt(self, key, default=None):
         return self.opts.get(key, self.sys.get(key, default))
@@ -224,6 +242,82 @@ class Layout(object):
                     kept.append((s, 1, "field"))
             for s, facing, kind in sorted(kept):
                 self.studs.append(_Stud(i, s, facing, kind))
+
+    # -- openings --------------------------------------------------------------------
+    def _seg_station(self, point):
+        best = None
+        for i, seg in enumerate(self.segs):
+            ok, t = seg.ClosestPoint(point)
+            d = seg.PointAt(t).DistanceTo(point)
+            if best is None or d < best[0]:
+                s = seg.GetLength(G.Interval(seg.Domain.T0, t)) if t - seg.Domain.T0 > 1e-12 else 0.0
+                best = (d, i, s)
+        return best[1], best[2]
+
+    def _openings(self):
+        """Drop the studs an opening displaces (the layout grid is kept: studs inside the
+        rough opening become cripples) and add its jamb members: wood king + jack studs,
+        metal two boxed jamb studs (toe to toe) each side."""
+        ctx = self.ctx
+        out = []
+        w = self.w
+        z = self.center.PointAtStart.Z
+        for op in ctx.openings:
+            o = op.plane.Origin
+            seg, sc = self._seg_station(G.Point3d(o.X, o.Y, z))
+            opf = _OpFrame(op, seg, sc, -op.rx, op.rx)
+            x0, x1 = opf.x0, opf.x1
+            lo, hi = x0 - 2.5 * w + 1e-9, x1 + 2.5 * w - 1e-9
+            keep, crip = [], []
+            for st in self.studs:
+                x = st.s - sc
+                if st.seg != seg or not (lo < x < hi):
+                    keep.append(st)
+                    continue
+                if st.kind not in ("field",):
+                    ctx.warn("Opening '{}' is too close to a wall end, corner or another opening "
+                             "for its framing.".format(op.name))
+                    keep.append(st)
+                    continue
+                if x0 + 0.5 * w - 1e-9 <= x <= x1 - 0.5 * w + 1e-9:
+                    crip.append(x)
+            if self.metal:
+                members = [(x0 - 0.5 * w, -1, "jamb"), (x0 - 1.5 * w, 1, "jamb"),
+                           (x1 + 0.5 * w, 1, "jamb"), (x1 + 1.5 * w, -1, "jamb")]
+            else:
+                members = [(x0 - 0.5 * w, 1, "jack"), (x0 - 1.5 * w, 1, "king"),
+                           (x1 + 0.5 * w, -1, "jack"), (x1 + 1.5 * w, -1, "king")]
+            members += [(x, 1, "cripple") for x in crip]
+            for x, facing, kind in members:
+                keep.append(_Stud(seg, sc + x, facing, kind, opf))
+            self.studs = sorted(keep, key=lambda st: (st.seg, st.s))
+            out.append(opf)
+        return out
+
+    def extents(self, st, zb, zt):
+        """[(z0, z1)] pieces of a stud between the plates/tracks (zb, zt)."""
+        opf = st.opf
+        if opf is None or st.kind in ("king", "jamb"):
+            return [(zb, zt)]
+        if st.kind == "jack":
+            return [(zb, opf.jack_top)]
+        out = [(opf.head_top, zt)]
+        if not opf.door:
+            out.insert(0, (zb, opf.sill_bottom))
+        return out
+
+    def exclusions(self, crv):
+        """z-ranges a cavity piece (plan curve) must leave empty: the framed opening."""
+        amp = G.AreaMassProperties.Compute(crv)
+        if amp is None or not self.ops:
+            return []
+        c = amp.Centroid
+        out = []
+        for opf in self.ops:
+            x = opf.op.local(c)[0]
+            if opf.x0 - 1e-9 < x < opf.x1 + 1e-9:
+                out.append((None if opf.door else opf.sill_bottom, opf.head_top))
+        return out
 
     def frame(self, stud, z):
         """Plane at a stud: origin on the centerline at z, X along the wall

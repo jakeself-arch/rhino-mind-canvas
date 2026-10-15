@@ -1,5 +1,7 @@
-"""Continuous layers: sheathing, gypsum board, rigid insulation, membranes, air gaps."""
+"""Continuous layers: sheathing, gypsum board, rigid insulation, membranes, air gaps.
+Openings are cut out (rough opening, or unit + sealant joint for cladding in front of the frame)."""
 
+from ..openings import core as openings
 from .base import Component, Part, register
 
 
@@ -11,7 +13,8 @@ class Solid(Component):
 
     def build(self, ctx, band):
         z0, z1 = ctx.z_range(band)
-        return [Part(s, band.material, role=self.role) for s in ctx.solids(band.d_ext, band.d_int, z0, z1)]
+        solids = openings.cut(ctx, ctx.solids(band.d_ext, band.d_int, z0, z1), band, z0)
+        return [Part(s, band.material, role=self.role) for s in solids]
 
 
 @register

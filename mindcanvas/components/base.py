@@ -91,6 +91,7 @@ class BuildContext(object):
         self.s = units.inch_scale(doc)
         self.bands = []
         self.warnings = []
+        self.openings = []            # openings.core.Opening records hosted by this assembly
 
     # -- units ------------------------------------------------------------
     def u(self, value):

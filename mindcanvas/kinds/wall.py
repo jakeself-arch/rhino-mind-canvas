@@ -15,8 +15,9 @@ Open curve: exterior is on the LEFT of the drawing direction.
 Closed curve: exterior is outside. `flip` reverses either.
 """
 
-from .. import components, geo, meta, units
+from .. import components, geo, meta, openings, units
 from ..components.base import BuildContext, LayerBand
+from ..openings import units as opening_units
 
 REFERENCES = ("exterior_face", "interior_face", "center",
               "core_exterior", "core_interior", "core_center")
@@ -105,6 +106,7 @@ def make_context(doc, lib, driver_obj, assembly_name, params):
     lod = params.get("lod") or assembly.get("lod") or "detail"
 
     ctx = BuildContext(doc, lib, assembly_name, assembly, params, curve, base_z, height, lod)
+    ctx.raw_curve = driver_obj.Geometry.DuplicateCurve()
 
     reference = params.get("reference") or assembly.get("default_reference") or "center"
     if reference not in REFERENCES:
@@ -116,7 +118,53 @@ def make_context(doc, lib, driver_obj, assembly_name, params):
         d_ext = (s_ref - s[i]) * s_scale
         d_int = (s_ref - s[i + 1]) * s_scale
         ctx.bands.append(LayerBand(i, spec, d_ext, d_int))
+    ctx.openings = openings.resolve(ctx, driver_obj, place_opening)
     return ctx
+
+
+def place_opening(ctx, station, half):
+    """(plane, s) of an opening centered `station` (model units along the driver as drawn):
+    plane at the point on the oriented curve (z = 0, X tangent, Y exterior), s = distance along
+    ctx.curve. The opening (half-width `half` incl. framing) is kept inside its run between
+    corners, clear of the corner by the wall thickness."""
+    raw = ctx.raw_curve
+    L = raw.GetLength()
+    ok, t_raw = raw.LengthParameter(min(max(station, 0.0), L))
+    P = raw.PointAt(t_raw)
+    crv = ctx.curve
+    ok, t = crv.ClosestPoint(P)
+    G = geo.G
+    t0 = crv.Domain.T0
+    Lc = crv.GetLength()
+    s = crv.GetLength(G.Interval(t0, t)) if t - t0 > 1e-12 else 0.0
+    kinks = sorted(crv.GetLength(G.Interval(t0, k)) for k in geo.kink_parameters(crv))
+    thick = max(b.d_ext for b in ctx.bands) - min(b.d_int for b in ctx.bands)
+    seam_corner = crv.IsClosed and G.Vector3d.VectorAngle(crv.TangentAtStart, crv.TangentAtEnd) > 0.02
+    if crv.IsClosed and not kinks and not seam_corner:
+        lo, hi = None, None
+    else:
+        bounds = [(0.0, crv.IsClosed and seam_corner)] + [(k, True) for k in kinks] + [(Lc, crv.IsClosed and seam_corner)]
+        lo, hi = bounds[0], bounds[-1]
+        for a, b in zip(bounds, bounds[1:]):
+            if a[0] - 1e-9 <= s <= b[0] + 1e-9:
+                lo, hi = a, b
+                break
+    if lo is not None:
+        clear = lambda corner: (thick + ctx.u(2)) if corner else ctx.u(2)
+        a = lo[0] + clear(lo[1]) + half
+        b = hi[0] - clear(hi[1]) - half
+        if a > b:
+            ctx.warn("A wall run is too short for its opening.")
+            s_new = 0.5 * (lo[0] + hi[0])
+        else:
+            s_new = min(max(s, a), b)
+        if abs(s_new - s) > ctx.u(1.0 / 16):
+            ctx.warn("An opening was moved {} to stay clear of a wall end or corner.".format(
+                units.format_inches(abs(s_new - s) / ctx.s)))
+        s = s_new
+    ok, t = crv.LengthParameter(min(max(s, 0.0), Lc))
+    plane = geo.frame_at(crv, t, 0.0)
+    return plane, s
 
 
 def build(ctx):
@@ -136,4 +184,7 @@ def build(ctx):
         for p in comp.build(ctx, band):
             p.layer_name = p.layer_name or band.name
             parts.append(p)
+    # window / door units hosted by this wall
+    for op in ctx.openings:
+        parts.extend(opening_units.build(ctx, op))
     return parts

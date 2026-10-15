@@ -1,0 +1,44 @@
+{
+  "_comment": "Window types (MCOpening). Lengths in inches or imperial strings. width / height = unit (frame outside) size, sill = unit bottom above the wall base. Any key of mindcanvas/openings/core.py DEFAULTS can be overridden here (nested dicts merge): frame {face, depth, material}, operation fixed | casement | awning | double_hung | sliding, sash {face, depth, material}, mullions {vertical, horizontal, face}, glazing {lites, glass, space, bite, material, spacer}, shim (rough opening clearance), joint (sealant joint at cladding), set (brick walls: frame face this far in front of the back of the brick), masonry {lintel, bearing, head none|soldier|sailor, sill rowlock|none, sill_slope, sill_projection, flashing, weeps, end_dam, upturn}, trim {liner, stool, stool_projection, material}, sill_pan {...}, head_flashing {...}.",
+
+  "Window - Fixed": {
+    "category": "window", "label": "Fixed window, aluminum frame, insulated glass",
+    "width": "3'", "height": "4'-8\"", "sill": "2'-8\"",
+    "frame": {"material": "Aluminum", "face": "1-3/4", "depth": "3-1/4"},
+    "operation": "fixed"
+  },
+
+  "Window - Casement": {
+    "category": "window", "label": "Casement window, aluminum frame and sash, insulated glass",
+    "width": "2'-6\"", "height": "4'-8\"", "sill": "2'-8\"",
+    "frame": {"material": "Aluminum", "face": "1-3/4", "depth": "3-1/4"},
+    "operation": "casement",
+    "sash": {"material": "Aluminum", "face": "2", "depth": "2"}
+  },
+
+  "Window - Double Hung": {
+    "category": "window", "label": "Double-hung window, wood frame and sashes, insulated glass",
+    "width": "3'", "height": "5'", "sill": "2'-6\"",
+    "frame": {"material": "Wood Window", "face": "1-3/4", "depth": "4-1/2"},
+    "operation": "double_hung",
+    "sash": {"material": "Wood Window", "face": "2-1/4", "depth": "1-3/4"},
+    "glazing": {"glass": "1/8", "space": "1/2"}
+  },
+
+  "Window - Ribbon, 3 Lites": {
+    "category": "window", "label": "Fixed ribbon window, two vertical mullions",
+    "width": "9'", "height": "3'", "sill": "4'",
+    "frame": {"material": "Aluminum", "face": "1-3/4", "depth": "3-1/4"},
+    "operation": "fixed",
+    "mullions": {"vertical": 2, "horizontal": 0, "face": "1-3/4"}
+  },
+
+  "Window - Awning with Transom": {
+    "category": "window", "label": "Fixed transom over an awning sash",
+    "width": "4'", "height": "6'", "sill": "2'",
+    "frame": {"material": "Aluminum", "face": "1-3/4", "depth": "3-1/4"},
+    "operation": "awning",
+    "mullions": {"vertical": 0, "horizontal": 1, "face": "1-3/4"},
+    "sash": {"material": "Aluminum", "face": "2", "depth": "2"}
+  }
+}

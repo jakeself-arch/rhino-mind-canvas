@@ -8,6 +8,7 @@ Sections:
     layers      name -> reusable layer preset; assembly layers may say
                 {"preset": "<name>", ...overrides}
     styles      name -> drawing style (phase 3)
+    openings    name -> window / door type (phase 4, see mindcanvas/openings)
 
 Adding content never requires code: drop a new .json file into the right
 folder. Keys starting with "_" (e.g. "_comment") are ignored. Later files
@@ -17,7 +18,7 @@ override earlier ones (alphabetical), so a "zz_my_overrides.json" wins.
 import json
 import os
 
-SECTIONS = ("materials", "profiles", "framing", "assemblies", "layers", "styles")
+SECTIONS = ("materials", "profiles", "framing", "assemblies", "layers", "styles", "openings")
 USER_ASSEMBLIES = "zz_user_assemblies.json"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

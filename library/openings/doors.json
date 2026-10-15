@@ -1,0 +1,35 @@
+{
+  "_comment": "Door types (MCOpening). width / height = frame outside size; sill = 0 (floor). frame {material, face, depth (auto = full wall depth for walls up to max_wrap thick, else 4-3/4), stop}, leaf {thickness, material, undercut, clearance, lite {stile | width, top, bottom, glass, glazing}}, threshold {material, width, height}, swing in | out, hinge left | right (as seen from the exterior). See windows.json for the shared keys.",
+
+  "Door - Hollow Metal": {
+    "category": "door", "label": "Hollow metal door in a hollow metal frame",
+    "width": "3'-4\"", "height": "7'-2\"",
+    "frame": {"material": "Hollow Metal", "face": "2", "stop": "5/8", "depth": "auto"},
+    "leaf": {"material": "Hollow Metal Door", "thickness": "1-3/4"}
+  },
+
+  "Door - Hollow Metal, Half Lite": {
+    "category": "door", "label": "Hollow metal door with a half glass lite",
+    "width": "3'-4\"", "height": "7'-2\"",
+    "frame": {"material": "Hollow Metal", "face": "2", "stop": "5/8", "depth": "auto"},
+    "leaf": {"material": "Hollow Metal Door", "thickness": "1-3/4",
+             "lite": {"stile": "6", "top": "6", "bottom": "40"}}
+  },
+
+  "Door - Wood Flush": {
+    "category": "door", "label": "Solid-core wood flush door, wood frame",
+    "width": "3'-2\"", "height": "7'-1\"",
+    "frame": {"material": "Wood Trim", "face": "1", "stop": "1/2", "depth": "auto"},
+    "leaf": {"material": "Wood Door", "thickness": "1-3/4"},
+    "threshold": null
+  },
+
+  "Door - Aluminum Storefront": {
+    "category": "door", "label": "Aluminum stile-and-rail glass door",
+    "width": "3'-6\"", "height": "7'-2\"",
+    "frame": {"material": "Aluminum", "face": "1-3/4", "stop": "1/2", "depth": "4-1/2"},
+    "leaf": {"material": "Aluminum", "thickness": "1-3/4",
+             "lite": {"stile": "3-1/2", "top": "3-1/2", "bottom": "10", "glass": "1/2"}},
+    "swing": "out"
+  }
+}

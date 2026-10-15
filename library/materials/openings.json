@@ -1,0 +1,15 @@
+{
+  "_comment": "Window / door materials (see core.json for the format). Metal frames, glass and flashing cut solid black so they read as heavy lines at detail scales; wood trim and wood doors get the wood hatch.",
+
+  "Hollow Metal":       {"color": [120, 128, 136], "render": {"gloss": 0.5},
+                         "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.25}},
+  "Hollow Metal Door":  {"color": [140, 148, 156], "render": {"gloss": 0.5},
+                         "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.25}},
+  "Wood Door":          {"color": [176, 128, 80], "render": {"gloss": 0.15},
+                         "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Wood Window":        {"color": [196, 160, 110], "render": {"gloss": 0.15},
+                         "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Wood Trim":          {"color": [222, 196, 150], "render": {"gloss": 0.1},
+                         "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.18}},
+  "Door Swing":         {"color": [90, 90, 90], "section": {"fill": "none"}, "print": {"weight": 0.13}}
+}
