@@ -23,6 +23,13 @@ Arcs and free curves get straight bricks on chords laid tight on the inner side;
 up toward the outer side.
 LOD: schematic = solid band, design = bricks, detail = bricks + bed/head joints + weeps.
 
+Openings (ctx.openings, see MOpening): courses inside a masonry opening are split around it
+(the bond is unchanged outside; jamb-end pieces shorter than min_piece are merged with their
+neighbor into two equal closures), a course crossing the sill line is cut down to it, bed joints
+are cut out. Steel angle lintel in the first bed joint over the head (bearing each side),
+optional soldier / sailor course on it, rowlock sill, flashing with end dams, weeps over the
+lintel, sealant + backer rod at the frame. Opening options live in the opening type ("masonry").
+
 `layout(ctx, band)` gives the cached Veneer (coursing + geometry), used by veneer.py
 (ties, flashing, shelf angles) to land on the same bed joints.
 """
@@ -33,6 +40,7 @@ import math
 import Rhino
 
 from .. import geo, units
+from ..openings import core as openings
 from .base import Component, Part, register
 
 G = Rhino.Geometry
@@ -239,6 +247,114 @@ class Course(object):
         return "<Course {} {} z={:.4f}>".format(self.index, self.special or self.k, self.z)
 
 
+class MOpening(object):
+    """An opening as seen by one masonry layer (veneer coordinates: y toward the exposed face).
+
+    Exterior brick (the outermost exterior-exposed masonry layer, which sets the unit's frame
+    position): masonry opening = unit + sealant joint; steel angle lintel in the bed joint of
+    the first course clear of the frame head (+ joint); optional soldier / sailor course on the
+    lintel; rowlock sill sloped outward on a mortar wedge, the course under it cut to fit;
+    head and sill flashing, end dams, weeps over the lintel, sealant + backer rod.
+    Any other masonry layer (e.g. interior brick): opening = rough opening, lintel, the course
+    at the sill cut to the rough opening.
+    """
+
+    def __init__(self, v, op):
+        ctx = v.ctx
+        u = ctx.u
+        self.v, self.op = v, op
+        self.m = m = op.t.get("masonry", {})
+        self.ext = v.sign > 0 and op.masonry_ext is not None and op.masonry_ext.index == v.band.index
+        self.hx = 0.5 * op.W + op.joint if self.ext else op.rx
+        self.bearing = u(m.get("bearing", 6))
+        need = (op.z1 + op.joint) if self.ext else op.rz1
+        self.k_head = None
+        for c in v.courses[1:]:
+            if c.z >= need - u(1.0 / 32):
+                self.k_head = c.index
+                break
+        if self.k_head is None:
+            self.z_top = v.z1 + u(12)
+            ctx.warn("Opening '{}' reaches the top of the brick; no lintel.".format(op.name))
+        else:
+            self.z_top = v.courses[self.k_head].z
+            gap = self.z_top - need
+            if gap > u(0.5):
+                ctx.warn("Brick over '{}': the lintel sits {} above the frame head + joint (next bed joint). "
+                         "Set the head to the coursing to close the gap.".format(op.name, units.format_inches(gap / ctx.s)))
+        # head course on the lintel
+        self.head, self.n_head, self.head_top = None, 0, self.z_top
+        if op.head in ("soldier", "sailor") and self.k_head is not None:
+            n = max(1, int(round((v.L + v.bed0) / v.ch)))
+            ks = range(self.k_head, self.k_head + n)
+            if ks[-1] < len(v.courses):
+                self.head, self.n_head = op.head, n
+                self.head_top = v.courses[ks[-1]].top
+            else:
+                ctx.warn("No room for a {} course over '{}'.".format(op.head, op.name))
+        # sill
+        sill = "none" if op.door else str(m.get("sill", "rowlock")).lower()
+        self.rowlock = None
+        if op.door:
+            z_bot = op.z0
+        elif self.ext and sill == "rowlock":
+            z_bot = self._rowlock(ctx, m)
+        elif self.ext:
+            z_bot = op.z0 - op.joint
+        else:
+            z_bot = op.rz0
+        self.z_bot = z_bot
+        self.z_support = v.support(z_bot)
+
+    def _rowlock(self, ctx, m):
+        """Rowlock sill section (veneer y, z): back-top corner just under the frame, sloped down
+        and out, projecting past the face; the back end stays clear of the backup."""
+        from .veneer import Stack
+        v, op, u = self.v, self.op, ctx.u
+        th = math.radians(float(m.get("sill_slope", 15)))
+        ct, sn = math.cos(th), math.sin(th)
+        L, D = v.L, v.D
+        st = Stack(ctx, v.band)
+        y_bk = st.y_bk if st.y_bk is not None else v.y_face - D - u(2)
+        proj = u(m.get("sill_projection", "1-1/2"))
+        tan = math.tan(th)
+        # top surface runs through (y_a, z_a): just under the back of the frame, clear of the backup
+        y_a = max(y_bk + u(0.25), op.y_fi * v.sign) if v.sign > 0 else y_bk + u(0.25)
+        z_a = op.z0 - u(0.25)
+        yT = v.y_face + proj - L * ct
+        T = (yT, z_a - (yT - y_a) * tan)
+        Uv, Vv = (ct, -sn), (sn, ct)
+        P = lambda p, a, b: (p[0] + a * Uv[0] + b * Vv[0], p[1] + a * Uv[1] + b * Vv[1])
+        poly = [T, P(T, L, 0), P(T, L, -D), P(T, 0, -D)]
+        cut = _clip(poly, y_a, 0.0, 1)   # rowlock cut square at the back where it is too long
+        self.rowlock_cut = len(cut) != 4 or abs(_area(cut) - _area(poly)) > 1e-9
+        poly = cut or poly
+        B0 = P(T, 0, -D)
+        zb_at = lambda y: B0[1] - (y - B0[0]) * tan
+        self.rowlock = {"poly": poly, "zb_at": zb_at, "y0": max(B0[0], y_a), "proj": proj, "slope": th}
+        return zb_at(v.y_face) - v.bed0
+
+    def course_cut(self, c):
+        """None | "remove" | ("cut", height) for a course inside this opening's span."""
+        eps = self.v.eps
+        if c.top <= self.z_support + eps:
+            return None
+        if c.zb >= self.z_top - eps:
+            if self.head and self.k_head <= c.index < self.k_head + self.n_head:
+                return "remove"
+            return None
+        if c.zb >= self.z_support - eps:
+            return "remove"
+        return ("cut", self.z_support - c.zb)
+
+    def wy(self, y):
+        """Veneer y -> wall y."""
+        return y * self.v.sign
+
+    def wpoly(self, poly):
+        return [(self.wy(y), z) for y, z in poly]
+
+
 class Veneer(object):
     def __init__(self, ctx, band):
         self.ctx, self.band = ctx, band
@@ -276,6 +392,8 @@ class Veneer(object):
         self.courses = self._coursing(o)
         self._legs = None
         self._blocks = {}
+        self._mos = None
+        self._span_cache = {}
 
     # -- brick + coursing ------------------------------------------------
     def _brick(self, o):
@@ -388,6 +506,134 @@ class Veneer(object):
     def bed_joints(self):
         """(z_bottom, z_top) of every bed joint between courses (not under course 0)."""
         return [(c.z, c.z + c.bed) for c in self.courses[1:]]
+
+    def support(self, z):
+        """Top of what is left under a horizontal cut at z: a course top, or z itself when the
+        course it falls in is cut down (at least 1/2" of it remains)."""
+        cs = self.courses
+        for i, c in enumerate(cs):
+            if c.zb - self.eps <= z <= c.top + self.eps:
+                return z if z - c.zb >= self.ctx.u(0.5) else c.z
+            if i + 1 < len(cs) and c.top < z < cs[i + 1].zb:
+                return c.top
+        return z
+
+    # -- openings ----------------------------------------------------------------
+    @property
+    def mos(self):
+        if self._mos is None:
+            self._mos = []
+            for op in getattr(self.ctx, "openings", None) or []:
+                if op.rz1 <= self.z0 or op.rz0 >= self.z1:
+                    continue
+                self._mos.append(MOpening(self, op))
+        return self._mos
+
+    def spans(self, crv):
+        """[(a, b, MOpening)] lengths along crv (any curve of this veneer: a leg, its inner
+        offset or face) between each opening's jamb planes."""
+        key = id(crv)
+        if key in self._span_cache:
+            return self._span_cache[key][1]
+        out = []
+        tol = self.ctx.tol
+        z = crv.PointAtStart.Z
+        t0 = crv.Domain.T0
+        L = crv.GetLength()
+        for mo in self.mos:
+            op = mo.op
+            ls = []
+            for x in (-mo.hx, mo.hx):
+                hits = G.Intersect.Intersection.CurvePlane(crv, op.jamb_plane(x), tol)
+                p0 = op.pt(x, 0, z)
+                best = None
+                for ev in hits or []:
+                    d = ev.PointA.DistanceTo(p0)
+                    if best is None or d < best[0]:
+                        best = (d, ev.ParameterA)
+                if best is None or best[0] > abs(self.y_face) + self.D + op.sag + self.ctx.u(24):
+                    break
+                ls.append(crv.GetLength(G.Interval(t0, best[1])) if best[1] - t0 > 1e-12 else 0.0)
+            if len(ls) < 2:
+                continue
+            a, b = sorted(ls)
+            if b - a > 2 * mo.hx + op.sag + self.ctx.u(12) or (crv.IsClosed and b - a > 0.5 * L):
+                continue   # opening straddles a closed curve's seam
+            out.append((a, b, mo))
+        self._span_cache[key] = (crv, out)   # keep crv alive so its id stays unique
+        return out
+
+    def _remove(self, run, a, b, j):
+        """Split a run of pieces around [a, b]; jamb-end pieces shorter than min_piece are
+        merged with their neighbor into two equal closures."""
+        eps = self.eps
+        left, right = [], []
+        for p in run:
+            if p[1] <= a + eps:
+                left.append(p)
+            elif p[0] >= b - eps:
+                right.append(p)
+            else:
+                if p[0] < a - eps:
+                    left.append([p[0], a, "cut", p[3]] + p[4:])
+                if p[1] > b + eps:
+                    right.append([b, p[1], "cut", p[3]] + p[4:])
+        if left and left[-1][1] - left[-1][0] < self.min_piece:
+            if len(left) >= 2:
+                q0 = left[-2][0]
+                w = (a - q0 - j) / 2.0
+                left[-2:] = [[q0, q0 + w, "cut", 2 * w], [a - w, a, "cut", 2 * w]]
+            else:
+                left = []
+        if right and right[0][1] - right[0][0] < self.min_piece:
+            if len(right) >= 2:
+                q1 = right[1][1]
+                w = (q1 - b - j) / 2.0
+                right[:2] = [[b, b + w, "cut", 2 * w], [q1 - w, q1, "cut", 2 * w]]
+            else:
+                right = []
+        return [r for r in (left, right) if r]
+
+    def _lower(self, run, a, b, h):
+        """Pieces inside [a, b] cut down to height h (split at the jambs)."""
+        eps = self.eps
+        out = []
+        for p in run:
+            if p[1] <= a + eps or p[0] >= b - eps:
+                out.append(p)
+                continue
+            if p[0] < a - eps:
+                out.append([p[0], a, "cut", p[3]] + p[4:])
+            out.append([max(p[0], a), min(p[1], b), "cut", p[3], h])
+            if p[1] > b + eps:
+                out.append([b, p[1], "cut", p[3]] + p[4:])
+        return out
+
+    def _apply_openings(self, crv, c, pcs, j):
+        runs = [pcs]
+        for a, b, mo in self.spans(crv):
+            mode = mo.course_cut(c)
+            if mode is None:
+                continue
+            if mode == "remove":
+                runs = [r2 for r in runs for r2 in self._remove(r, a, b, j)]
+            elif mode[1] < self.ctx.u(0.5):
+                runs = [r2 for r in runs for r2 in self._remove(r, a, b, j)]
+            else:
+                runs = [self._lower(r, a, b, mode[1]) for r in runs]
+        return [r for r in runs if r]
+
+    def _weep_zones(self, crv, c, lo, hi):
+        """[(start, end, spacing)] where weeps go in a course: the base course, and the first
+        course over each exterior lintel (at least two per opening)."""
+        out = []
+        if c.index == 0 and self.weeps:
+            out.append((lo, hi, self.weeps))
+        for a, b, mo in self.spans(crv):
+            sp = self.ctx.u(mo.m.get("weeps", 24) or 0)
+            if mo.ext and sp and mo.k_head is not None and c.index == mo.k_head and mo.m.get("flashing", True):
+                out.append((a, b, min(sp, 0.5 * (b - a))))
+        return out
 
     def pattern(self, c, j):
         """(units, phase) of a course for head joint j."""
@@ -656,66 +902,103 @@ class Veneer(object):
                     self._curved_course(leg, c, detail, out)
         if detail:
             out.extend(self._bed_joint_parts())
+        out.extend(self._opening_parts(detail))
         return out
 
-    def _weep_slots(self, centers, start, end):
-        """Indices of joints (by center position) nearest to weep stations."""
-        if not self.weeps or not centers:
+    def _weep_slots(self, centers, start, end, spacing=None):
+        """Indices of joints (by center position) nearest to weep stations in [start, end]."""
+        spacing = spacing or self.weeps
+        if not spacing or not centers:
             return set()
         chosen = set()
-        x = start + self.weeps * 0.5
+        idx = [i for i in range(len(centers)) if start - 1e-9 <= centers[i] <= end + 1e-9]
+        if not idx:
+            return chosen
+        x = start + spacing * 0.5
         while x < end:
-            best = min(range(len(centers)), key=lambda i: abs(centers[i] - x))
-            if abs(centers[best] - x) < self.weeps * 0.5:
+            best = min(idx, key=lambda i: abs(centers[i] - x))
+            if abs(centers[best] - x) < spacing * 0.5:
                 chosen.add(best)
-            x += self.weeps
+            x += spacing
         return chosen
+
+    def _course_weeps(self, centers, zones):
+        out = set()
+        for lo, hi, sp in zones:
+            out |= self._weep_slots(centers, lo, hi, sp)
+        return out
 
     def _straight_course(self, leg, c, detail, out):
         pcs, b = self._straight_pieces(leg, c)
         if not pcs:
             return
+        j = leg.j or self.j0
+        first, last = pcs[0], pcs[-1]
+        runs = self._apply_openings(leg.crv, c, pcs, j)
         y_f, y_b = b["y_f"], b["y_b"]
         slanted = b["sb"] != 0 or b["eb"] != 0
         bplanes = [(b["sa"] + b["sg"], b["sb"], 1), (b["ea"] - b["eg"], b["eb"], -1)]
-        zb, h = c.zb, c.h
+        zb = c.zb
         mat = self.material
-        for a, bb, kind, w in pcs:
-            poly = _rect(a, bb, y_b, y_f)
-            if slanted:
-                poly = _clip_all(poly, bplanes)
-            if poly:
-                out.append(self._leg_part(leg, poly, zb, h, mat, self._role(kind, bb - a, w, c)))
+        for run in runs:
+            for p in run:
+                a, bb, kind, w = p[:4]
+                h = p[4] if len(p) > 4 else c.h
+                poly = _rect(a, bb, y_b, y_f)
+                if slanted:
+                    poly = _clip_all(poly, bplanes)
+                if poly:
+                    out.append(self._leg_part(leg, poly, zb, h, mat, self._role(kind, bb - a, w, c)))
         if not detail:
             return
         y_j = y_f - self.recess
-        gaps = [(p[1], q[0]) for p, q in zip(pcs, pcs[1:])]
-        weeps = self._weep_slots([0.5 * (g[0] + g[1]) for g in gaps], b["lo"], b["hi"]) if c.index == 0 else set()
-        for gi, (a, bb) in enumerate(gaps):
-            if bb - a <= self.eps:
-                continue
-            weep = gi in weeps
-            poly = _rect(a, bb, y_b, y_f if weep else y_j)
-            if slanted:
-                poly = _clip_all(poly, bplanes)
-            if poly:
-                if weep:
-                    out.append(self._leg_part(leg, poly, zb, h, self.weep_material, "weep"))
-                else:
-                    out.append(self._leg_part(leg, poly, zb, h, self.mortar, "mortar_head"))
+        zones = self._weep_zones(leg.crv, c, b["lo"], b["hi"])
+        for run in runs:
+            gaps = [(p[1], q[0], min(p[4] if len(p) > 4 else c.h, q[4] if len(q) > 4 else c.h))
+                    for p, q in zip(run, run[1:])]
+            weeps = self._course_weeps([0.5 * (g[0] + g[1]) for g in gaps], zones)
+            for gi, (a, bb, h) in enumerate(gaps):
+                if bb - a <= self.eps:
+                    continue
+                weep = gi in weeps
+                poly = _rect(a, bb, y_b, y_f if weep else y_j)
+                if slanted:
+                    poly = _clip_all(poly, bplanes)
+                if poly:
+                    if weep:
+                        out.append(self._leg_part(leg, poly, zb, h, self.weep_material, "weep"))
+                    else:
+                        out.append(self._leg_part(leg, poly, zb, h, self.mortar, "mortar_head"))
         ends = []
-        if b["sb"] == 0 and pcs[0][0] - b["sa"] > self.eps:
-            ends.append(_rect(b["sa"], pcs[0][0], y_b, y_j))
-        if b["eb"] == 0 and b["ea"] - pcs[-1][1] > self.eps:
-            ends.append(_rect(pcs[-1][1], b["ea"], y_b, y_j))
-        elif b["eg"] > 0:
-            lo = min(b["ea"] - b["eg"] + b["eb"] * y for y in (y_b, y_j))
-            hi = max(b["ea"] + b["eb"] * y for y in (y_b, y_j))
-            ends.append(_clip_all(_rect(lo, hi, y_b, y_j),
-                                  [(b["ea"] - b["eg"], b["eb"], 1), (b["ea"], b["eb"], -1)]))
+        if runs and runs[0][0] is first and b["sb"] == 0 and first[0] - b["sa"] > self.eps:
+            ends.append(_rect(b["sa"], first[0], y_b, y_j))
+        if runs and runs[-1][-1] is last:
+            if b["eb"] == 0 and b["ea"] - last[1] > self.eps:
+                ends.append(_rect(last[1], b["ea"], y_b, y_j))
+            elif b["eg"] > 0:
+                lo = min(b["ea"] - b["eg"] + b["eb"] * y for y in (y_b, y_j))
+                hi = max(b["ea"] + b["eb"] * y for y in (y_b, y_j))
+                ends.append(_clip_all(_rect(lo, hi, y_b, y_j),
+                                      [(b["ea"] - b["eg"], b["eb"], 1), (b["ea"], b["eb"], -1)]))
         for poly in ends:
             if poly:
-                out.append(self._leg_part(leg, poly, zb, h, self.mortar, "mortar_head"))
+                out.append(self._leg_part(leg, poly, zb, c.h, self.mortar, "mortar_head"))
+
+    def _chord_frame(self, ci, Li, a, b, closed, d, concave, zb):
+        """(origin, X, Y, length) of a straight unit laid on the chord of ci from a to b."""
+        l = b - a
+        p0 = ci.PointAtLength(a % Li if closed else max(a, 0.0))
+        p1 = ci.PointAtLength(b % Li if closed else min(b, Li))
+        X = G.Vector3d(p1.X - p0.X, p1.Y - p0.Y, 0)
+        chord = X.Length
+        if chord < self.eps:
+            return None
+        X.Unitize()
+        Y = G.Vector3d.CrossProduct(Z, X)
+        o = G.Point3d(p0.X, p0.Y, zb) + X * ((chord - l) * 0.5)
+        if not concave:
+            o = o + Y * d
+        return o, X, Y, l
 
     def _curved_course(self, leg, c, detail, out):
         units_, phase = None, None
@@ -723,7 +1006,6 @@ class Veneer(object):
         y_in = self._inner_y(leg, d)
         ci = leg.inner(y_in)
         Li = ci.GetLength()
-        eps = self.eps
         if leg.closed:
             units_, _ = self.pattern(c, self.j0)
             P = sum(u[1] for u in units_)
@@ -741,73 +1023,302 @@ class Veneer(object):
             units_, phase = self.pattern(c, j)
             pcs = self._run(units_, phase + leg.delta * (self.L + j), 0.0, 0.0, Li - (j if leg.end else 0.0), j,
                             True, leg.end is None)
-        zb, h = c.zb, c.h
-        frames = []
-        for a, b, kind, w in pcs:
-            l = b - a
-            p0 = ci.PointAtLength(a % Li if leg.closed else a)
-            p1 = ci.PointAtLength(b % Li if leg.closed else min(b, Li))
-            X = G.Vector3d(p1.X - p0.X, p1.Y - p0.Y, 0)
-            chord = X.Length
-            if chord < eps:
-                continue
-            X.Unitize()
-            Y = G.Vector3d.CrossProduct(Z, X)
-            o = G.Point3d(p0.X, p0.Y, zb) + X * ((chord - l) * 0.5)
-            if not leg.concave:
-                o = o + Y * d
-            out.append(self._part_local(o, X, Y, _rect(0, l, -d, 0), h, self.material,
-                                        self._role(kind, l, w, c)))
-            frames.append((o, X, Y, l))
-        if not detail or len(frames) < 2:
+        if not pcs:
             return
-        pairs = list(zip(frames, frames[1:]))
-        if leg.closed:
-            pairs.append((frames[-1], frames[0]))
-        centers = []
-        for (oa, Xa, Ya, la), (ob, Xb, Yb, lb) in pairs:
-            m = (oa + Xa * la + ob) * 0.5
-            ok, t = ci.ClosestPoint(G.Point3d(m.X, m.Y, ci.PointAtStart.Z))
-            centers.append(ci.GetLength(G.Interval(ci.Domain.T0, t)))
-        weeps = self._weep_slots(centers, 0.0, Li) if c.index == 0 else set()
-        f = (d - self.recess) / d
-        for gi, ((oa, Xa, Ya, la), (ob, Xb, Yb, lb)) in enumerate(pairs):
-            weep = gi in weeps
-            fa = oa + Xa * la
-            ba = fa - Ya * d
-            bb_ = ob - Yb * d
-            ra = fa if weep else ba + (fa - ba) * f
-            rb = ob if weep else bb_ + (ob - bb_) * f
-            X = G.Vector3d(bb_.X - ba.X, bb_.Y - ba.Y, 0)
-            if X.Length < eps * 0.5:
+        first, last = pcs[0], pcs[-1]
+        runs = self._apply_openings(ci, c, pcs, j)
+        wrap = leg.closed and len(runs) == 1 and runs[0] is pcs
+        if leg.closed and len(runs) > 1 and runs[0][0] is first and runs[-1][-1] is last:
+            runs = [runs[-1] + runs[0]] + runs[1:-1]
+        zb = c.zb
+        zones = self._weep_zones(ci, c, 0.0, Li)
+        for run in runs:
+            frames = []
+            for p in run:
+                a, b, kind, w = p[:4]
+                h = p[4] if len(p) > 4 else c.h
+                fr = self._chord_frame(ci, Li, a, b, leg.closed, d, leg.concave, zb)
+                if fr is None:
+                    continue
+                o, X, Y, l = fr
+                out.append(self._part_local(o, X, Y, _rect(0, l, -d, 0), h, self.material,
+                                            self._role(kind, l, w, c)))
+                frames.append(fr + (h,))
+            if not detail or len(frames) < 2:
                 continue
-            X.Unitize()
-            Y = G.Vector3d.CrossProduct(Z, X)
-            loc = [((p - ba) * X, (p - ba) * Y) for p in (ba, bb_, rb, ra)]
-            if _area(loc) < 1e-12:
-                continue
-            if weep:
-                out.append(self._part_local(ba, X, Y, loc, h, self.weep_material, "weep"))
-            else:
-                out.append(self._part_local(ba, X, Y, loc, h, self.mortar, "mortar_head"))
+            pairs = list(zip(frames, frames[1:]))
+            if wrap:
+                pairs.append((frames[-1], frames[0]))
+            centers = []
+            for fa, fb in pairs:
+                m = (fa[0] + fa[1] * fa[3] + fb[0]) * 0.5
+                ok, t = ci.ClosestPoint(G.Point3d(m.X, m.Y, ci.PointAtStart.Z))
+                centers.append(ci.GetLength(G.Interval(ci.Domain.T0, t)))
+            weeps = self._course_weeps(centers, zones)
+            f = (d - self.recess) / d
+            for gi, ((oa, Xa, Ya, la, ha), (ob, Xb, Yb, lb, hb)) in enumerate(pairs):
+                weep = gi in weeps
+                fa = oa + Xa * la
+                ba = fa - Ya * d
+                bb_ = ob - Yb * d
+                ra = fa if weep else ba + (fa - ba) * f
+                rb = ob if weep else bb_ + (ob - bb_) * f
+                X = G.Vector3d(bb_.X - ba.X, bb_.Y - ba.Y, 0)
+                if X.Length < self.eps * 0.5:
+                    continue
+                X.Unitize()
+                Y = G.Vector3d.CrossProduct(Z, X)
+                loc = [((p - ba) * X, (p - ba) * Y) for p in (ba, bb_, rb, ra)]
+                if _area(loc) < 1e-12:
+                    continue
+                h = min(ha, hb)
+                if weep:
+                    out.append(self._part_local(ba, X, Y, loc, h, self.weep_material, "weep"))
+                else:
+                    out.append(self._part_local(ba, X, Y, loc, h, self.mortar, "mortar_head"))
 
     def _bed_joint_parts(self):
         ctx = self.ctx
         out = []
         cache = {}
         face_len = geo.offset(self.curve, self.y_face, ctx.tol).GetLength() / ctx.s
+        cutters = self._bed_cutters()
+        from ..openings import core as _openings
         for c in self.courses:
             if c.bed <= self.eps:
                 continue
             key = (round(c.d, 9), round(c.bed, 9))
             if key not in cache:
                 cache[key] = geo.band_solids(self.curve, self.y_face - self.recess, self.y_face - c.d, 0.0, c.bed, ctx.tol)
+            solids = []
             for s in cache[key]:
                 b = s.DuplicateBrep()
                 b.Translate(G.Vector3d(0, 0, c.z))
+                solids.append(b)
+            if cutters:
+                solids = _openings.subtract(ctx, solids, cutters, "a bed joint")
+            for b in solids:
                 out.append(Part(b, self.mortar, role="mortar_bed",
                                 extra={"area": round(face_len * (c.bed + c.h) / ctx.s, 3)}))
         return out
+
+    # -- openings: bed joint cutters, lintel, sill, head course, flashing -----------------
+    def _bed_cutters(self):
+        ctx = self.ctx
+        e = ctx.u(1.0 / 64)
+        out = []
+        for mo in self.mos:
+            op = mo.op
+            y0, y1 = sorted((mo.wy(self.y_face + ctx.u(1)), mo.wy(self.y_face - self.D - ctx.u(1))))
+            if mo.z_top - e > mo.z_support - e:
+                out.append(op.cutter(ctx, -mo.hx, mo.hx, mo.z_support - e, mo.z_top - e, y0, y1))
+            if mo.k_head is not None:
+                c = self.courses[mo.k_head]
+                out.append(op.cutter(ctx, -mo.hx - mo.bearing, mo.hx + mo.bearing, c.z - e, c.zb + e, y0, y1))
+                if mo.head and mo.n_head > 1:
+                    out.append(op.cutter(ctx, -mo.hx, mo.hx, c.zb + e, mo.head_top - e, y0, y1))
+        return out
+
+    def _units_on(self, mo, crv, depth_y, kind, zb, h):
+        """Soldiers / sailors / rowlock-width units across an opening, laid on chords of crv
+        (a curve at veneer offset depth_y). Returns [(origin, X, Y, length)] with joints."""
+        spans = [s for s in self.spans(crv) if s[2] is mo]
+        if not spans:
+            return [], []
+        a, b, _ = spans[0]
+        w = self.unit(kind)[1] if kind != "rowlock" else self.H
+        n = max(1, int(round((b - a + self.j0) / (w + self.j0))))
+        j = (b - a - n * w) / (n - 1) if n > 1 else 0.0
+        if n == 1:
+            a = 0.5 * (a + b) - 0.5 * w
+        L = crv.GetLength()
+        units_, gaps = [], []
+        for i in range(n):
+            x0 = a + i * (w + j)
+            fr = self._chord_frame(crv, L, x0, x0 + w, crv.IsClosed, 0.0, True, zb)
+            if fr is not None:
+                units_.append(fr)
+            if i < n - 1:
+                g = self._chord_frame(crv, L, x0 + w, x0 + w + j, crv.IsClosed, 0.0, True, zb)
+                if g is not None:
+                    gaps.append(g)
+        return units_, gaps
+
+    def _section_block(self, name, poly_yz, w, material):
+        """Block: a (y, z) section extruded along X from 0 to w (local Y = veneer y - y_face)."""
+        from ..openings import geom as og
+        key = "MC {} {} {}".format(material, name, hashlib.md5(
+            (";".join("{:.4f},{:.4f}".format(y / self.ctx.s, z / self.ctx.s) for y, z in poly_yz)
+             + "|{:.4f}".format(w / self.ctx.s)).encode("utf-8")).hexdigest()[:10])
+        idx = self._blocks.get(key)
+        if idx is None:
+            b = og.extrude([G.Point3d(0, y, z) for y, z in poly_yz], G.Vector3d(w, 0, 0), self.ctx.tol)
+            idx = self.ctx.block(key, [b], material)
+            self._blocks[key] = idx
+        return idx
+
+    def _place_section(self, fr, poly_rel, z_ref, name, material, role):
+        o, X, Y, l = fr[:4]
+        idx = self._section_block(name, poly_rel, l, material)
+        plane = G.Plane(G.Point3d(o.X, o.Y, z_ref), X, Y)
+        return Part(material=material, role=role, block=idx, xform=G.Transform.PlaneToPlane(G.Plane.WorldXY, plane))
+
+    def _opening_parts(self, detail):
+        ctx = self.ctx
+        out = []
+        for mo in self.mos:
+            try:
+                parts = self._mo_parts(mo, detail)
+            except Exception as ex:
+                ctx.warn("Brick around '{}' failed ({}).".format(mo.op.name, ex))
+                continue
+            for p in parts:
+                p.extra.setdefault("opening", str(mo.op.id))
+            out += parts
+        return out
+
+    def _mo_parts(self, mo, detail):
+        from ..openings import geom as og
+        ctx, op, u = self.ctx, mo.op, self.ctx.u
+        out = []
+        tag = {"opening": str(op.id)}
+        yf, yb = self.y_face, self.y_face - self.D
+        face = geo.offset(self.curve, yf, ctx.tol)
+        # lintel
+        if mo.k_head is not None:
+            name, p = self._lintel(mo)
+            a, bv, t = [u(p[k]) for k in ("a", "b", "t")]
+            yh = yb - u(1.0 / 16)
+            zt = mo.z_top
+            poly = [(yh - t, zt), (yh - t + a, zt), (yh - t + a, zt + t), (yh, zt + t), (yh, zt + bv), (yh - t, zt + bv)]
+            x0, x1 = -mo.hx - mo.bearing, mo.hx + mo.bearing
+            for s in og.sweep(ctx, op, mo.wpoly(poly), x0, x1):
+                out.append(Part(s, mo.m.get("lintel_material", "Steel Angle"), role="lintel",
+                                extra=dict(tag, profile=name, length=round((x1 - x0) / ctx.s, 3))))
+            # soldier / sailor course on the lintel
+            if mo.head:
+                c = self.courses[mo.k_head]
+                h = mo.head_top - c.zb
+                kind = mo.head
+                d = self.D if kind == "soldier" else self.H
+                units_, gaps = self._units_on(mo, face, yf, kind, c.zb, h)
+                for fr in units_:
+                    o, X, Y, l = fr
+                    out.append(self._part_local(o, X, Y, _rect(0, l, -d, 0), h, self.material, ROLES[kind]))
+                if detail:
+                    for fr in gaps:
+                        o, X, Y, l = fr
+                        out.append(self._part_local(o, X, Y, _rect(0, l, -d, -self.recess), h, self.mortar,
+                                                    "mortar_head"))
+            if mo.ext and detail and mo.m.get("flashing", True):
+                out += self._head_flashing(mo, yh, zt + t, bv, x0, x1, tag)
+        # rowlock sill
+        if mo.rowlock:
+            rl = mo.rowlock
+            rel = [(y - yf, z - op.z0) for y, z in rl["poly"]]
+            units_, gaps = self._units_on(mo, face, yf, "rowlock", op.z0, 0.0)
+            for fr in units_:
+                out.append(self._place_section(fr, rel, op.z0, "Rowlock", self.material, "brick_rowlock"))
+            if detail:
+                for fr in gaps:
+                    out.append(self._place_section(fr, rel, op.z0, "Rowlock Joint", self.mortar, "mortar_head"))
+                y0 = max(yb, rl["y0"])
+                wedge = [(y0, mo.z_support), (yf, mo.z_support), (yf, rl["zb_at"](yf)), (y0, rl["zb_at"](y0))]
+                for s in og.sweep(ctx, op, mo.wpoly(wedge), -mo.hx, mo.hx):
+                    out.append(Part(s, self.mortar, role="mortar_bed", extra=dict(tag)))
+                if mo.m.get("flashing", True):
+                    out += self._sill_flashing(mo, tag)
+        if mo.ext and detail:
+            out += self._sealant(mo, tag)
+        return out
+
+    def _lintel(self, mo):
+        lib = self.ctx.lib
+        choice = mo.m.get("lintel", "auto")
+        if choice and choice != "auto":
+            return choice, lib.profile(choice)
+        span = 2 * mo.hx
+        cands = sorted(((units.parse_length(p.get("max_span", 0)), n, p) for n, p in lib.data["profiles"].items()
+                        if p.get("family") == "lintel"), key=lambda c: (c[0], c[1]))
+        if not cands:
+            raise ValueError("no 'lintel' profiles in the library")
+        for ms, n, p in cands:
+            if ms * self.ctx.s >= span - self.ctx.tol:
+                return n, p
+        self.ctx.warn("Opening '{}' is wider than the largest lintel's max_span.".format(mo.op.name))
+        return cands[-1][1], cands[-1][2]
+
+    def _head_flashing(self, mo, yh, zf, bv, x0, x1, tag):
+        from ..openings import geom as og
+        from .veneer import Stack, thicken
+        ctx, op, u = self.ctx, mo.op, self.ctx.u
+        st = Stack(ctx, self.band)
+        if st.y_bk is None:
+            return []
+        m = mo.m
+        tf = u("1/32")
+        mat = m.get("flashing_material", "Flashing")
+        zv = mo.z_top + bv + tf
+        top = max(zf + u(m.get("upturn", 8)), zv + u(2))
+        drip = u("3/8")
+        path = [(st.y_bk, top), (st.y_bk, zv + u(0.5)), (yh - u(1.0 / 16), zv), (yh, zv), (yh, zf),
+                (self.y_face + drip - u(0.25), zf), (self.y_face + drip, zf - u(0.25))]
+        out = [Part(s, mat, role="flashing", extra=dict(tag, length=round((x1 - x0) / ctx.s, 3)))
+               for s in og.sweep(ctx, op, mo.wpoly(thicken(path, tf)), x0, x1)]
+        dam = u(m.get("end_dam", 1))
+        if dam > 0:
+            poly = mo.wpoly([(yh, zf), (self.y_face - u(0.5), zf), (self.y_face - u(0.5), zf + dam), (yh, zf + dam)])
+            for xa, xb in ((x0, x0 + tf), (x1 - tf, x1)):
+                b = og.prism_x(op, poly, xa, xb, ctx.tol)
+                if b is not None:
+                    out.append(Part(b, mat, role="end_dam", extra=dict(tag)))
+        return out
+
+    def _sill_flashing(self, mo, tag):
+        from ..openings import geom as og
+        from .veneer import Stack, thicken
+        ctx, op, u = self.ctx, mo.op, self.ctx.u
+        st = Stack(ctx, self.band)
+        if st.y_bk is None:
+            return []
+        tf = u("1/32")
+        zs = mo.z_support
+        up = max(u(2), min(u(8), op.z0 - zs - u(0.25)))
+        drip = u("3/8")
+        path = [(st.y_bk, zs + up), (st.y_bk, zs + u(0.5)), (self.y_face - self.D, zs - tf),
+                (self.y_face + drip - u(0.25), zs - tf), (self.y_face + drip, zs - tf - u(0.25))]
+        return [Part(s, mo.m.get("flashing_material", "Flashing"), role="flashing", extra=dict(tag))
+                for s in og.sweep(ctx, op, mo.wpoly(thicken(path, tf)), -mo.hx, mo.hx)]
+
+    def _sealant(self, mo, tag):
+        """Sealant + backer rod between the brick and the frame, at the jambs and the head."""
+        from ..openings import geom as og
+        ctx, op, u = self.ctx, mo.op, self.ctx.u
+        out = []
+        sealant, backer = op.t.get("sealant", "Sealant"), op.t.get("backer", "Backer Rod")
+        yfe = op.y_fe                         # wall coordinates from here on
+        ds = u("3/8")
+        j = op.joint
+        hw = 0.5 * op.W
+        z_lo = op.z0 if not mo.rowlock else op.z0 - u(0.25)
+        z_hi = min(mo.z_top, op.z1 + j)
+        rr = 0.5 * min(j * 1.25, u("5/8"))
+        for s in (-1, 1):
+            xa, xb = sorted((s * hw, s * (hw + j)))
+            seal = [(xa, yfe - ds), (xb, yfe - ds), (xb, yfe), (xa, yfe)]
+            out.append(Part(og.prism_z(op, seal, z_lo, z_hi, ctx.tol), sealant, role="sealant", extra=dict(tag)))
+            rod = [(0.5 * (xa + xb) + 0.5 * j * 0.98 * math.cos(a), yfe - ds - rr + rr * math.sin(a))
+                   for a in [i * math.pi / 8 for i in range(16)]]
+            out.append(Part(og.prism_z(op, rod, z_lo, z_hi, ctx.tol), backer, role="backer_rod", extra=dict(tag)))
+        if mo.k_head is not None and mo.z_top - op.z1 > u(0.25):
+            gz = mo.z_top - op.z1
+            seal = [(yfe - ds, op.z1), (yfe, op.z1), (yfe, mo.z_top), (yfe - ds, mo.z_top)]
+            out.append(Part(og.prism_x(op, seal, -hw - j, hw + j, ctx.tol), sealant, role="sealant", extra=dict(tag)))
+            rz = 0.5 * min(gz * 0.98, u("5/8"))
+            zc = op.z1 + 0.5 * gz
+            rod = [(yfe - ds - rr + rr * math.cos(a), zc + rz * math.sin(a)) for a in [i * math.pi / 8 for i in range(16)]]
+            out.append(Part(og.prism_x(op, rod, -hw - j, hw + j, ctx.tol), backer, role="backer_rod", extra=dict(tag)))
+        return [p for p in out if p.geometry is not None]
 
 
 def layout(ctx, band):
@@ -846,6 +1357,7 @@ class Masonry(Component):
     def build(self, ctx, band):
         if ctx.lod == "schematic":
             z0, z1 = ctx.z_range(band)
-            return [Part(s, band.material, role="masonry") for s in ctx.solids(band.d_ext, band.d_int, z0, z1)]
+            solids = openings.cut(ctx, ctx.solids(band.d_ext, band.d_int, z0, z1), band, z0)
+            return [Part(s, band.material, role="masonry") for s in solids]
         from . import veneer
         return layout(ctx, band).parts() + veneer.accessories(ctx, band)

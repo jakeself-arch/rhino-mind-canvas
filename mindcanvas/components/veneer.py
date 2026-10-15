@@ -192,16 +192,45 @@ def build_ties(ctx, vb, o, material=None):
         ok, t = crv.LengthParameter(sta)
         if ok:
             frames.append(geo.frame_at(crv, t))
+    # openings: no ties inside; an extra column beside each jamb if none is within 12"
+    mos = v.mos
+    extra = []
+    for mo in mos:
+        for sgn in (-1, 1):
+            s_j = mo.op.s + sgn * (mo.hx + ctx.u(8))
+            near = any(mo.hx + ctx.u(2) < sgn * (s - mo.op.s) <= mo.hx + ctx.u(12) for s in stations)
+            if 0 < s_j < crv.GetLength() and not near:
+                ok, t = crv.LengthParameter(s_j)
+                if ok:
+                    extra.append((geo.frame_at(crv, t), mo))
+
+    def blocked(p):
+        for mo in mos:
+            x, y, z = mo.op.local(p)
+            if -mo.hx - ctx.u(2) < x < mo.hx + ctx.u(2) and mo.z_support - ctx.u(1) < z < mo.head_top + ctx.u(2):
+                return True
+        return False
+
     stagger = bool(o.get("stagger", False))
     parts = []
+
+    def tie(f, zr):
+        p = f.Origin + f.YAxis * (sg * st.y_bk)
+        p = G.Point3d(p.X, p.Y, zr)
+        if blocked(p):
+            return
+        plane = G.Plane(p, f.XAxis * sg, f.YAxis * sg)
+        parts.append(Part(material=material, role="brick_tie", block=idx,
+                          xform=G.Transform.PlaneToPlane(G.Plane.WorldXY, plane),
+                          extra={"embed": round(emb_in - gap_in, 3)}))
+
     for ri, zr in enumerate(rows):
         use = frames[ri % 2::2] if (stagger and len(frames) > 2) else frames
         for f in use:
-            p = f.Origin + f.YAxis * (sg * st.y_bk)
-            plane = G.Plane(G.Point3d(p.X, p.Y, zr), f.XAxis * sg, f.YAxis * sg)
-            parts.append(Part(material=material, role="brick_tie", block=idx,
-                              xform=G.Transform.PlaneToPlane(G.Plane.WorldXY, plane),
-                              extra={"embed": round(emb_in - gap_in, 3)}))
+            tie(f, zr)
+        for f, mo in extra:
+            if mo.z_support - ctx.u(4) < zr < mo.z_top + ctx.u(12):
+                tie(f, zr)
     return parts
 
 
@@ -319,6 +348,15 @@ def build_base(ctx, vb, o, material=None):
         return []
     material = o.get("material", material or "Flashing")
     parts = _support(ctx, st, o, st.v.z0, str(o.get("support", "ledge")).lower(), material)
+    doors = [mo for mo in st.v.mos if mo.op.door]
+    if doors:   # base flashing / shelf angle stop at door openings
+        from ..openings import core as openings
+        cutters = [mo.op.cutter(ctx, -mo.hx, mo.hx, st.v.z0 - ctx.u(24), mo.op.rz1) for mo in doors]
+        cut = []
+        for p in parts:
+            for g in openings.subtract(ctx, [p.geometry], cutters, "the veneer base"):
+                cut.append(Part(g, p.material, role=p.role, extra=dict(p.extra)))
+        parts = cut
     top = o.get("top")
     if top:
         parts += _soft_joint(ctx, st, o, top if isinstance(top, dict) else {"soft_joint": "3/8"}, material)

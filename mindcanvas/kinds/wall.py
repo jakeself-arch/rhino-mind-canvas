@@ -11,6 +11,9 @@ Driver params (stored as JSON on the driver curve; lengths in inches):
     overrides    {"<layer name>": {"<option>": value}} per-wall option overrides
     layers       optional per-wall layer stack replacing the assembly's (MCLayers)
 
+Openings hosted by the wall (mindcanvas/openings) are resolved into ctx.openings by
+place_opening; every component cuts itself, and the units are built after the layers.
+
 Open curve: exterior is on the LEFT of the drawing direction.
 Closed curve: exterior is outside. `flip` reverses either.
 """

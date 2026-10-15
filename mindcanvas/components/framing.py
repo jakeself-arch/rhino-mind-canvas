@@ -20,6 +20,15 @@ of each run between corners, and in corner sets at every kink. Square corners
 get a full corner (wood: end stud + flat corner stud + backer; metal: two
 studs, webs toward the corner); oblique corners get a stud on each side.
 stud_stations(ctx, band) gives their distances along ctx.curve.
+
+Openings (ctx.openings): studs the rough opening displaces are dropped; grid studs inside it
+become cripples (above the header, and under the sill of windows), so the layout continues on
+the same grid. Wood: king + jack (trimmer) each side, built-up header on the jacks (plies on
+edge, size from the system's "header" table by span; plywood spacer or rigid insulation fills
+the wall depth), flat rough sill (sill_plates). Metal: two boxed jamb studs each side (toe to
+toe), head track + box header (two C's at the wall faces closed by a top track) or L-header
+(header_type "L": two angles lapping the top track), sill track. Bottom plates / tracks are cut
+out of door openings; cavity fill and bridging skip the framed opening.
 """
 
 import math
@@ -28,6 +37,8 @@ import re
 import Rhino
 
 from .. import geo, profiles, units
+from ..openings import core as openings
+from ..openings import geom as opgeom
 from .base import Component, Part, register
 
 G = Rhino.Geometry
@@ -423,18 +434,28 @@ def _channel(ctx, d_hi, d_lo, z_lo, z_hi, t, opening):
     return out
 
 
+STUD_ROLES = {"king": "king_stud", "jack": "jack_stud", "jamb": "jamb_stud", "cripple": "cripple"}
+
+
 def _studs(ctx, lay, zb, zt):
-    L = zt - zb
-    L_in = round(L / ctx.s, 4)
-    bname = "MC Stud {} [{}] L{:.4f}".format(lay.stud_name.replace('"', "in"), _dims(lay.stud), L_in)
+    """Every stud between the plates / tracks; opening members get their own lengths."""
     loops = profiles.build(lay.stud, ctx.s)
-    idx = ctx.block(bname, [geo.extrude_profile(loops[0], G.Plane.WorldXY, L)], lay.material)
     member = lay.name("stud", lay.stud_name)
+    blocks = {}
     out = []
     for st in lay.studs:
-        xf = G.Transform.PlaneToPlane(G.Plane.WorldXY, lay.frame(st, zb))
-        out.append(Part(material=lay.material, role="stud", block=idx, xform=xf,
-                        extra={"length": L_in, "member": member, "position": st.kind}))
+        for za, zz in lay.extents(st, zb, zt):
+            if zz - za < ctx.u(1):
+                continue
+            L_in = round((zz - za) / ctx.s, 4)
+            idx = blocks.get(L_in)
+            if idx is None:
+                bname = "MC Stud {} [{}] L{:.4f}".format(lay.stud_name.replace('"', "in"), _dims(lay.stud), L_in)
+                idx = ctx.block(bname, [geo.extrude_profile(loops[0], G.Plane.WorldXY, L_in * ctx.s)], lay.material)
+                blocks[L_in] = idx
+            xf = G.Transform.PlaneToPlane(G.Plane.WorldXY, lay.frame(st, za))
+            out.append(Part(material=lay.material, role=STUD_ROLES.get(st.kind, "stud"), block=idx, xform=xf,
+                            extra={"length": L_in, "member": member, "position": st.kind}))
     return out
 
 
@@ -443,9 +464,23 @@ def _run(ctx, lay, solids, material, role, member):
     return [Part(s, material, role=role, extra=extra) for s in solids]
 
 
+def _minus(spans, lo, hi):
+    out = []
+    for a, b in spans:
+        if hi <= a or lo >= b:
+            out.append((a, b))
+            continue
+        if lo > a:
+            out.append((a, lo))
+        if hi < b:
+            out.append((hi, b))
+    return out
+
+
 def _cavity(ctx, lay, zb, zt, cuts=(), cut_material=None, cut_member=None):
     """Fill between the members from zb to zt; `cuts` are z-intervals filled
-    with blocking instead. Falls back to one continuous fill band."""
+    with blocking instead. Bays inside an opening skip its framed zone.
+    Falls back to one continuous fill band."""
     fill = lay.opts.get("cavity_fill")
     if not fill and not cuts:
         return []
@@ -458,30 +493,179 @@ def _cavity(ctx, lay, zb, zt, cuts=(), cut_material=None, cut_member=None):
         if fill:
             ctx.warn("Cavity fill between studs failed ({}); filled as one band.".format(ex))
             band = lay.band
-            out += [Part(s, fill, role="insulation")
-                    for s in ctx.solids(band.d_mid + 0.5 * lay.D, band.d_mid - 0.5 * lay.D, zb, zt)]
+            solids = ctx.solids(band.d_mid + 0.5 * lay.D, band.d_mid - 0.5 * lay.D, zb, zt)
+            out += [Part(s, fill, role="insulation") for s in openings.cut(ctx, solids, band, zb)]
         return out
     cuts = sorted(c for c in cuts if zb < c[0] < c[1] < zt)
-    spans, z = [], zb
+    base, z = [], zb
     for c0, c1 in cuts:
-        spans.append((z, c0))
+        base.append((z, c0))
         z = c1
-    spans.append((z, zt))
+    base.append((z, zt))
     for crv in pieces:
         regions = G.Brep.CreatePlanarBreps(crv, ctx.tol)
         if not regions:
             continue
         reg = regions[0]
         run_in = round(_area(crv) / lay.D / ctx.s, 4)
-        for c0, c1 in cuts:
+        spans, mycuts = list(base), list(cuts)
+        for lo, hi in lay.exclusions(crv):
+            lo = zb - 1.0 if lo is None else lo
+            spans = _minus(spans, lo, hi)
+            mycuts = [c for c in mycuts if c[1] <= lo or c[0] >= hi]
+        for c0, c1 in mycuts:
             out.append(Part(geo.extrude_region(reg, c0, c1 - c0, ctx.tol), cut_material, role="blocking",
                             extra={"length": run_in, "member": cut_member}))
         if fill:
             for z0, z1 in spans:
-                if z1 - z0 > ctx.tol:
+                if z1 - z0 > ctx.u(0.5):
                     out.append(Part(geo.extrude_region(reg, z0, z1 - z0, ctx.tol), fill, role="insulation",
                                     extra={"area": round(run_in * (z1 - z0) / ctx.s, 2)}))
     return out
+
+
+# -- openings: headers, sills, tracks ---------------------------------------------
+def _header_member(ctx, lay, span, fallback):
+    sizes = (lay.sys.get("header") or {}).get("sizes") or []
+    pick = None
+    for sp, name in sizes:
+        if units.parse_length(sp) * ctx.s >= span - ctx.tol:
+            pick = name
+            break
+    if pick is None:
+        pick = sizes[-1][1] if sizes else fallback
+        if sizes:
+            ctx.warn("Opening wider than the largest header in the '{}' header table; using {}.".format(
+                lay.system_name, pick))
+    return pick, ctx.lib.profile(pick)
+
+
+def _sweep_parts(ctx, op, poly, xa, xb, material, role, member):
+    extra = {"length": round((xb - xa) / ctx.s, 4), "member": member, "opening": str(op.id)}
+    return [Part(b, material, role=role, extra=dict(extra)) for b in opgeom.sweep(ctx, op, poly, xa, xb)]
+
+
+def _rect_yz(y0, y1, z0, z1):
+    return [(y0, z0), (y1, z0), (y1, z1), (y0, z1)]
+
+
+def _channel_yz(y_hi, y_lo, z_lo, z_hi, t, opening):
+    """U section in (y, z); opening up | down."""
+    pts = [(y_lo, z_lo), (y_hi, z_lo), (y_hi, z_hi), (y_hi - t, z_hi), (y_hi - t, z_lo + t),
+           (y_lo + t, z_lo + t), (y_lo + t, z_hi), (y_lo, z_hi)]
+    if opening == "down":
+        pts = [(y, z_lo + z_hi - z) for y, z in reversed(pts)]
+    return pts
+
+
+def _cut_doors(ctx, lay, solids, z_lo, z_hi):
+    """Cut plates / tracks out of door openings (between the jambs)."""
+    cutters = [opf.op.cutter(ctx, opf.x0, opf.x1, z_lo - ctx.u(1), z_hi + ctx.u(0.25))
+               for opf in lay.ops if opf.door]
+    return openings.subtract(ctx, solids, cutters, "a bottom plate") if cutters else solids
+
+
+def _wood_openings(ctx, band, lay, zt):
+    """Built-up header (plies on edge sized by the span, plywood spacer or rigid insulation to
+    fill the wall depth) over the jacks, and a flat rough sill under windows."""
+    parts = []
+    w = lay.w
+    d_hi, d_lo = band.d_mid + 0.5 * lay.D, band.d_mid - 0.5 * lay.D
+    for opf in lay.ops:
+        op = opf.op
+        x0, x1 = opf.x0, opf.x1
+        name, prof = _header_member(ctx, lay, x1 - x0, "2x10")
+        pw_in, hd_in = profiles.size(prof)
+        pw, hd = pw_in * ctx.s, hd_in * ctx.s
+        zh0 = op.rz1
+        zh1 = min(zh0 + hd, zt)
+        if zh1 - zh0 < hd - ctx.tol:
+            ctx.warn("Header over '{}' cut down to {} to fit under the top plates.".format(
+                op.name, units.format_inches((zh1 - zh0) / ctx.s)))
+        opf.jack_top, opf.head_top = zh0, zh1
+        n = max(1, int((lay.D + 1e-6 * ctx.s) / pw))
+        rem = lay.D - n * pw
+        if n == 2 and rem > ctx.u(0.125):
+            layers = [("header", d_hi - pw, d_hi), ("header_spacer", d_lo + pw, d_hi - pw), ("header", d_lo, d_lo + pw)]
+        else:
+            layers = [("header", d_hi - (i + 1) * pw, d_hi - i * pw) for i in range(n)]
+            if rem > ctx.u(0.125):
+                layers.append(("header_insulation", d_lo, d_lo + rem))
+        member = lay.name("header", name)
+        mats = {"header": lay.material, "header_spacer": lay.opt("header_spacer", "Plywood Sheathing"),
+                "header_insulation": lay.opt("header_insulation", "Rigid Insulation XPS")}
+        if zh1 - zh0 > ctx.tol:
+            for role, ya, yb in layers:
+                parts += _sweep_parts(ctx, op, _rect_yz(ya, yb, zh0, zh1), x0 - w, x1 + w, mats[role], role, member)
+        if not op.door:
+            ns = max(1, int(lay.opt("sill_plates", 1)))
+            opf.sill_bottom = op.rz0 - ns * w
+            for j in range(ns):
+                parts += _sweep_parts(ctx, op, _rect_yz(d_lo, d_hi, op.rz0 - (j + 1) * w, op.rz0 - j * w),
+                                      x0, x1, lay.material, "rough_sill", lay.name("plate", lay.stud_name))
+    return parts
+
+
+def _c_points(prof):
+    crv = profiles.build(prof, 1.0)[0]
+    pts = [crv.Point(i) for i in range(crv.PointCount)]
+    if pts[0].DistanceTo(pts[-1]) < 1e-9:
+        pts = pts[:-1]
+    return [(p.X, p.Y) for p in pts]
+
+
+def _metal_openings(ctx, band, lay, z1, zt, t, leg, track_name, deflection):
+    """Head track over the opening with a box header (two C's toe to toe at the wall faces,
+    closed by a top track) or an L-header (two angles lapping the top track), sill track
+    under windows. Jambs are the boxed studs added by the layout."""
+    parts = []
+    w = lay.w
+    d_hi, d_lo = band.d_mid + 0.5 * lay.D + t, band.d_mid - 0.5 * lay.D - t
+    tmember = lay.name("track", track_name)
+    for opf in lay.ops:
+        op = opf.op
+        x0, x1 = opf.x0, opf.x1
+        htype = str(lay.opt("header_type", (lay.sys.get("header") or {}).get("type", "box"))).lower()
+        if htype == "l" and deflection:
+            ctx.warn("L-headers need a plain top track; using a box header with the deflection track.")
+            htype = "box"
+        name, prof = _header_member(ctx, lay, x1 - x0, '8" Metal Stud, 16 ga')
+        hd, f, tc = ctx.u(prof["depth"]), ctx.u(prof["flange"]), ctx.u(prof["t"])
+        zr = op.rz1
+        parts += _sweep_parts(ctx, op, _channel_yz(d_hi, d_lo, zr, zr + leg, t, "up"), x0, x1,
+                              lay.material, "head_track", tmember)
+        member = lay.name("header", name)
+        if htype == "l":
+            ang = [(d_hi + tc, z1 + tc), (d_hi + tc - f, z1 + tc), (d_hi + tc - f, z1), (d_hi, z1),
+                   (d_hi, z1 + tc - hd), (d_hi + tc, z1 + tc - hd)]
+            mid = band.d_mid
+            for poly in (ang, [(2 * mid - y, z) for y, z in reversed(ang)]):
+                parts += _sweep_parts(ctx, op, poly, x0 - 2 * w - ctx.u(6), x1 + 2 * w + ctx.u(6),
+                                      lay.material, "header", member + " L-Header")
+            opf.head_top = zr + t
+        else:
+            zc0 = zr + t
+            zc1 = min(zc0 + hd, zt - t)
+            if zc1 - zc0 < hd - ctx.tol:
+                ctx.warn("Box header over '{}' does not fit under the top track.".format(op.name))
+            zc = 0.5 * (zc0 + zc1)
+            s = ctx.s
+            cpts = _c_points(prof)
+            fh = units.parse_length(prof["flange"]) * 0.5
+            y_e, y_i = d_hi - t, d_lo + t
+            ext = [(y_e - (px + fh) * s, zc + py * s) for px, py in cpts]
+            inn = [(y_i + (px + fh) * s, zc + py * s) for px, py in reversed(cpts)]
+            for poly in (ext, inn):
+                parts += _sweep_parts(ctx, op, poly, x0, x1, lay.material, "header", member)
+            parts += _sweep_parts(ctx, op, _channel_yz(d_hi, d_lo, zc1 + t - leg, zc1 + t, t, "down"), x0, x1,
+                                  lay.material, "head_track", tmember)
+            opf.head_top = zc1 + t
+        opf.jack_top = opf.head_top
+        if not op.door:
+            parts += _sweep_parts(ctx, op, _channel_yz(d_hi, d_lo, op.rz0 - leg, op.rz0, t, "down"), x0, x1,
+                                  lay.material, "sill_track", tmember)
+            opf.sill_bottom = op.rz0 - t
+    return parts
 
 
 # -- systems ----------------------------------------------------------------
@@ -493,12 +677,14 @@ def _wood(ctx, band, lay, z0, z1):
     member = lay.name("plate", lay.stud_name)
     parts = []
     for j in range(nb):
-        parts += _run(ctx, lay, ctx.solids(d_hi, d_lo, z0 + j * pt, z0 + (j + 1) * pt), lay.material, "plate", member)
+        solids = _cut_doors(ctx, lay, ctx.solids(d_hi, d_lo, z0 + j * pt, z0 + (j + 1) * pt), z0, z0 + nb * pt)
+        parts += _run(ctx, lay, solids, lay.material, "plate", member)
     for j in range(nt):
         parts += _run(ctx, lay, ctx.solids(d_hi, d_lo, z1 - (j + 1) * pt, z1 - j * pt), lay.material, "plate", member)
     zb, zt = z0 + nb * pt, z1 - nt * pt
     if zt - zb < 4 * pt:
         raise geo.GeometryError("Wall too short for wood framing.")
+    parts += _wood_openings(ctx, band, lay, zt)
     parts += _studs(ctx, lay, zb, zt)
     if ctx.lod == "detail":
         cuts = []
@@ -516,10 +702,11 @@ def _metal(ctx, band, lay, z0, z1):
     tname, track = _companion(lib, lay.stud, lay.sys.get("track_family"))
     leg = ctx.u(track["flange"]) if track else ctx.u(1.25)
     tname = tname or "Track"
-    parts = _run(ctx, lay, _channel(ctx, d_hi, d_lo, z0, z0 + leg, t, "up"), lay.material, "track",
-                 lay.name("track", tname))
+    bottom = _cut_doors(ctx, lay, _channel(ctx, d_hi, d_lo, z0, z0 + leg, t, "up"), z0, z0 + leg)
+    parts = _run(ctx, lay, bottom, lay.material, "track", lay.name("track", tname))
     zt = z1 - t
-    if lay.opt("deflection_track", False):
+    deflection = bool(lay.opt("deflection_track", False))
+    if deflection:
         dname, dtrack = _companion(lib, lay.stud, lay.sys.get("deflection_family"))
         dleg = ctx.u(dtrack["flange"]) if dtrack else ctx.u(2.0)
         gap = min(ctx.u(lay.opt("deflection_gap", 0.75)), dleg - ctx.u(0.5))
@@ -532,6 +719,7 @@ def _metal(ctx, band, lay, z0, z1):
     zb = z0 + t
     if zt - zb < ctx.u(12):
         raise geo.GeometryError("Wall too short for metal framing.")
+    parts += _metal_openings(ctx, band, lay, z1, zt, t, leg, tname, deflection)
     parts += _studs(ctx, lay, zb, zt)
     if ctx.lod == "detail":
         parts += _cavity(ctx, lay, zb, z1 - t)
@@ -540,10 +728,12 @@ def _metal(ctx, band, lay, z0, z1):
         if sp > 0 and crc_name:
             crc = lib.profile(crc_name)
             h, c, tc = ctx.u(crc["depth"]), ctx.u(crc["flange"]), ctx.u(crc["t"])
+            cutters = [opf.op.cutter(ctx, opf.x0, opf.x1, (zb - ctx.u(1)) if opf.door else opf.sill_bottom,
+                                     opf.head_top) for opf in lay.ops]
             zr = zb + sp
             while zr + h < zt - ctx.u(6):
-                parts += _run(ctx, lay, _channel(ctx, band.d_mid + 0.5 * c, band.d_mid - 0.5 * c,
-                                                 zr - 0.5 * h, zr + 0.5 * h, tc, "int"),
+                solids = _channel(ctx, band.d_mid + 0.5 * c, band.d_mid - 0.5 * c, zr - 0.5 * h, zr + 0.5 * h, tc, "int")
+                parts += _run(ctx, lay, openings.subtract(ctx, solids, cutters, "bridging"),
                               lay.material, "bridging", lay.name("bridging", crc_name))
                 zr += sp
     return parts
@@ -567,5 +757,6 @@ class Framing(Component):
         lay = layout(ctx, band)
         z0, z1 = ctx.z_range(band)
         if ctx.lod == "schematic":
-            return [Part(s, lay.material, role="framing") for s in ctx.solids(band.d_ext, band.d_int, z0, z1)]
+            solids = openings.cut(ctx, ctx.solids(band.d_ext, band.d_int, z0, z1), band, z0)
+            return [Part(s, lay.material, role="framing") for s in solids]
         return (_metal if lay.metal else _wood)(ctx, band, lay, z0, z1)

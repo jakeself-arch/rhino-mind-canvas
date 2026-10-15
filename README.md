@@ -22,10 +22,12 @@ section hatches, ready for detailed section drawings.
 | `MCSetAssembly` | Swap the assembly type of selected walls |
 | `MCLayers` | Edit the layer stack of selected walls: Replace, Insert, Remove, Thickness, ToExterior/ToInterior, Mirror, Reset, **SaveAs** a new assembly. Changes show immediately; Esc undoes them |
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
+| `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor) |
+| `MCEditOpening` | Change the type, size, sill, swing / hinge or head course of selected windows / doors (click their line or any of their parts), or `Remove` them |
 | `MCUpdate` | Rebuild selected walls (Enter = all), e.g. after editing library files |
 | `MCLive` | Toggle live update (walls follow their curves while you edit them) |
-| `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²), optional CSV |
-| `MCPurge` | Remove orphaned parts and unused member blocks |
+| `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²) and a window / door schedule (type, size, sill, count), optional CSV |
+| `MCPurge` | Remove orphaned parts, openings whose wall is gone, and unused member blocks |
 | `MCLibrary` | Reload the library, list assemblies, open the library folder |
 | `MCSectionCut` | Click a wall: clipping plane perpendicular to it + a saved wall-section view |
 | `MCDisplaySetup` | Apply a drawing scale's section styles and the *MC Section* display mode to the view |
@@ -48,6 +50,32 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
 - Every material has its own layer under `MindCanvas::` with color, render material, print
   weight and a **section style**, so clipping planes show cut hatches automatically.
 - Undo after a live update takes two steps (first the rebuild, then your edit).
+
+## Windows and doors
+- `MCOpening` → pick a type → click the wall. The opening is a short **cyan line** on
+  `MindCanvas::_Openings`, across the unit width at its sill, on the wall's curve. Move it along
+  the wall (or up / down to change the sill) and the wall rebuilds; scale it with `Scale1D` to
+  change the width; delete it and the wall closes up. Edit the wall's curve and the openings
+  keep their distance along it. Deleting a wall deletes its openings.
+- **Width / height** are the unit (frame outside) size; **sill** is the unit's bottom above the
+  wall base. Doors sit on the floor; **Hinge** is left / right as seen from the exterior.
+- Every layer is cut: sheathing, insulation, membranes and gypsum to the rough opening (unit +
+  1/2"), cladding in front of the frame to the unit + a 3/8" sealant joint.
+- **Framing**: wood gets king + jack studs, a built-up header sized by the span (plies + plywood
+  spacer or rigid insulation to fill the wall), a rough sill and cripples on the stud grid;
+  metal gets boxed jamb studs, head / sill track and a box header (or `header_type: "L"` in the
+  framing layer options for an L-header). Studs inside the opening are dropped; the layout keeps
+  its grid. Insulation and bridging stop at the opening, bottom plates are cut at doors.
+- **Brick**: whole bricks are cut around the opening with closures at the jambs (no slivers),
+  a steel angle lintel sits in the first bed joint over the head with 6" bearing, an optional
+  soldier or sailor course rides on it, the sill is a rowlock sloped out 15° on a mortar wedge,
+  with head flashing + end dams, weeps over the lintel, sill flashing, sealant and backer rod.
+  Tip: put the head at a coursing line (modular: a multiple of 8/3", minus the 3/8" joint) —
+  otherwise the lintel sits up to one course higher and `MCOpening` warns.
+- The unit: frame, sashes / mullions and insulated glass (two lites + spacer) for windows;
+  frame, leaf (optional glass lite), threshold and a swing arc in plan for doors; interior jamb
+  liners and a stool, a sill pan and a head drip cap (walls without brick).
+- Types live in `library/openings/*.json` (see "Customizing the library").
 
 ### Example: two-sided brick wall
 Select a brick-veneer wall → `MCLayers` → `Replace` → pick the last layer (Gypsum) →
@@ -79,6 +107,13 @@ files load alphabetically and later entries with the same name win. Run `MCLibra
     ]
   }
   ```
+- **Window / door type** (`library/openings/*.json`): size, sill, frame (face, depth, material),
+  operation (fixed / casement / awning / double_hung / sliding), sash, mullions, glazing; doors:
+  leaf (thickness, material, glass lite), threshold, swing / hinge. Brick details under
+  `"masonry"` (lintel, bearing, head course, sill, slope, flashing, weeps). See the comment at
+  the top of `windows.json` for every key. Lintels are `family: "lintel"` angles in
+  `library/profiles/openings.json`, picked by `max_span`; headers come from the framing
+  system's `"header"` table (`library/framing/*.json`).
 - **Layer preset** (`library/layers/*.json`): a reusable layer ("Gypsum Board 5/8",
   "Metal Studs 6"). Appears in `MCLayers`; assemblies can use `{"preset": "Gypsum Board 5/8"}`
   and override any key. Every layer used in any assembly also shows up in `MCLayers`,

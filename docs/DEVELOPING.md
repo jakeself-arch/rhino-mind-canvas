@@ -75,16 +75,48 @@ expand with `lib.resolve_layer(spec)`. Consequences for components:
   name (duplicates get " (2)"); find neighbors through `ctx.bands`.
 - Assembly `extras` come from the assembly and may not match an edited stack — be defensive.
 
+## Openings (windows, doors)
+`mindcanvas/openings/` (`core.py` drivers + placement + cutters, `geom.py` section sweeps and
+mitered frames, `units.py` unit geometry). An opening is a driver of the HOSTED kind
+`opening` (`kinds/opening.py`): `mc.host` = host driver id, params in inches (width, height,
+sill, station = distance along the host curve as drawn, swing, hinge, head, overrides).
+Its parts belong to the **host** (`mc.driver` = host id) and carry `mc.x.opening`.
+`engine.build(opening)` re-reads the opening's line (`sync_from_geometry`) and builds the host;
+after every host build `engine` moves each opening line to where the host put it.
+
+- **Hosts** resolve openings while making their context: `ctx.openings = openings.resolve(ctx,
+  driver_obj, place)` where `place(ctx, station, half_width) -> (plane, s)` is host specific
+  (`kinds/wall.place_opening` keeps openings clear of ends and corners). A future host
+  (curtain wall, floor, roof) only needs its own `place` and to build `openings.units` — or
+  its own unit builder — for each record.
+- **`Opening` record** (model units): `plane` (origin on the oriented driver at z = 0, X along
+  the host, Y exterior), `op.local(pt)` / `op.pt(x, y, z)` (y = signed offset like band d),
+  unit `W, H, z0, z1`, rough opening `rx, rz0, rz1`, frame faces `y_fe, y_fi`, wall faces
+  `y_ext, y_int`, `masonry_ext` (the exterior brick band, if any), `t` = merged type dict
+  (`core.DEFAULTS[category]` ← library type ← params["overrides"]).
+- **Components** cut themselves: `openings.cut(ctx, breps, band)` (rough opening in the backup,
+  unit + sealant joint in cladding in front of the frame), or `op.cutter(...)` +
+  `openings.subtract(...)` for custom holes. Members along the wall: `opgeom.sweep(ctx, op,
+  poly_yz, x0, x1)` (straight prism, or lofted along the trimmed host curve).
+  Framing (`Layout._openings`, `_wood_openings`, `_metal_openings`) and masonry (`MOpening`,
+  `Veneer.spans / _apply_openings / _mo_parts`) read the records directly.
+- Opening types are data (`library/openings/*.json`); add keys to `core.DEFAULTS` with a
+  default so existing types keep working.
+- Live mode: moving / deleting an opening rebuilds its host; deleting a host deletes its
+  openings. Wrap engine-side edits of driver objects in `live.quiet()`.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
-`library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`.
+`library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,
+`library/openings/<topic>.json`.
 Material entries: see `library/materials/core.json` (color, render, section, print).
 
 ## Commands
 Command logic lives in `mindcanvas/cmd/<name>.py` with `run()`; `commands/MC<Name>.py` is a
 6-line entry script (copy an existing one). Shared helpers in `mindcanvas/cmd/ui.py`
 (`select_drivers`, `pick_from_list`, `pick_assembly`, option helpers, `report`).
-Engine API: `engine.create / build / update_params / set_override / set_assembly / rebuild_all`.
+Engine API: `engine.create / build / build_many / update_params / set_override / set_assembly /
+rebuild_all / add_opening / update_opening / delete_openings`.
 
 ## Version control
 GitHub: `jakeself-arch/rhino-mind-canvas`, branch `main`. Commit when a phase or feature is done
