@@ -10,6 +10,9 @@ Driver params (stored as JSON on the driver curve; lengths in inches):
     lod          schematic | design | detail
     overrides    {"<layer name>": {"<option>": value}} per-wall option overrides
     layers       optional per-wall layer stack replacing the assembly's (MCLayers)
+    joins        {"start": style, "end": style}: how each end joins another wall
+                 (auto | wrap | miter | butt | none; see mindcanvas/joins)
+    join_priority  the wall with the higher priority runs through at an L (default 0)
 
 Openings hosted by the wall (mindcanvas/openings) are resolved into ctx.openings by
 place_opening; every component cuts itself, and the units are built after the layers.
@@ -111,18 +114,25 @@ def make_context(doc, lib, driver_obj, assembly_name, params):
     ctx = BuildContext(doc, lib, assembly_name, assembly, params, curve, base_z, height, lod)
     ctx.raw_curve = driver_obj.Geometry.DuplicateCurve()
 
+    for i, (spec, d_ext, d_int) in enumerate(stack_offsets(lib, assembly, params, s_scale)):
+        ctx.bands.append(LayerBand(i, spec, d_ext, d_int))
+    ctx.openings = openings.resolve(ctx, driver_obj, place_opening)
+    ctx.joins = None
+    from .. import joins
+    joins.attach_wall(ctx, driver_obj)
+    return ctx
+
+
+def stack_offsets(lib, assembly, params, s_scale):
+    """[(layer spec, d_ext, d_int)] of the wall's stack: signed offsets (model units) of every
+    layer's faces from the driver."""
     reference = params.get("reference") or assembly.get("default_reference") or "center"
     if reference not in REFERENCES:
         raise ValueError("Unknown wall reference '{}'".format(reference))
     layers = [fitted_layer(lib, spec, i, params) for i, spec in enumerate(layer_specs(lib, assembly, params))]
     s = stack_boundaries(layers)
     s_ref = reference_distance(layers, s, reference)
-    for i, spec in enumerate(layers):
-        d_ext = (s_ref - s[i]) * s_scale
-        d_int = (s_ref - s[i + 1]) * s_scale
-        ctx.bands.append(LayerBand(i, spec, d_ext, d_int))
-    ctx.openings = openings.resolve(ctx, driver_obj, place_opening)
-    return ctx
+    return [(spec, (s_ref - s[i]) * s_scale, (s_ref - s[i + 1]) * s_scale) for i, spec in enumerate(layers)]
 
 
 def place_opening(ctx, station, half):
@@ -190,4 +200,8 @@ def build(ctx):
     # window / door units hosted by this wall
     for op in ctx.openings:
         parts.extend(opening_units.build(ctx, op))
+    # wall tops filled up to a roof (gable ends, high shed walls)
+    if getattr(ctx, "joins", None) is not None:
+        from ..joins import geom as jgeom
+        parts.extend(jgeom.roof_infill(ctx))
     return parts

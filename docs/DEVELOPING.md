@@ -189,8 +189,50 @@ face of the rim, for roofs the plate line (outside face of the wall framing). Sh
   `schedule.framing_members` is the joist / rafter cut list (roles in `FRAMING_ROLES`). A kind may
   define `section_frame(ctx, point) -> (plane, extents)`; `drawing.sectioncut.wall_frame` uses it
   (floors: along the joists; roofs: along the slope of the face under the point).
-- **Phase 7 hooks**: floors / roofs know nothing about walls yet: `base_offset` (wall height),
-  roof `wall_depth` / `wall_ext` / `wall_int`, floor layer `inset`.
+- **Joins** (Phase 7, below): floors get per-edge `ctx.join_insets`, roofs their `wall_depth` /
+  `wall_ext` / `wall_int` from the walls along their boundary; `base_offset` is still set by hand.
+
+## Joins (Phase 7)
+`mindcanvas/joins/`: `plan.py` (pure 2D rules, no Rhino: testable anywhere), `find.py` (detection
+from the drivers), `geom.py` (geometry). Joins are computed from **drivers only** (curves, stacks,
+params), never from generated parts, so build order never matters.
+
+- **Wall ends** (`plan.Side`: driver end point P, unit tangent t, n = Z x t, `out` +1 at the end /
+  -1 at the start, face offsets ext >= cext >= cint >= int). An `EndCut` is a list of zones
+  (d_hi, d_lo, line) exterior -> interior; the face of a layer at offset d stops where
+  `P + n d + s t` crosses its zone's line (`cut.ext(d)` = how far past the driver end; `cut.cap`
+  = the stepped end polyline between two faces). Rules: `plan.l_cut` (wrap / miter / butt; zones
+  "outer", "core", "inner" relative to the corner), `plan.t_cut` (core / butt), `plan.t_notch`
+  (host notch polygon), `plan.l_backer` / `plan.t_backers` (extra studs in a host's framing).
+- **Detection** (`find.py`): L = both end lines cross near both ends (other wall's thickness + 1"),
+  15..165 degrees, mutual; T = the end lies within the host (faces +- 1"), away from its ends.
+  Primary at an L: `join_priority`, then the thicker core, then the larger id (both walls agree).
+  Params: `joins` = {"start" / "end": auto | wrap | miter | butt | none}, `join_priority`.
+  Floors / roofs: a wall is aligned with a boundary edge when the edge lies within the wall's
+  thickness + 1" and is parallel (`find.aligned_edges`, `Edge.sigma` = +1 when the wall's exterior
+  faces away from the polygon). Heights: wall top = floor framing bottom / roof plate (+- 1/2").
+- **ctx.joins** (walls, `find.Joins`): `ends` (EndCuts), `notches` (plan polygon, d range, z
+  range: subtracted from layers wholly inside that d range), `backers`, `z_top` (band index ->
+  model units added to the band top unless the layer sets `extend_top`), `roofs` (roof contexts
+  to fill up to), `partners`, `notes` (MCJoin Report). `ctx.join_partners` (any kind) = ids
+  rebuilt with this assembly.
+- **Components**: `ctx.solids(d_a, d_b, z0, z1)` already stops at join cuts and notches (via
+  `joins.geom.band_solids`). Components that build their own geometry along `ctx.curve` must use
+  `joins.geom.centerline(ctx, d)` / `outline(ctx, d_a, d_b)` / `band_solids(...)` instead
+  (framing does: centerline, tracks, cavity; masonry: `JoinEnd` on the first / last leg and bed
+  joints). Brick ties, base flashing and shelf angles still run to the driver ends.
+- **Roof infill** (`geom.roof_infill`, built by the wall kind): every layer from its top up to the
+  roof's rafter bottom line where that is > 1" higher (framing: gable studs on the stud grid +
+  cavity fill), per face, clipped at a gable's ridge. Exterior layers are lowered first to the
+  lowest rafter-bottom point over them (eaves).
+- **Engine**: `build()` rebuilds `ctx.join_partners` plus the ids stored at the previous build
+  (user text `mc.joined`) with `joined=False` (no further cascade); `BuildResult.partners` /
+  `.joined`. `rebuild_all` / `build_many` build everything once, then the partners not built yet.
+  Live mode: deleting a driver queues its `mc.joined` partners.
+- **Testing without Rhino**: `python tests/offline/test_join_plan.py` (plan.py imports nothing from
+  Rhino) and `python tests/offline/test_join_find.py` (find.py against a small
+  fake of `Rhino.Geometry` (straight polylines) for quick logic checks; geometry needs Rhino
+  (`tests/test_phase7.py`).
 
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
