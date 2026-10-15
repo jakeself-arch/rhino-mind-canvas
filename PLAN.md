@@ -94,7 +94,7 @@ docs/                  findings, user guide
 | 4 | Openings: windows/doors, headers, jambs, sills, lintels, soldier courses | Done (`MCOpening`/`MCEditOpening`; PR jakeself-arch/rhino-mind-canvas#1) |
 | — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
-| 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; branch `phase6-floors-roofs`) |
+| 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
 
@@ -129,7 +129,7 @@ test details extend the lower wall's exterior layers over the rim with `extend_t
 Phase 7 should compute these from the actual walls (rim/band covered by sheathing, ceiling and
 finish insets from the wall stack, gable-end wall tops following the rake, high shed walls).
 
-**Phase 6 summary** (branch `phase6-floors-roofs`): kinds `floor` (`kinds/floor.py` +
+**Phase 6 summary** (branch `phase6-floors-roofs`, PR jakeself-arch/rhino-mind-canvas#3): kinds `floor` (`kinds/floor.py` +
 `mindcanvas/floors/`) and `roof` (`kinds/roof.py` + `mindcanvas/roofs/`), shared geometry in
 `mindcanvas/hgeo.py`. Library: `library/assemblies/floors.json` (2x10 wood, 11-7/8" I-joist,
 10" metal C-joist, concrete on metal deck), `library/assemblies/roofs.json` (gable vented attic,
