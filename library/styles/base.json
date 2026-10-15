@@ -51,6 +51,7 @@
       "Weather Resistive Barrier":  {"fill": "black"},
       "Vapor Retarder":             {"fill": "black"},
       "Glass":                      {"fill": "black", "tone": false},
+      "Wood Trim":                  {"tone": 2.5},
       "Concrete*":                  {"hatch": {"pattern": "MC Concrete", "mm": 3.0}},
       "Ground*":                    {"ground": true, "stipple": 2.4, "inner": false},
       "Earth*":                     {"ground": true, "stipple": 2.4, "inner": false}

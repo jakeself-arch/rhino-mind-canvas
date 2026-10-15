@@ -88,19 +88,24 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-14): REVIEW CHECKPOINT after Phase 4.** Phases 0, 0.5, 1, 2, 3, 4 done and
+**Current state (2026-10-14): Phase 4 reviewed + merged to main; waiting before Phase 5.** Phases 0, 0.5, 1, 2, 3, 4 done and
 verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`, `test_phase2.py`,
 `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`), `test_phase4.py`
-(`run(doc, drawing_on=True, captures=True)`, ~40 s). Phase 4 work is on branch `phase4-openings`,
-PR jakeself-arch/rhino-mind-canvas#1 (not merged yet).
+(`run(doc, drawing_on=True, captures=True)`, ~25 s). Phase 4 was developed on branch `phase4-openings`,
+PR jakeself-arch/rhino-mind-canvas#1 (merged into main after the review comments were addressed).
 Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`,
 `c_window_section_1-1-2.png` (window head + sill, brick veneer / 6" metal stud).
 
-**Waiting on the user's review** of Phase 4 before Phase 5 (curtain wall). Do not start Phase 5
+**Waiting for the user's go-ahead** before Phase 5 (curtain wall). Do not start Phase 5
 until they say so.
 
-**Phase 4 known limitations:** a brick lintel lands in the next bed joint above the frame head +
-joint, so heads off the coursing leave a gap (warned; put heads at 8k/3" − 3/8" for modular);
+**Phase 4 review (2026-10-14), addressed:** frames sit at the insulation line (brick returns get
+sheet-metal closures + sealant at the brick face; `"position": "brick"` keeps the old placement);
+SnapHead (default on) puts heads on the brick coursing; window liners get lighter tone in drawings
+(material style `"tone": <spacing multiplier>`).
+
+**Phase 4 known limitations:** with SnapHead off, a head off the coursing leaves a gap under the
+lintel (warned);
 jamb closures are cut at the masonry opening line (no bonding-out of the opening width); openings
 on curved walls are straight units with planar jambs, members along the wall follow the curve;
 end dams are thin plates that slightly overlap the brick at the lintel ends; the L-header sits on

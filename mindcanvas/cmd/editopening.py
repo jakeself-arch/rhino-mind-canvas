@@ -76,8 +76,8 @@ def run():
             if type_changed:
                 core.set_type(doc, o, s.type_name)
                 o = doc.Objects.FindId(o.Id)
-            core.update(doc, o, params)
             h = core.host_of(doc, o)
+            core.update(doc, o, s.snapped(h, params) if h is not None else params)
             if h is not None:
                 hosts[str(h.Id)] = h
     for h in hosts.values():

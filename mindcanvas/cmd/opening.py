@@ -30,8 +30,9 @@ def wall_filter(doc):
 class Settings(object):
     """Command-line options shared by MCOpening and MCEditOpening."""
 
-    def __init__(self, doc, lib, type_name, params=None):
+    def __init__(self, doc, lib, type_name, params=None, snap=True):
         self.doc, self.lib = doc, lib
+        self.snap = RI.Custom.OptionToggle(bool(snap), "No", "Yes")
         self.set_type(type_name, params)
 
     def set_type(self, type_name, params=None):
@@ -60,6 +61,7 @@ class Settings(object):
             h[ui.add_option_list(g, "Swing", SWING, self.swing)] = "swing"
             h[ui.add_option_list(g, "Hinge", HINGE, self.hinge)] = "hinge"
         h[ui.add_option_list(g, "HeadCourse", HEADS, self.head)] = "head"
+        ui.add_option_toggle(g, "SnapHead", self.snap)
         return h
 
     def handle(self, g, handlers):
@@ -79,6 +81,17 @@ class Settings(object):
             p.update(swing=SWING[self.swing].lower(), hinge=HINGE[self.hinge].lower())
         return p
 
+    def snapped(self, host, params):
+        """params with the head moved to the host's brick coursing (SnapHead=Yes)."""
+        if not self.snap.CurrentValue:
+            return params
+        out, delta = engine.snap_to_coursing(self.doc, host, self.type_name, params, self.lib)
+        if delta:
+            what = "height" if (self.door or out.get("height") != params.get("height")) else "sill"
+            ui.say("SnapHead: {} {} {} to put the head on the brick coursing.".format(
+                what, "raised" if delta > 0 else "lowered", units.format_inches(abs(delta))))
+        return out
+
 
 def run():
     doc = ui.doc()
@@ -91,7 +104,7 @@ def run():
     tname = st.get("type") if st.get("type") in names else pick_type(lib)
     if not tname:
         return ui.Result.Cancel
-    s = Settings(doc, lib, tname, st.get("params"))
+    s = Settings(doc, lib, tname, st.get("params"), st.get("snap", True))
     placed = 0
     while True:
         go = RI.Custom.GetObject()
@@ -116,10 +129,10 @@ def run():
             pt = obj.Geometry.GetBoundingBox(True).Center
         drv = meta.driver_of(doc, obj)
         doc.Objects.UnselectAll()
-        op, r = engine.add_opening(doc, drv, s.type_name, s.params(), pt, lib)
+        op, r = engine.add_opening(doc, drv, s.type_name, s.snapped(drv, s.params()), pt, lib)
         placed += 1
         ui.report(r, "{}:".format(s.type_name))
-        scriptcontext.sticky[STICKY] = {"type": s.type_name, "params": s.params()}
+        scriptcontext.sticky[STICKY] = {"type": s.type_name, "params": s.params(), "snap": s.snap.CurrentValue}
         doc.Views.Redraw()
     ui.say("Placed {} opening(s).".format(placed))
     return ui.Result.Success if placed else ui.Result.Cancel

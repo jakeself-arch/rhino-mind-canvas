@@ -9,8 +9,9 @@ Run inside Rhino (e.g. via the MCP run_python tool), in an EMPTY, unsaved docume
     runpy.run_path(ROOT + r"\\tests\\test_phase4.py")["run"](__rhino_doc__)
 
 Covers windows + doors in wood, metal, brick veneer and two-sided brick walls on straight,
-L-shaped (opening near the corner) and arc drivers; openings following an edited wall curve,
-a moved opening line, deleting an opening; every LOD; the opening schedule. drawing=True also
+L-shaped (opening near the corner) and arc drivers; frames at the insulation line with brick
+closures; openings following an edited wall curve, a moved opening line, deleting an opening;
+every LOD; the opening schedule; snapping heads to the brick coursing. drawing_on=True also
 writes docs/drawings/c_window_section_1-1-2.{svg,png} (1-1/2" section through a window head
 and sill); captures=True writes docs/captures/phase4_*.png.
 """
@@ -143,8 +144,17 @@ def check_wall(doc, lib, label, drv_id, framing=None, brick=False):
         n_win = sum(1 for op in ops if not op.door)
         assert roles["lintel"] >= len(ops), "{}: lintels {}".format(label, roles["lintel"])
         assert roles["brick_rowlock"] >= 6 * n_win, "{}: rowlocks {}".format(label, roles["brick_rowlock"])
+        # frames sit at the insulation line: face on the first solid layer behind the air space
+        for op in ops:
+            if op.t["frame"].get("depth") != "wall" and op.masonry_ext is not None:
+                behind = sorted([b for b in ctx.bands if b.d_ext <= op.masonry_ext.d_int - ctx.u(0.5)
+                                 and b.component != "void"], key=lambda b: -b.d_ext)
+                assert behind and abs(op.y_fe - behind[0].d_ext) < ctx.tol * 10, \
+                    "{}: frame of {} not at the insulation line".format(label, op.name)
+                assert op.behind_brick
         if ctx.lod == "detail":
             assert roles["end_dam"] >= 2 * len(ops) and roles["sealant"] > 0, roles
+            assert roles["closure"] >= 3 * len(ops), "{}: closures {}".format(label, roles["closure"])
     return ctx, roles
 
 
@@ -300,6 +310,23 @@ def lods(doc, lib):
     return r.driver_id
 
 
+def snapping(doc, lib, brick_id, wood_id):
+    """SnapHead: a window's sill (a door's height) moves so the head + joint is on a bed joint."""
+    from mindcanvas.components import masonry
+    host = doc.Objects.FindId(brick_id)
+    p, d = engine.snap_to_coursing(doc, host, WINDOW, {"sill": 32, "height": 56}, lib)
+    ctx = _ctx(doc, lib, brick_id)
+    v = masonry.layout(ctx, [b for b in ctx.bands if b.component == "masonry"][0])
+    head = ctx.base_z + (p["sill"] + p["height"] + 0.375) * ctx.s
+    assert min(abs(c.z - head) for c in v.courses) < ctx.u(1.0 / 64), (p, d)
+    assert p["height"] == 56 and abs(d) <= 8.0 / 6 + 1e-6, (p, d)
+    pd, dd = engine.snap_to_coursing(doc, host, DOOR, {"sill": 0, "height": 86}, lib)
+    assert pd["sill"] == 0 and abs(pd["height"] - 86 - dd) < 1e-3, pd
+    p2, d2 = engine.snap_to_coursing(doc, doc.Objects.FindId(wood_id), WINDOW, {"sill": 32, "height": 56}, lib)
+    assert d2 == 0.0 and p2["sill"] == 32, "no brick: no snapping"
+    print("  window sill 32\" -> {}\" ({:+.3f}\"), door height 86\" -> {}\"".format(p["sill"], d, pd["height"]))
+
+
 def opening_schedule(doc):
     rows = schedule.openings(doc)
     print(schedule.format_openings(rows))
@@ -364,6 +391,8 @@ def run(doc, clear=True, drawing_on=True, captures=True):
     lods(doc, lib)
     print("-- schedule")
     opening_schedule(doc)
+    print("-- snap heads to the brick coursing")
+    snapping(doc, lib, walls[BRICK], walls[WOOD])
     print("-- edits")
     edits(doc, lib, walls[WOOD])
     if captures:

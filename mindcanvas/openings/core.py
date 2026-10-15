@@ -38,7 +38,9 @@ _COMMON = {
     "shim": "1/2",          # rough opening clearance around the unit (jambs, head, window sill)
     "joint": "3/8",         # sealant joint between cladding and frame
     "frame": {"material": "Aluminum", "face": "1-3/4", "depth": "3-1/4"},
-    "set": "1-1/4",         # brick walls: frame face this far in front of the back of the brick
+    "position": "weather",  # weather: frame face at the insulation / weather line (first solid
+                            # layer behind the cladding's cavity); brick: in the masonry opening,
+    "set": "1-1/4",         # its face `set` in front of the back of the brick
     "masonry": {
         "lintel": "auto",               # profile name or auto (smallest family "lintel" angle spanning it)
         "lintel_material": "Steel Angle",
@@ -56,6 +58,8 @@ _COMMON = {
     "trim": {"liner": "3/4", "stool": "3/4", "stool_projection": "3/4", "material": "Wood Trim"},
     "sill_pan": {"material": "Flashing - Membrane", "thickness": "1/32", "back_dam": 1, "drip": "3/8"},
     "head_flashing": {"material": "Flashing", "thickness": "1/32", "upturn": 2, "drip": "3/8"},
+    "closure": {"material": "Aluminum", "thickness": "1/16", "recess": "1/2"},   # brick returns, frame
+                                                                               # at the insulation line
     "sealant": "Sealant",
     "backer": "Backer Rod",
 }
@@ -318,9 +322,9 @@ class Opening(object):
             return
         D = u(depth)
         if ext_brick:
-            b = max(ext_brick, key=lambda b: b.d_ext)
-            self.masonry_ext = b
-            y_fe = b.d_int + u(self.t.get("set", "1-1/4"))
+            self.masonry_ext = max(ext_brick, key=lambda b: b.d_ext)
+        if ext_brick and str(self.t.get("position", "weather")).lower() == "brick":
+            y_fe = self.masonry_ext.d_int + u(self.t.get("set", "1-1/4"))
         else:
             y_fe = self.y_ext
             seen_solid = False
@@ -336,6 +340,11 @@ class Opening(object):
                     seen_solid = True
         self.y_fe = min(y_fe, self.y_ext)
         self.y_fi = max(self.y_fe - D, self.y_int)
+
+    @property
+    def behind_brick(self):
+        """True when the frame sits behind the exterior brick (at the insulation line)."""
+        return self.masonry_ext is not None and self.y_fe <= self.masonry_ext.d_int + 1e-9
 
     # -- zones and cutters ------------------------------------------------------
     def cladding(self, band):

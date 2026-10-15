@@ -281,7 +281,7 @@ class MOpening(object):
             gap = self.z_top - need
             if gap > u(0.5):
                 ctx.warn("Brick over '{}': the lintel sits {} above the frame head + joint (next bed joint). "
-                         "Set the head to the coursing to close the gap.".format(op.name, units.format_inches(gap / ctx.s)))
+                         "Use SnapHead (MCOpening / MCEditOpening) to put the head on the coursing.".format(op.name, units.format_inches(gap / ctx.s)))
         # head course on the lintel
         self.head, self.n_head, self.head_top = None, 0, self.z_top
         if op.head in ("soldier", "sailor") and self.k_head is not None:
@@ -318,9 +318,10 @@ class MOpening(object):
         y_bk = st.y_bk if st.y_bk is not None else v.y_face - D - u(2)
         proj = u(m.get("sill_projection", "1-1/2"))
         tan = math.tan(th)
-        # top surface runs through (y_a, z_a): just under the back of the frame, clear of the backup
-        y_a = max(y_bk + u(0.25), op.y_fi * v.sign) if v.sign > 0 else y_bk + u(0.25)
-        z_a = op.z0 - u(0.25)
+        # top surface runs through (y_a, z_a): clear of the backup, just under the sill pan
+        # (frame at the insulation line) or under the frame (frame in the masonry opening)
+        y_a = y_bk + u(0.25)
+        z_a = (op.rz0 if op.behind_brick else op.z0) - u(0.25)
         yT = v.y_face + proj - L * ct
         T = (yT, z_a - (yT - y_a) * tan)
         Uv, Vv = (ct, -sn), (sn, ct)
@@ -1283,7 +1284,7 @@ class Veneer(object):
             return []
         tf = u("1/32")
         zs = mo.z_support
-        up = max(u(2), min(u(8), op.z0 - zs - u(0.25)))
+        up = max(u(2), min(u(8), (op.rz0 if op.behind_brick else op.z0) - zs - u(0.25)))
         drip = u("3/8")
         path = [(st.y_bk, zs + up), (st.y_bk, zs + u(0.5)), (self.y_face - self.D, zs - tf),
                 (self.y_face + drip - u(0.25), zs - tf), (self.y_face + drip, zs - tf - u(0.25))]
@@ -1291,35 +1292,55 @@ class Veneer(object):
                 for s in og.sweep(ctx, op, mo.wpoly(thicken(path, tf)), -mo.hx, mo.hx)]
 
     def _sealant(self, mo, tag):
-        """Sealant + backer rod between the brick and the frame, at the jambs and the head."""
+        """Sealant + backer rod between the brick and the window / door, at the jambs and the
+        head. Frame in the masonry opening: the joint is at the frame face. Frame behind the
+        brick (insulation line): sheet-metal closures line the jambs and head from the frame to
+        1/2" behind the brick face, and the joint is between the brick and the closure there."""
         from ..openings import geom as og
         ctx, op, u = self.ctx, mo.op, self.ctx.u
         out = []
         sealant, backer = op.t.get("sealant", "Sealant"), op.t.get("backer", "Backer Rod")
-        yfe = op.y_fe                         # wall coordinates from here on
         ds = u("3/8")
         j = op.joint
         hw = 0.5 * op.W
-        z_lo = op.z0 if not mo.rowlock else op.z0 - u(0.25)
-        z_hi = min(mo.z_top, op.z1 + j)
-        rr = 0.5 * min(j * 1.25, u("5/8"))
+        z_hi_j = mo.z_top if mo.k_head is not None else op.z1 + j
+        if op.behind_brick:
+            cl = op.t.get("closure") or {}
+            tc = u(cl.get("thickness", "1/16"))
+            cmat = cl.get("material", "Aluminum")
+            y_seal = mo.wy(self.y_face) - u(cl.get("recess", "1/2"))   # wall coordinates from here on
+            z_lo = op.z0 if op.door else op.rz0
+            for s in (-1, 1):
+                xa, xb = sorted((s * hw, s * (hw + tc)))
+                out.append(Part(og.prism_z(op, [(xa, op.y_fe), (xb, op.y_fe), (xb, y_seal), (xa, y_seal)],
+                                           z_lo, op.z1 + tc, ctx.tol), cmat, role="closure", extra=dict(tag)))
+            out.append(Part(og.prism_x(op, [(op.y_fe, op.z1), (y_seal, op.z1), (y_seal, op.z1 + tc), (op.y_fe, op.z1 + tc)],
+                                       -hw, hw, ctx.tol), cmat, role="closure", extra=dict(tag)))
+            x_in, z_head = hw + tc, op.z1 + tc
+        else:
+            y_seal = op.y_fe
+            z_lo = op.z0 if not mo.rowlock else op.z0 - u(0.25)
+            x_in, z_head = hw, op.z1
+        z_hi = min(z_hi_j, op.z1 + j)
+        rr = 0.5 * min((hw + j - x_in) * 1.25, u("5/8"))
         for s in (-1, 1):
-            xa, xb = sorted((s * hw, s * (hw + j)))
-            seal = [(xa, yfe - ds), (xb, yfe - ds), (xb, yfe), (xa, yfe)]
+            xa, xb = sorted((s * x_in, s * (hw + j)))
+            if xb - xa < u(1.0 / 16):
+                continue
+            seal = [(xa, y_seal - ds), (xb, y_seal - ds), (xb, y_seal), (xa, y_seal)]
             out.append(Part(og.prism_z(op, seal, z_lo, z_hi, ctx.tol), sealant, role="sealant", extra=dict(tag)))
-            rod = [(0.5 * (xa + xb) + 0.5 * j * 0.98 * math.cos(a), yfe - ds - rr + rr * math.sin(a))
+            rod = [(0.5 * (xa + xb) + 0.49 * (xb - xa) * math.cos(a), y_seal - ds - rr + rr * math.sin(a))
                    for a in [i * math.pi / 8 for i in range(16)]]
             out.append(Part(og.prism_z(op, rod, z_lo, z_hi, ctx.tol), backer, role="backer_rod", extra=dict(tag)))
-        if mo.k_head is not None and mo.z_top - op.z1 > u(0.25):
-            gz = mo.z_top - op.z1
-            seal = [(yfe - ds, op.z1), (yfe, op.z1), (yfe, mo.z_top), (yfe - ds, mo.z_top)]
+        if mo.k_head is not None and mo.z_top - z_head > u(0.125):
+            gz = mo.z_top - z_head
+            seal = [(y_seal - ds, z_head), (y_seal, z_head), (y_seal, mo.z_top), (y_seal - ds, mo.z_top)]
             out.append(Part(og.prism_x(op, seal, -hw - j, hw + j, ctx.tol), sealant, role="sealant", extra=dict(tag)))
             rz = 0.5 * min(gz * 0.98, u("5/8"))
-            zc = op.z1 + 0.5 * gz
-            rod = [(yfe - ds - rr + rr * math.cos(a), zc + rz * math.sin(a)) for a in [i * math.pi / 8 for i in range(16)]]
+            zc = z_head + 0.5 * gz
+            rod = [(y_seal - ds - rr + rr * math.cos(a), zc + rz * math.sin(a)) for a in [i * math.pi / 8 for i in range(16)]]
             out.append(Part(og.prism_x(op, rod, -hw - j, hw + j, ctx.tol), backer, role="backer_rod", extra=dict(tag)))
         return [p for p in out if p.geometry is not None]
-
 
 def layout(ctx, band):
     cache = ctx.__dict__.setdefault("_mc_masonry", {})

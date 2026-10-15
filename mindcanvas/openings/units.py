@@ -322,7 +322,14 @@ def _pan(b):
     if op.door or not sp:
         return
     tp = u(sp.get("thickness", "1/32"))
-    if op.masonry_ext is not None:
+    drip = u("3/8")
+    if op.masonry_ext is not None and op.behind_brick:
+        # on the rough sill, lapping 3/4" out over the back of the rowlock
+        zp = op.rz0 + tp
+        yf = op.y_fe + u("3/4")
+        hx = 0.5 * op.W + op.joint
+        drip = u("1/4")
+    elif op.masonry_ext is not None:
         zp = op.z0
         yf = op.y_fe + u("1/2")
         hx = 0.5 * op.W + op.joint
@@ -330,7 +337,7 @@ def _pan(b):
         zp = op.rz0 + tp
         yf = max(op.y_ext, op.y_fe) + u(sp.get("drip", "3/8"))
         hx = op.rx
-    path = [(yf, zp - u("3/8")), (yf, zp), (op.y_fi, zp), (op.y_fi, zp + u(sp.get("back_dam", 1)))]
+    path = [(yf, zp - drip), (yf, zp), (op.y_fi, zp), (op.y_fi, zp + u(sp.get("back_dam", 1)))]
     poly = geom.thicken(path, tp)
     b.add(geom.prism_x(op, poly, -hx, hx, b.tol), sp.get("material", "Flashing - Membrane"), "sill_pan")
 

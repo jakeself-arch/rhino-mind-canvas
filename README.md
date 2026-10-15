@@ -22,8 +22,8 @@ section hatches, ready for detailed section drawings.
 | `MCSetAssembly` | Swap the assembly type of selected walls |
 | `MCLayers` | Edit the layer stack of selected walls: Replace, Insert, Remove, Thickness, ToExterior/ToInterior, Mirror, Reset, **SaveAs** a new assembly. Changes show immediately; Esc undoes them |
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
-| `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor) |
-| `MCEditOpening` | Change the type, size, sill, swing / hinge or head course of selected windows / doors (click their line or any of their parts), or `Remove` them |
+| `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
+| `MCEditOpening` | Change the type, size, sill, swing / hinge, head course or SnapHead of selected windows / doors (click their line or any of their parts), or `Remove` them |
 | `MCUpdate` | Rebuild selected walls (Enter = all), e.g. after editing library files |
 | `MCLive` | Toggle live update (walls follow their curves while you edit them) |
 | `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²) and a window / door schedule (type, size, sill, count), optional CSV |
@@ -66,12 +66,20 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
   metal gets boxed jamb studs, head / sill track and a box header (or `header_type: "L"` in the
   framing layer options for an L-header). Studs inside the opening are dropped; the layout keeps
   its grid. Insulation and bridging stop at the opening, bottom plates are cut at doors.
+- **Frame position**: windows and doors sit at the insulation / weather line — the face of the
+  first solid layer behind the cladding's air space (the continuous insulation in the brick
+  walls, the WRB in the 2x6 brick wall). Set `"position": "brick"` in a type to set the frame
+  in the masonry opening instead (`"set"` = how far in front of the back of the brick).
 - **Brick**: whole bricks are cut around the opening with closures at the jambs (no slivers),
   a steel angle lintel sits in the first bed joint over the head with 6" bearing, an optional
-  soldier or sailor course rides on it, the sill is a rowlock sloped out 15° on a mortar wedge,
-  with head flashing + end dams, weeps over the lintel, sill flashing, sealant and backer rod.
-  Tip: put the head at a coursing line (modular: a multiple of 8/3", minus the 3/8" joint) —
-  otherwise the lintel sits up to one course higher and `MCOpening` warns.
+  soldier or sailor course rides on it, the sill is a rowlock sloped out 15° on a mortar wedge
+  (cut square at the cavity), with head flashing + end dams, weeps over the lintel, sill
+  flashing. Sheet-metal closures line the jambs and head from the frame out to 1/2" behind the
+  brick face, with sealant and backer rod between them and the brick.
+- **SnapHead** (on by default in `MCOpening` / `MCEditOpening`): in a brick wall a window's
+  sill moves (a door's height changes) by up to half a course so the head + sealant joint lands
+  on a bed joint and the lintel sits right over the frame. With it off, an off-course head
+  leaves a gap under the lintel and you get a warning.
 - The unit: frame, sashes / mullions and insulated glass (two lites + spacer) for windows;
   frame, leaf (optional glass lite), threshold and a swing arc in plan for doors; interior jamb
   liners and a stool, a sill pan and a head drip cap (walls without brick).

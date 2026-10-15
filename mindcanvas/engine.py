@@ -192,6 +192,41 @@ def add_opening(doc, host_obj, type_name, params=None, point=None, lib=None):
     return doc.Objects.FindId(op.Id), r
 
 
+def snap_to_coursing(doc, host_obj, type_name, params, lib=None):
+    """Move a window (its sill; a door: its height) so its head + sealant joint lands on the
+    nearest bed joint of the host's brick (exterior brick first, else any masonry layer).
+    Returns (params, delta inches); delta 0.0 when the host has no brick or it already fits."""
+    from .components import masonry
+    from .openings import core
+    lib = lib or library.get()
+    if meta.get(host_obj, meta.TYPE) != "wall":
+        return dict(params), 0.0
+    kmod = kinds.get("wall")
+    ctx = kmod.make_context(doc, lib, host_obj, meta.get(host_obj, meta.ASSEMBLY), meta.params(host_obj))
+    bands = [b for b in ctx.bands if b.component == "masonry"]
+    if not bands:
+        return dict(params), 0.0
+    ext = [b for b in bands if masonry.exposed_side(ctx, b) > 0]
+    v = masonry.layout(ctx, max(ext or bands, key=lambda b: b.d_ext))
+    if len(v.courses) < 2:
+        return dict(params), 0.0
+    t = core.merged_type(lib, type_name, params)
+    sill = units.parse_length(params.get("sill", t["sill"]))
+    height = units.parse_length(params.get("height", t["height"]))
+    gap = units.parse_length(t["joint"] if ext else t["shim"])
+    target = ctx.base_z + (sill + height + gap) * ctx.s
+    best = min((c.z for c in v.courses[1:]), key=lambda z: abs(z - target))
+    delta = (best - target) / ctx.s
+    if abs(delta) < 1.0 / 64:
+        return dict(params), 0.0
+    out = dict(params)
+    if t.get("category") == "door" or sill + delta < 0:
+        out["height"] = round(height + delta, 4)
+    else:
+        out["sill"] = round(sill + delta, 4)
+    return out, delta
+
+
 def update_opening(doc, op_obj, changes=None, type_name=None, lib=None):
     from .openings import core
     with _quiet():
