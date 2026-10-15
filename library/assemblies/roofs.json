@@ -1,0 +1,68 @@
+{
+  "_comment": "Roof assemblies (kind 'roof'). The driver is a closed horizontal boundary = the plate line (outside face of the wall framing); base_offset = plate height. Settings (any of them can also be a driver param): shape flat | shed | gable, pitch (x in 12), overhang (eave, plate line to fascia face), rake, ridge (long | short | degrees), flip (shed: high side), wall_depth / wall_ext / wall_int (bearing walls: framing depth, layers outside / inside it), trim {...} (mindcanvas/roofs/shape.py TRIM: fascia, sub-fascia, soffit + vent + nailer, drip edge, gutter, rake board, barge, lookouts, bird blocks, ridge cap). 'layers' = the roof-plane stack TOP -> BOTTOM around the 'rafters' layer (system wood | metal: the one-line swap; rafter; spacing; cavity_fill; fill_depth). Layer options: taper (in/ft), eave_membrane, region, shingles: exposure, tip. 'ceiling' = optional attic ceiling stack (component 'joists' = ceiling joists beside the rafters).",
+
+  "Roof - Asphalt Shingle / 2x8 Rafters, Vented Attic": {
+    "kind": "roof", "shape": "gable", "pitch": 6, "overhang": 18, "rake": 12, "ridge": "long",
+    "layers": [
+      {"name": "Roofing",      "component": "shingles", "material": "Asphalt Shingles",     "thickness": "3/8",
+       "options": {"exposure": 5, "tip": "1/8"}},
+      {"name": "Underlayment", "component": "membrane", "material": "Roofing Underlayment", "thickness": "1/32",
+       "options": {"eave_membrane": {"material": "Ice and Water Shield", "width": 24}}},
+      {"name": "Sheathing",    "component": "solid",    "material": "Plywood Sheathing",    "thickness": "5/8"},
+      {"name": "Rafters",      "component": "rafters",  "material": "Wood Framing",         "thickness": "7-1/4", "core": true,
+       "options": {"system": "wood", "spacing": 24}}
+    ],
+    "ceiling": [
+      {"name": "Attic Insulation", "component": "solid",  "material": "Blown Insulation", "thickness": 8},
+      {"name": "Ceiling Joists",   "component": "joists", "material": "Wood Framing",     "thickness": "5-1/2",
+       "options": {"system": "wood", "cavity_fill": "Blown Insulation"}},
+      {"name": "Ceiling",          "component": "solid",  "material": "Gypsum Board",     "thickness": "1/2"}
+    ]
+  },
+
+  "Roof - Asphalt Shingle / 2x10 Rafters, Cathedral": {
+    "kind": "roof", "shape": "gable", "pitch": 8, "overhang": 16, "rake": 12, "ridge": "long",
+    "layers": [
+      {"name": "Roofing",         "component": "shingles", "material": "Asphalt Shingles",     "thickness": "3/8",
+       "options": {"exposure": 5, "tip": "1/8"}},
+      {"name": "Underlayment",    "component": "membrane", "material": "Roofing Underlayment", "thickness": "1/32",
+       "options": {"eave_membrane": {"material": "Ice and Water Shield", "width": 24}}},
+      {"name": "Sheathing",       "component": "solid",    "material": "Plywood Sheathing",    "thickness": "5/8"},
+      {"name": "Rafters",         "component": "rafters",  "material": "Wood Framing",         "thickness": "9-1/4", "core": true,
+       "options": {"system": "wood", "spacing": 16, "cavity_fill": "Fiberglass Batt", "fill_depth": "7-3/4"}},
+      {"name": "Vapor Retarder",  "component": "membrane", "material": "Vapor Retarder",       "thickness": "1/32"},
+      {"name": "Ceiling",         "component": "solid",    "material": "Gypsum Board",         "thickness": "5/8"}
+    ]
+  },
+
+  "Roof - Asphalt Shingle / 2x10 Rafters, Shed": {
+    "kind": "roof", "shape": "shed", "pitch": 3, "overhang": 16, "rake": 12, "ridge": "long",
+    "layers": [
+      {"name": "Roofing",      "component": "shingles", "material": "Asphalt Shingles",     "thickness": "3/8",
+       "options": {"exposure": 5, "tip": "1/8"}},
+      {"name": "Underlayment", "component": "membrane", "material": "Roofing Underlayment", "thickness": "1/32",
+       "options": {"eave_membrane": {"material": "Ice and Water Shield", "width": 24}}},
+      {"name": "Sheathing",    "component": "solid",    "material": "Plywood Sheathing",    "thickness": "5/8"},
+      {"name": "Rafters",      "component": "rafters",  "material": "Wood Framing",         "thickness": "9-1/4", "core": true,
+       "options": {"system": "wood", "spacing": 16, "cavity_fill": "Fiberglass Batt", "fill_depth": "7-3/4"}},
+      {"name": "Ceiling",      "component": "solid",    "material": "Gypsum Board",         "thickness": "5/8"}
+    ]
+  },
+
+  "Roof - Low Slope Membrane / 2x10 Joists": {
+    "kind": "roof", "shape": "flat", "pitch": 0, "overhang": 12, "rake": 12,
+    "layers": [
+      {"name": "Membrane",            "component": "membrane", "material": "Roof Membrane",              "thickness": "1/16"},
+      {"name": "Cover Board",         "component": "solid",    "material": "Cover Board",                "thickness": "1/2"},
+      {"name": "Tapered Insulation",  "component": "solid",    "material": "Polyiso Tapered Insulation", "thickness": 1,
+       "options": {"taper": 0.25}},
+      {"name": "Insulation",          "component": "solid",    "material": "Polyiso Board",              "thickness": 3},
+      {"name": "Vapor Retarder",      "component": "membrane", "material": "Vapor Retarder",             "thickness": "1/32"},
+      {"name": "Roof Deck",           "component": "solid",    "material": "Plywood Sheathing",          "thickness": "3/4"},
+      {"name": "Joists",              "component": "rafters",  "material": "Wood Framing",               "thickness": "9-1/4", "core": true,
+       "options": {"system": "wood", "spacing": 16}},
+      {"name": "Ceiling",             "component": "solid",    "material": "Gypsum Board",               "thickness": "5/8"}
+    ],
+    "trim": {"soffit": true, "gutter": "k", "lookout": "2x4"}
+  }
+}

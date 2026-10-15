@@ -1,0 +1,63 @@
+{
+  "_comment": "Joist / rafter systems for floors and roofs ('use': 'joists' keeps them out of MCFraming's wall list). A floor or roof framing layer says \"system\": \"wood\" | \"metal\"; the engine looks for '<system>_joists' first, so swapping wood <-> metal is the same one-line option as for walls. family: member profile family (picked by the layer thickness, or the layer's 'joist' / 'rafter' option names one); track_family: metal rim / sub-fascia track; rim_plies: wood rim joist plies; blocking_spacing: max distance between blocking / bridging rows (0 = none); strap: metal bridging strap profile; ridge_family: ridge member family (deeper than the rafter). max_span: typical maximum joist span per profile (floor, 40 psf live, 16\" o.c.) - only used for a warning. names: member labels written to parts.",
+
+  "wood_joists": {
+    "use": "joists",
+    "type": "wood",
+    "label": "Wood joists / rafters (sawn lumber or I-joists)",
+    "material": "Wood Framing",
+    "family": "lumber",
+    "spacing": 16,
+    "rafter_spacing": 24,
+    "rim_plies": 1,
+    "blocking": true,
+    "blocking_spacing": 96,
+    "ridge_family": "lumber",
+    "max_span": {"2x6": "9'-11\"", "2x8": "13'-1\"", "2x10": "16'-9\"", "2x12": "20'-4\"",
+                 "9-1/2\" I-Joist": "17'-0\"", "11-7/8\" I-Joist": "20'-6\"", "14\" I-Joist": "23'-3\""},
+    "names": {
+      "joist": "{profile} Joist",
+      "rim": "{profile} Rim Joist",
+      "blocking": "{profile} Blocking",
+      "rafter": "{profile} Rafter",
+      "barge": "{profile} Barge Rafter",
+      "ridge": "{profile} Ridge Board",
+      "ceiling_joist": "{profile} Ceiling Joist",
+      "lookout": "{profile} Lookout",
+      "subfascia": "{profile} Sub-Fascia",
+      "bird_block": "{profile} Bird Block"
+    }
+  },
+
+  "metal_joists": {
+    "use": "joists",
+    "type": "metal",
+    "label": "Cold-formed steel C-joists / rafters in joist track",
+    "material": "Cold-Formed Steel",
+    "family": "metal_joist",
+    "track_family": "joist_track",
+    "gauge": 16,
+    "spacing": 24,
+    "rafter_spacing": 24,
+    "blocking": true,
+    "blocking_spacing": 96,
+    "strap": "1-1/2\" Flat Strap, 18 ga",
+    "ridge_family": "metal_joist",
+    "max_span": {"6\" Metal Joist, 16 ga": "10'-0\"", "8\" Metal Joist, 16 ga": "13'-6\"", "10\" Metal Joist, 16 ga": "16'-0\"",
+                 "12\" Metal Joist, 16 ga": "18'-6\"", "8\" Metal Joist, 14 ga": "14'-6\"",
+                 "10\" Metal Joist, 14 ga": "17'-3\"", "12\" Metal Joist, 14 ga": "20'-0\""},
+    "names": {
+      "joist": "{profile}",
+      "rim": "{profile} Rim Track",
+      "blocking": "{profile} Blocking",
+      "strap": "{profile} Bridging Strap",
+      "rafter": "{profile} Rafter",
+      "barge": "{profile} Barge Rafter",
+      "ridge": "{profile} Ridge Member",
+      "ceiling_joist": "{profile} Ceiling Joist",
+      "lookout": "{profile} Outrigger",
+      "subfascia": "{profile} Rim Track",
+      "bird_block": "{profile} Blocking"
+    }
+  }
+}

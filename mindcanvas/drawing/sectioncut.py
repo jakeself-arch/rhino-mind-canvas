@@ -23,6 +23,8 @@ def wall_frame(doc, driver, point, lib=None):
     lib = lib or library.get()
     kmod = kinds.get(meta.get(driver, meta.TYPE, "wall"))
     ctx = kmod.make_context(doc, lib, driver, meta.get(driver, meta.ASSEMBLY), meta.params(driver))
+    if hasattr(kmod, "section_frame"):      # floors, roofs: their own cut direction and extents
+        return kmod.section_frame(ctx, point)
     crv = ctx.curve
     ok, t = crv.ClosestPoint(G.Point3d(point.X, point.Y, crv.PointAtStart.Z))
     frame = geo.frame_at(crv, t, ctx.base_z)

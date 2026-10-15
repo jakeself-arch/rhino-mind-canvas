@@ -26,7 +26,7 @@ def run():
     if not drivers:
         ui.say("No walls with a framing layer selected.")
         return ui.Result.Cancel
-    systems = sorted(lib.data["framing"])
+    systems = sorted(n for n, sd in lib.data["framing"].items() if sd.get("use", "walls") == "walls")
     st = scriptcontext.sticky.get(STICKY, {})
     system = ui.pick_from_list("Mind Canvas - Framing", "Framing system", systems, st.get("system"))
     if not system:

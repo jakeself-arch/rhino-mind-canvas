@@ -65,7 +65,19 @@
       "Wood Trim":                  {"tone": 2.5},
       "Concrete*":                  {"hatch": {"pattern": "MC Concrete", "mm": 3.0}},
       "Ground*":                    {"ground": true, "stipple": 2.4, "inner": false},
-      "Earth*":                     {"ground": true, "stipple": 2.4, "inner": false}
+      "Earth*":                     {"ground": true, "stipple": 2.4, "inner": false},
+      "Asphalt Shingles":           {"fill": "black"},
+      "Roofing Underlayment":       {"fill": "black"},
+      "Ice and Water Shield":       {"fill": "black"},
+      "Roof Membrane":              {"fill": "black"},
+      "Metal Deck":                 {"fill": "black"},
+      "Gutter":                     {"fill": "black"},
+      "Soffit Vent":                {"fill": "grey", "grey": 0.45},
+      "Cover Board":                {"hatch": {"pattern": "MC Gypsum", "mm": 1.0}},
+      "Blown Insulation":           {"stipple": 1.4},
+      "Wood Flooring":              {"hatch": {"pattern": "MC Wood", "mm": 0.9}},
+      "Wood I-Joist":               {"hatch": {"pattern": "MC Plywood", "mm": 0.6}},
+      "Engineered Rim Board":       {"hatch": {"pattern": "MC Plywood", "mm": 0.6}}
     }
   }
 }

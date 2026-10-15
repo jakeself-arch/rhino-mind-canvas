@@ -11,6 +11,7 @@ Types:
     track   depth (web), flange (leg), t     - web on -X side, legs toward +X
     angle   a (leg along X), b (leg along Y), t - corner at origin
     tube    width, depth, t                  - hollow rectangle (two loops)
+    i_joist width, depth, flange, web        - I-section (flanges along X)
     custom  points [[x, y], ...]             - any closed outline (inches)
 
 To add a new shape type, add a function below and register it in BUILDERS.
@@ -73,6 +74,16 @@ def tube(p, s):
     return [outer, inner]
 
 
+def i_joist(p, s):
+    """I-joist: flanges width x flange top + bottom, web in the middle; X = width, Y = depth."""
+    w, d, f, t = _L(p, "width"), _L(p, "depth"), _L(p, "flange"), _L(p, "web")
+    x0, x1, y0, y1 = -w / 2, w / 2, -d / 2, d / 2
+    h = t / 2
+    pts = [(x0, y0), (x1, y0), (x1, y0 + f), (h, y0 + f), (h, y1 - f), (x1, y1 - f), (x1, y1),
+           (x0, y1), (x0, y1 - f), (-h, y1 - f), (-h, y0 + f), (x0, y0 + f)]
+    return [_pl(pts, s)]
+
+
 def custom(p, s):
     pts = [(units.parse_length(x), units.parse_length(y)) for x, y in p["points"]]
     return [_pl(pts, s)]
@@ -84,6 +95,7 @@ BUILDERS = {
     "track": track,
     "angle": angle,
     "tube": tube,
+    "i_joist": i_joist,
     "custom": custom,
 }
 
