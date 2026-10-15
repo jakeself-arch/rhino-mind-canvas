@@ -84,7 +84,7 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user** | Done (user approved, Phase 4 started) |
 | 4 | Openings: windows/doors, headers, jambs, sills, lintels, soldier courses | Done (`MCOpening`/`MCEditOpening`; PR jakeself-arch/rhino-mind-canvas#1) |
 | — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
-| 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; branch `phase5-curtain-wall`) |
+| 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
@@ -108,7 +108,7 @@ at a transom / spandrel / slab edge with anchors and safing).
 review stops, one phase per session: branch `phase<N>-<topic>` from main, PR, merge when the
 tests pass, then the next session starts from main. **Next: Phase 6 (floors + roofs).**
 
-**Phase 5 summary:** kind `curtain_wall` (`kinds/curtainwall.py` + `mindcanvas/curtainwall/`),
+**Phase 5 summary** (branch `phase5-curtain-wall`, PR jakeself-arch/rhino-mind-canvas#2): kind `curtain_wall` (`kinds/curtainwall.py` + `mindcanvas/curtainwall/`),
 assemblies in `library/assemblies/curtainwalls.json`, mullion profiles in
 `library/profiles/curtainwall.json`, materials in `library/materials/curtainwall.json`, a CW door
 type in `library/openings/curtainwall_doors.json`. Commands `MCCurtainWall`, `MCEditCurtainWall`;
