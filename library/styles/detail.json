@@ -1,0 +1,46 @@
+{
+  "_comment": "Design and detail presets. Detail scales draw every component (bricks, joints, ties, tracks) with material hatches; depth falloff is gentler because a wall section is shallow.",
+
+  "1/2\" = 1'-0\"": {
+    "extends": "base", "option": "Half", "scale": 24, "lod": "design",
+    "classes": {"cut": {"w": 0.7}, "cut_inner": {"w": 0.25}, "silhouette": {"w": 0.35}, "edge": {"w": 0.18},
+                "tone": {"w": 0.08}, "cut_hatch": {"w": 0.08}, "stipple": {"w": 0.16}},
+    "min_part_mm": 0.45
+  },
+
+  "3/4\" = 1'-0\"": {
+    "extends": "1-1/2\" = 1'-0\"", "option": "ThreeQuarter", "scale": 16,
+    "classes": {"cut": {"w": 0.7}, "cut_inner": {"w": 0.28}, "cut_hatch": {"w": 0.08}},
+    "min_part_mm": 0.4
+  },
+
+  "1-1/2\" = 1'-0\"": {
+    "extends": "base", "option": "OneAndHalf", "scale": 8, "lod": "detail",
+    "classes": {"cut": {"w": 0.8}, "cut_inner": {"w": 0.3}, "cut_hatch": {"w": 0.09}, "silhouette": {"w": 0.35},
+                "edge": {"w": 0.2}, "junction": {"w": 0.2}, "tone": {"w": 0.08}, "stipple": {"w": 0.2}},
+    "depth": {"width_far": 0.6, "grey_far": 0.45},
+    "min_part_mm": 0.3,
+    "min_cut_mm": 0.6,
+    "tone": {"levels": [[-0.35, 0.6], [0.05, 1.0], [0.25, 1.8]], "min_mm": 0.45},
+    "stipple": {"density": 1.4, "cut_density": 2.0, "band_mm": 10.0},
+    "materials": {
+      "Brick*": {"hatch": {"pattern": "MC Brick", "mm": 1.0}},
+      "*Gypsum*": {"hatch": {"pattern": "MC Gypsum", "mm": 1.0}},
+      "Concrete*": {"hatch": {"pattern": "MC Concrete", "mm": 4.0}},
+      "Backer Rod": {"fill": "white"},
+      "Compressible Filler": {"hatch": {"pattern": "MC Rigid", "mm": 0.8}}
+    }
+  },
+
+  "3\" = 1'-0\"": {
+    "extends": "1-1/2\" = 1'-0\"", "option": "Three", "scale": 4,
+    "classes": {"cut": {"w": 0.9}, "cut_inner": {"w": 0.35}, "cut_hatch": {"w": 0.1}, "silhouette": {"w": 0.4},
+                "edge": {"w": 0.25}, "tone": {"w": 0.09}, "stipple": {"w": 0.22}},
+    "min_part_mm": 0.25,
+    "materials": {
+      "Brick*": {"hatch": {"pattern": "MC Brick", "mm": 1.3}},
+      "*Gypsum*": {"hatch": {"pattern": "MC Gypsum", "mm": 1.4}},
+      "Concrete*": {"hatch": {"pattern": "MC Concrete", "mm": 6.0}}
+    }
+  }
+}

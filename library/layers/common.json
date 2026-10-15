@@ -1,0 +1,27 @@
+{
+  "_comment": "Reusable layer presets. Pick them in MCLayers, or use them in assemblies as {\"preset\": \"<name>\"} with any key overridden, e.g. {\"preset\": \"Gypsum Board 5/8\", \"thickness\": \"1/2\"}. Layers used in assemblies also appear in MCLayers automatically.",
+
+  "Gypsum Board 5/8":            {"name": "Gypsum Board", "component": "solid", "material": "Gypsum Board", "thickness": "5/8"},
+  "Gypsum Board 1/2":            {"name": "Gypsum Board", "component": "solid", "material": "Gypsum Board", "thickness": "1/2"},
+  "Exterior Gypsum Sheathing 5/8": {"name": "Sheathing", "component": "solid", "material": "Exterior Gypsum Sheathing", "thickness": "5/8"},
+  "Plywood Sheathing 1/2":       {"name": "Sheathing", "component": "solid", "material": "Plywood Sheathing", "thickness": "1/2"},
+  "OSB Sheathing 7/16":          {"name": "Sheathing", "component": "solid", "material": "OSB Sheathing", "thickness": "7/16"},
+  "Weather Resistive Barrier":   {"name": "WRB", "component": "membrane", "material": "Weather Resistive Barrier", "thickness": "1/32"},
+  "Vapor Retarder":              {"name": "Vapor Retarder", "component": "membrane", "material": "Vapor Retarder", "thickness": "1/64"},
+  "Air Space 1":                 {"name": "Air Space", "component": "void", "thickness": "1"},
+  "Air Space 2":                 {"name": "Air Space", "component": "void", "thickness": "2"},
+  "Mineral Wool CI 2":           {"name": "Continuous Insulation", "component": "solid", "material": "Mineral Wool Board", "thickness": "2"},
+  "Mineral Wool CI 3":           {"name": "Continuous Insulation", "component": "solid", "material": "Mineral Wool Board", "thickness": "3"},
+  "Rigid XPS 2":                 {"name": "Rigid Insulation", "component": "solid", "material": "Rigid Insulation XPS", "thickness": "2"},
+  "Fiber Cement Siding":         {"name": "Siding", "component": "solid", "material": "Fiber Cement Siding", "thickness": "5/8"},
+  "Concrete 8":                  {"name": "Concrete", "component": "solid", "material": "Concrete", "thickness": "8"},
+
+  "Wood Studs 2x4":              {"name": "Framing", "component": "framing", "thickness": "3-1/2",
+                                  "options": {"system": "wood", "spacing": 16, "cavity_fill": "Mineral Wool Batt"}},
+  "Wood Studs 2x6":              {"name": "Framing", "component": "framing", "thickness": "5-1/2",
+                                  "options": {"system": "wood", "spacing": 16, "cavity_fill": "Mineral Wool Batt"}},
+  "Metal Studs 3-5/8":           {"name": "Framing", "component": "framing", "thickness": "3-5/8",
+                                  "options": {"system": "metal", "spacing": 16, "cavity_fill": "Mineral Wool Batt"}},
+  "Metal Studs 6":               {"name": "Framing", "component": "framing", "thickness": "6",
+                                  "options": {"system": "metal", "spacing": 16, "cavity_fill": "Mineral Wool Batt"}}
+}

@@ -1,0 +1,58 @@
+{
+  "_comment": "Framed wall assemblies, layers EXTERIOR -> INTERIOR. The framing layer (component 'framing') swaps between systems with one option: MCFraming, or engine.set_override(doc, wall, 'Framing', 'system', 'metal'). Its thickness follows the chosen stud (fit: 'stud'), so 2x6 <-> 6\" metal stud grows the wall by 1/2\".",
+
+  "Ext - 2x6 Wood, Fiber Cement": {
+    "kind": "wall",
+    "default_height": "10'",
+    "default_reference": "interior_face",
+    "layers": [
+      {"name": "Siding",         "component": "solid",    "material": "Fiber Cement Siding",       "thickness": "5/16"},
+      {"name": "Rainscreen Gap", "component": "void",                                              "thickness": "3/4"},
+      {"name": "WRB",            "component": "membrane", "material": "Weather Resistive Barrier", "thickness": "1/32"},
+      {"name": "Sheathing",      "component": "solid",    "material": "OSB Sheathing",             "thickness": "7/16"},
+      {"name": "Framing",        "component": "framing",  "material": "Wood Framing",              "thickness": "5-1/2", "core": true,
+       "options": {"system": "wood", "spacing": 16, "cavity_fill": "Fiberglass Batt", "gauge": 18}},
+      {"name": "Gypsum",         "component": "solid",    "material": "Gypsum Board",              "thickness": "1/2"}
+    ]
+  },
+
+  "Ext - 6\" Metal Stud, Fiber Cement": {
+    "kind": "wall",
+    "default_height": "10'",
+    "default_reference": "interior_face",
+    "layers": [
+      {"name": "Siding",                  "component": "solid",    "material": "Fiber Cement Siding",       "thickness": "5/16"},
+      {"name": "Rainscreen Gap",          "component": "void",                                              "thickness": "3/4"},
+      {"name": "Continuous Insulation",   "component": "solid",    "material": "Mineral Wool Board",        "thickness": "2"},
+      {"name": "WRB",                     "component": "membrane", "material": "Weather Resistive Barrier", "thickness": "1/32"},
+      {"name": "Sheathing",               "component": "solid",    "material": "Exterior Gypsum Sheathing", "thickness": "5/8"},
+      {"name": "Framing",                 "component": "framing",  "material": "Cold-Formed Steel",         "thickness": "6", "core": true,
+       "options": {"system": "metal", "gauge": 18, "spacing": 16, "cavity_fill": "Mineral Wool Batt", "deflection_track": true}},
+      {"name": "Gypsum",                  "component": "solid",    "material": "Gypsum Board",              "thickness": "5/8"}
+    ]
+  },
+
+  "Int - 3-5/8\" Metal Stud Partition": {
+    "kind": "wall",
+    "default_height": "10'",
+    "default_reference": "center",
+    "layers": [
+      {"name": "Gypsum A", "component": "solid",   "material": "Gypsum Board",      "thickness": "5/8"},
+      {"name": "Framing",  "component": "framing", "material": "Cold-Formed Steel", "thickness": "3-5/8", "core": true,
+       "options": {"system": "metal", "gauge": 20, "spacing": 16, "cavity_fill": "Mineral Wool Batt"}},
+      {"name": "Gypsum B", "component": "solid",   "material": "Gypsum Board",      "thickness": "5/8"}
+    ]
+  },
+
+  "Int - 2x4 Wood Partition": {
+    "kind": "wall",
+    "default_height": "10'",
+    "default_reference": "center",
+    "layers": [
+      {"name": "Gypsum A", "component": "solid",   "material": "Gypsum Board", "thickness": "1/2"},
+      {"name": "Framing",  "component": "framing", "material": "Wood Framing", "thickness": "3-1/2", "core": true,
+       "options": {"system": "wood", "spacing": 16, "cavity_fill": null}},
+      {"name": "Gypsum B", "component": "solid",   "material": "Gypsum Board", "thickness": "1/2"}
+    ]
+  }
+}

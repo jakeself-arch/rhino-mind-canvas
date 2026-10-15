@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# local dev flag (hot-reloads the package in Rhino)
+.dev
+
+# Rhino backups / locks
+*.3dmbak
+*.rhl
+*.tmp
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

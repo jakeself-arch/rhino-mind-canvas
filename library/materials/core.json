@@ -1,0 +1,49 @@
+{
+  "_comment": "Core materials. color = display RGB; render = viewport/render material; section = cut appearance (fill: white | solid | hatch | none; hatch = pattern name; scale; rotation in degrees; boundary_weight = multiplier); print.weight = layer plot weight in mm. Drawing styles (phase 3) may refine hatches per scale.",
+
+  "Unassigned":                 {"color": [255, 0, 255], "section": {"fill": "white"}},
+
+  "Gypsum Board":               {"color": [235, 235, 228], "render": {"gloss": 0.05},
+                                 "section": {"fill": "hatch", "hatch": "Grid", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Exterior Gypsum Sheathing":  {"color": [214, 196, 150],
+                                 "section": {"fill": "hatch", "hatch": "Grid", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Plywood Sheathing":          {"color": [205, 160, 100],
+                                 "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.05}, "print": {"weight": 0.18}},
+  "OSB Sheathing":              {"color": [196, 160, 105],
+                                 "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Weather Resistive Barrier":  {"color": [235, 240, 250], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Vapor Retarder":             {"color": [200, 220, 240], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+
+  "Mineral Wool Board":         {"color": [205, 190, 120],
+                                 "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1, "rotation": 45}, "print": {"weight": 0.18}},
+  "Mineral Wool Batt":          {"color": [215, 200, 130], "render": {"transparency": 0.0},
+                                 "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1, "rotation": 45}, "print": {"weight": 0.13}},
+  "Fiberglass Batt":            {"color": [240, 200, 200],
+                                 "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1, "rotation": 45}, "print": {"weight": 0.13}},
+  "Rigid Insulation XPS":       {"color": [170, 200, 235],
+                                 "section": {"fill": "hatch", "hatch": "Hatch3", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Polyiso Board":              {"color": [230, 225, 200],
+                                 "section": {"fill": "hatch", "hatch": "Hatch3", "scale": 0.05}, "print": {"weight": 0.18}},
+
+  "Wood Framing":               {"color": [214, 178, 120], "render": {"gloss": 0.05},
+                                 "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Cold-Formed Steel":          {"color": [150, 160, 170], "render": {"gloss": 0.5},
+                                 "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.25}},
+  "Structural Steel":           {"color": [110, 115, 125], "render": {"gloss": 0.4},
+                                 "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.35}},
+  "Concrete":                   {"color": [190, 190, 185],
+                                 "section": {"fill": "hatch", "hatch": "Plus", "scale": 0.2}, "print": {"weight": 0.35}},
+
+  "Brick - Red":                {"color": [160, 70, 50], "render": {"gloss": 0.05},
+                                 "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Mortar":                     {"color": [200, 195, 185], "section": {"fill": "white"}, "print": {"weight": 0.09}},
+  "Flashing":                   {"color": [120, 120, 120], "render": {"gloss": 0.6},
+                                 "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+
+  "Fiber Cement Siding":        {"color": [120, 130, 125],
+                                 "section": {"fill": "hatch", "hatch": "Hatch3", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Glass":                      {"color": [190, 220, 230], "render": {"transparency": 0.7, "gloss": 0.9},
+                                 "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Aluminum":                   {"color": [190, 195, 200], "render": {"gloss": 0.6},
+                                 "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}}
+}

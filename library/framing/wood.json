@@ -1,0 +1,21 @@
+{
+  "_comment": "Wood stud framing. Studs are picked from profiles with family 'lumber' (matching the layer thickness, or by nominal size when swapping from metal). Plates use the stud lumber laid flat. corner: three_stud (end stud + flat corner stud + backer) | two_stud. blocking: one row of mid-height blocking at detail LOD. names: member labels written to parts ({profile} = profile name).",
+
+  "wood": {
+    "type": "wood",
+    "label": "Wood studs, single bottom plate, double top plate",
+    "material": "Wood Framing",
+    "stud_family": "lumber",
+    "spacing": 16,
+    "bottom_plates": 1,
+    "top_plates": 2,
+    "corner": "three_stud",
+    "double_end_studs": false,
+    "blocking": true,
+    "names": {
+      "stud": "{profile} Wood Stud",
+      "plate": "{profile} Wood Plate",
+      "blocking": "{profile} Wood Blocking"
+    }
+  }
+}

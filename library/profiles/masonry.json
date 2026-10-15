@@ -1,0 +1,11 @@
+{
+  "_comment": "Steel angles for veneer support (type angle: a = horizontal leg, b = vertical leg, t = thickness; inches). veneer_base picks the smallest angle that gives 2/3 brick bearing when angle = auto.",
+
+  "L3-1/2x3-1/2x5/16": {"type": "angle", "family": "steel_angle", "a": "3-1/2", "b": "3-1/2", "t": "5/16"},
+  "L4x4x3/8":          {"type": "angle", "family": "steel_angle", "a": 4,       "b": 4,       "t": "3/8"},
+  "L5x3-1/2x3/8":      {"type": "angle", "family": "steel_angle", "a": 5,       "b": "3-1/2", "t": "3/8"},
+  "L6x4x3/8":          {"type": "angle", "family": "steel_angle", "a": 6,       "b": 4,       "t": "3/8"},
+  "L7x4x3/8":          {"type": "angle", "family": "steel_angle", "a": 7,       "b": 4,       "t": "3/8"},
+  "L8x4x1/2":          {"type": "angle", "family": "steel_angle", "a": 8,       "b": 4,       "t": "1/2"},
+  "L8x6x1/2":          {"type": "angle", "family": "steel_angle", "a": 8,       "b": 6,       "t": "1/2"}
+}

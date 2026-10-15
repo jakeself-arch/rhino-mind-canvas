@@ -1,0 +1,17 @@
+{
+  "_comment": "Wall assemblies. Layers are listed EXTERIOR -> INTERIOR. Lengths are inches (numbers or imperial strings). component = solid | membrane | void | framing | masonry | ... ; core: true marks the structural core used by reference lines.",
+
+  "Basic - Solid Layers (test)": {
+    "kind": "wall",
+    "default_height": "10'",
+    "default_reference": "interior_face",
+    "layers": [
+      {"name": "Siding",     "component": "solid",    "material": "Fiber Cement Siding",       "thickness": "5/8"},
+      {"name": "Air Gap",    "component": "void",                                              "thickness": "3/4"},
+      {"name": "WRB",        "component": "membrane", "material": "Weather Resistive Barrier", "thickness": "1/32"},
+      {"name": "Sheathing",  "component": "solid",    "material": "OSB Sheathing",             "thickness": "7/16"},
+      {"name": "Core",       "component": "solid",    "material": "Mineral Wool Batt",         "thickness": "5-1/2", "core": true},
+      {"name": "Gypsum",     "component": "solid",    "material": "Gypsum Board",              "thickness": "5/8"}
+    ]
+  }
+}

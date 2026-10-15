@@ -1,0 +1,27 @@
+{
+  "_comment": "Masonry veneer materials (see core.json for the format). Brick colors share the brick section hatch; accessories cut solid black so they read as heavy lines at detail scales.",
+
+  "Brick - Buff":            {"color": [214, 186, 132], "render": {"gloss": 0.05},
+                              "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Brick - Charcoal":        {"color": [70, 66, 64], "render": {"gloss": 0.05},
+                              "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Brick - Brown":           {"color": [118, 76, 54], "render": {"gloss": 0.05},
+                              "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Brick - White":           {"color": [232, 228, 218], "render": {"gloss": 0.05},
+                              "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Mortar - Dark":           {"color": [110, 106, 100], "section": {"fill": "white"}, "print": {"weight": 0.09}},
+
+  "Weep Vent":               {"color": [60, 60, 60], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Brick Tie":               {"color": [175, 180, 185], "render": {"gloss": 0.6},
+                              "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Steel Angle":             {"color": [95, 100, 108], "render": {"gloss": 0.4},
+                              "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.35}},
+  "Flashing - Stainless":    {"color": [170, 172, 175], "render": {"gloss": 0.7},
+                              "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Flashing - Membrane":     {"color": [40, 40, 45],
+                              "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Sealant":                 {"color": [80, 80, 85], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Backer Rod":              {"color": [230, 230, 235], "section": {"fill": "white"}, "print": {"weight": 0.09}},
+  "Compressible Filler":     {"color": [235, 225, 180],
+                              "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.05, "rotation": 45}, "print": {"weight": 0.09}}
+}

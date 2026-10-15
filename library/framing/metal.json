@@ -1,0 +1,25 @@
+{
+  "_comment": "Cold-formed steel C-stud framing. Studs/tracks are picked from profiles by family + nominal depth + gauge. Tracks wrap the studs (legs outside the stud flanges). deflection_track: deep-leg top track with the studs cut deflection_gap short of its web. Bridging: cold-rolled channel through the stud knockouts every bridging_spacing (detail LOD; 0 = none). gauges: design thickness (in) for reference.",
+
+  "metal": {
+    "type": "metal",
+    "label": "Cold-formed steel C-studs in top and bottom track",
+    "material": "Cold-Formed Steel",
+    "stud_family": "metal_stud",
+    "track_family": "metal_track",
+    "deflection_family": "deflection_track",
+    "gauge": 20,
+    "gauges": {"20": 0.0346, "18": 0.0451, "16": 0.0566, "14": 0.0713},
+    "spacing": 16,
+    "corner": "two_stud",
+    "deflection_track": false,
+    "deflection_gap": 0.75,
+    "bridging": "1-1/2\" Cold-Rolled Channel, 16 ga",
+    "bridging_spacing": 48,
+    "names": {
+      "stud": "{profile}",
+      "track": "{profile}",
+      "bridging": "{profile}"
+    }
+  }
+}
