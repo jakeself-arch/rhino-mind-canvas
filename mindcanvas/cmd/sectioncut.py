@@ -1,5 +1,6 @@
 """MCSectionCut: pick a wall or curtain wall where to cut -> clipping plane perpendicular to it
-there + a named view looking at the cut (parallel wall section, or perspective). Plan=Yes cuts a
+there + a named view looking at the cut (parallel wall section, or perspective). Floors are cut
+along their joists, roofs along the slope of the face you click (eave to ridge). Plan=Yes cuts a
 horizontal plane at the picked height instead (a plan detail; CutHeight overrides the height)."""
 
 import scriptcontext
@@ -11,7 +12,7 @@ from . import ui
 
 RI = Rhino.Input
 STICKY = "mindcanvas.sectioncut.settings"
-CUTTABLE = ("wall", "curtain_wall")
+CUTTABLE = ("wall", "curtain_wall", "floor", "roof")
 
 
 def run():
@@ -37,7 +38,7 @@ def run():
 
     go.SetCustomGeometryFilter(RI.Custom.GetObjectGeometryFilter(_ok))
     while True:
-        go.SetCommandPrompt("Pick a wall or curtain wall where to cut")
+        go.SetCommandPrompt("Pick a wall, curtain wall, floor or roof where to cut")
         go.ClearCommandOptions()
         i_scale = ui.add_option_list(go, "Scale", options, scale_i)
         ui.add_option_toggle(go, "Perspective", o_persp)

@@ -1,0 +1,53 @@
+{
+  "_comment": "Floor assemblies (kind 'floor'), layers TOP -> BOTTOM. The driver is a closed horizontal boundary = outside face of the rim (the outside face of the wall framing below). base_offset = elevation of the framing bottom (the top of the wall plates it bears on) above the curve; 'reference' moves that datum (framing_bottom | framing_top | top | bottom). Components: solid / membrane / void (slab over the boundary; option inset = inches inward, e.g. a ceiling that stops at the inside face of the walls), joists (the framing: system wood | metal - one line swaps them -, joist, spacing, rim / rim_plies, blocking, blocking_spacing, cavity_fill + fill_depth, fit), deck (composite metal deck: profile, fill = concrete in the flutes). Span: params 'span' = short (default: joists across the short way) | long | <degrees of the joist direction>.",
+
+  "Floor - 2x10 Wood Joists, Plywood": {
+    "kind": "floor",
+    "layers": [
+      {"name": "Finish Floor", "component": "solid",  "material": "Wood Flooring",     "thickness": "3/4",
+       "options": {"inset": 6}},
+      {"name": "Subfloor",     "component": "solid",  "material": "Plywood Sheathing", "thickness": "3/4"},
+      {"name": "Framing",      "component": "joists", "material": "Wood Framing",      "thickness": "9-1/4", "core": true,
+       "options": {"system": "wood", "spacing": 16, "blocking": true}},
+      {"name": "Ceiling",      "component": "solid",  "material": "Gypsum Board",      "thickness": "1/2",
+       "options": {"inset": 6}}
+    ]
+  },
+
+  "Floor - 11-7/8\" I-Joist, OSB": {
+    "kind": "floor",
+    "layers": [
+      {"name": "Subfloor", "component": "solid",  "material": "OSB Sheathing", "thickness": "23/32"},
+      {"name": "Framing",  "component": "joists", "material": "Wood I-Joist",  "thickness": "11-7/8", "core": true,
+       "options": {"system": "wood", "joist": "11-7/8\" I-Joist", "rim": "1-1/8\" x 11-7/8\" Rim Board",
+                   "rim_material": "Engineered Rim Board", "spacing": 16, "blocking": false,
+                   "cavity_fill": "Fiberglass Batt", "fill_depth": "3-1/2"}},
+      {"name": "Ceiling",  "component": "solid",  "material": "Gypsum Board",  "thickness": "5/8",
+       "options": {"inset": 6}}
+    ]
+  },
+
+  "Floor - 10\" Metal Joists, Plywood": {
+    "kind": "floor",
+    "layers": [
+      {"name": "Subfloor", "component": "solid",  "material": "Plywood Sheathing", "thickness": "3/4"},
+      {"name": "Framing",  "component": "joists", "material": "Cold-Formed Steel", "thickness": 10, "core": true,
+       "options": {"system": "metal", "spacing": 24, "gauge": 16}},
+      {"name": "Ceiling",  "component": "solid",  "material": "Gypsum Board",      "thickness": "5/8",
+       "options": {"inset": 6}}
+    ]
+  },
+
+  "Floor - Concrete on Metal Deck / 10\" Metal Joists": {
+    "kind": "floor",
+    "layers": [
+      {"name": "Topping",  "component": "solid",  "material": "Concrete",          "thickness": "2-1/2"},
+      {"name": "Deck",     "component": "deck",   "material": "Metal Deck",        "thickness": "1-1/2",
+       "options": {"profile": "1-1/2\" Composite Deck, 20 ga", "fill": "Concrete"}},
+      {"name": "Framing",  "component": "joists", "material": "Cold-Formed Steel", "thickness": 10, "core": true,
+       "options": {"system": "metal", "spacing": 24, "gauge": 16}},
+      {"name": "Ceiling",  "component": "solid",  "material": "Gypsum Board",      "thickness": "5/8",
+       "options": {"inset": 6}}
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "_comment": "Floor and roof materials (see core.json for the format). Roofing, underlayment, membranes and sheet metal cut solid black; wood flooring and I-joists get wood / plywood hatches in drawings (library/styles/base.json).",
+
+  "Asphalt Shingles":       {"color": [72, 72, 78], "render": {"gloss": 0.05},
+                             "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Roofing Underlayment":   {"color": [50, 50, 55], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Ice and Water Shield":   {"color": [35, 35, 45], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Roof Membrane":          {"color": [228, 228, 224], "render": {"gloss": 0.3},
+                             "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Cover Board":            {"color": [215, 205, 185],
+                             "section": {"fill": "hatch", "hatch": "Grid", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Polyiso Tapered Insulation": {"color": [232, 222, 190],
+                             "section": {"fill": "hatch", "hatch": "Hatch3", "scale": 0.05}, "print": {"weight": 0.18}},
+  "Blown Insulation":       {"color": [238, 222, 175],
+                             "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1, "rotation": 45}, "print": {"weight": 0.13}},
+  "Wood Flooring":          {"color": [176, 122, 72], "render": {"gloss": 0.25},
+                             "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.18}},
+  "Wood I-Joist":           {"color": [222, 190, 130], "render": {"gloss": 0.05},
+                             "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Engineered Rim Board":   {"color": [210, 175, 115],
+                             "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Metal Deck":             {"color": [160, 165, 172], "render": {"gloss": 0.5},
+                             "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Soffit Panel":           {"color": [236, 236, 230], "section": {"fill": "white"}, "print": {"weight": 0.18}},
+  "Soffit Vent":            {"color": [200, 200, 205], "section": {"fill": "solid", "color": [128, 128, 128]}, "print": {"weight": 0.13}},
+  "Gutter":                 {"color": [232, 232, 228], "render": {"gloss": 0.5},
+                             "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}}
+}

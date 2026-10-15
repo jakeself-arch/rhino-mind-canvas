@@ -176,3 +176,97 @@ def write_curtain_walls_csv(rows, path):
         w.writeheader()
         for r in rows:
             w.writerow(r)
+
+
+# -- floors + roofs ------------------------------------------------------------
+FRAMING_ROLES = ("joist", "rim_joist", "blocking", "bridging", "rafter", "roof_joist", "barge_rafter", "ridge",
+                 "lookout", "bird_block", "ceiling_joist", "subfascia")
+FR_KINDS = ("floor", "roof")
+
+
+def _fr_drivers(doc, driver_ids):
+    if driver_ids is None:
+        return [d for d in meta.all_drivers(doc) if meta.get(d, meta.TYPE) in FR_KINDS]
+    out = [doc.Objects.FindId(d) for d in driver_ids]
+    return [d for d in out if d is not None and meta.get(d, meta.TYPE) in FR_KINDS]
+
+
+def framing_members(doc, driver_ids=None):
+    """Joist / rafter cut list of floors and roofs: one row per role, member and length (1/16")
+    with the count and total linear feet."""
+    rows = {}
+    for d in _fr_drivers(doc, driver_ids):
+        for o in meta.parts_of(doc, d.Id):
+            role = meta.get(o, meta.ROLE)
+            if role not in FRAMING_ROLES:
+                continue
+            L = _num(o, "length")
+            Lr = round(L * 16) / 16.0
+            member = meta.get(o, meta.EXTRA_PREFIX + "member") or ""
+            try:
+                member = json.loads(member) if member.startswith('"') else member
+            except ValueError:
+                pass
+            key = (meta.get(d, meta.TYPE), role, member, Lr)
+            r = rows.setdefault(key, {"kind": key[0], "role": role, "member": member, "length": units.format_inches(Lr),
+                                      "length_in": Lr, "count": 0, "total_ft": 0.0})
+            r["count"] += 1
+            r["total_ft"] += L / 12.0
+    return [rows[k] for k in sorted(rows, key=lambda k: (k[0], k[1], k[2], -k[3]))]
+
+
+def format_framing_members(rows):
+    lines = ["{:<6} {:<14} {:<34} {:>12} {:>6} {:>9}".format("Kind", "Role", "Member", "Length", "Count", "Total ft")]
+    for r in rows:
+        lines.append("{:<6} {:<14} {:<34} {:>12} {:>6} {:>9.1f}".format(
+            r["kind"], r["role"][:14], r["member"][:34], r["length"], r["count"], r["total_ft"]))
+    return "\n".join(lines)
+
+
+def write_framing_members_csv(rows, path):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["kind", "role", "member", "length", "length_in", "count", "total_ft"])
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
+
+
+def floors_roofs(doc, driver_ids=None):
+    """One row per floor / roof: assembly, area, joist or rafter count, member, spacing, longest span,
+    roof shape / pitch / ridge and plate heights (inches)."""
+    from . import library
+    from .kinds import floor as floorkind, roof as roofkind
+    lib = library.get()
+    out = []
+    for d in _fr_drivers(doc, driver_ids):
+        kind = meta.get(d, meta.TYPE)
+        kmod = floorkind if kind == "floor" else roofkind
+        row = {"id": str(d.Id)[:8], "kind": kind, "assembly": meta.get(d, meta.ASSEMBLY)}
+        try:
+            ctx = kmod.make_context(doc, lib, d, row["assembly"], meta.params(d))
+            row.update(kmod.summary(ctx))
+        except Exception as ex:
+            row["error"] = str(ex)
+        out.append(row)
+    return out
+
+
+def format_floors_roofs(rows):
+    lines = ["{:<9} {:<6} {:<44} {:>9} {:>7} {:<22} {:>6}  {}".format(
+        "Id", "Kind", "Assembly", "Area ft2", "Members", "Member", "o.c.", "Notes")]
+    for r in rows:
+        if "error" in r:
+            lines.append("{:<9} {:<6} {:<44} error: {}".format(r["id"], r["kind"], r["assembly"][:44], r["error"]))
+            continue
+        n = r.get("joists", r.get("rafters", 0))
+        if r["kind"] == "floor":
+            note = "span {:.1f} ft, {} blocking rows, {}".format(r["max_span_ft"], r.get("rows", 0), r["system"])
+        else:
+            note = "{} {}:12, ridge {}, plate {}{}".format(
+                r["shape"], r["pitch"], units.format_inches(r["ridge"]) if r.get("ridge") else "-",
+                units.format_inches(r["plate"]),
+                ", high plate {}".format(units.format_inches(r["high_plate"])) if r.get("high_plate") else "")
+        lines.append("{:<9} {:<6} {:<44} {:>9.1f} {:>7} {:<22} {:>6}  {}".format(
+            r["id"], r["kind"], r["assembly"][:44], r["area_ft2"], n, r["member"][:22],
+            units.format_inches(r["spacing"]), note))
+    return "\n".join(lines)

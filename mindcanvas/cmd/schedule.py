@@ -1,6 +1,7 @@
 """MCSchedule: material quantity takeoff, window / door counts and the curtain-wall panel schedule
-(panels per infill type + glass area), printed and optionally saved as CSV (the opening and panel
-schedules go next to it as <name>_Openings.csv / <name>_CurtainWalls.csv)."""
+(panels per infill type + glass area), the floor / roof schedule (area, joist / rafter counts, span,
+pitch, ridge and plate heights) with a joist / rafter cut list, printed and optionally saved as CSV
+(next to it as <name>_Openings.csv / <name>_CurtainWalls.csv / <name>_Framing.csv)."""
 
 import os
 
@@ -26,6 +27,13 @@ def run():
     if cws:
         ui.say("")
         ui.say(schedule.format_curtain_walls(cws))
+    frs = schedule.floors_roofs(doc, ids)
+    mem = schedule.framing_members(doc, ids)
+    if frs:
+        ui.say("")
+        ui.say(schedule.format_floors_roofs(frs))
+        ui.say("")
+        ui.say(schedule.format_framing_members(mem))
     dlg = Rhino.UI.SaveFileDialog()
     dlg.Filter = "CSV (*.csv)|*.csv"
     dlg.FileName = "MindCanvas_Takeoff.csv"
@@ -40,5 +48,9 @@ def run():
         if cws:
             path = os.path.splitext(dlg.FileName)[0] + "_CurtainWalls.csv"
             schedule.write_curtain_walls_csv(cws, path)
+            ui.say("Saved " + path)
+        if mem:
+            path = os.path.splitext(dlg.FileName)[0] + "_Framing.csv"
+            schedule.write_framing_members_csv(mem, path)
             ui.say("Saved " + path)
     return ui.Result.Success
