@@ -33,6 +33,10 @@ mindcanvas/            Python package (the engine)
   kinds/               assembly kinds (how a driver becomes layer bands)
     wall.py
     opening.py         hosted kind: an opening builds through its host
+    curtainwall.py     phase 5: curtain walls (grid of mullions, transoms, infill)
+  curtainwall/         phase 5: settings (defaults <- assembly <- params), grid (runs, bays,
+                       vertices, rows), sections (2D member sections per joint style), build
+                       (3D members as hashed block instances, corners, infill, anchors, seals)
   openings/            phase 4: opening drivers + placement (core), section sweeps / mitered
                        frames (geom), window + door units, trim, sill pan, drip (units)
   engine.py            build / rebuild / delete for a driver
@@ -79,8 +83,8 @@ docs/                  findings, user guide
 | 3 | Drawing system: display mode, MCDrawing, line weights, MCToneHatch, MCStipple, scale presets | Done (MCDrawing/MCSectionCut/MCDisplaySetup/MCDrawingTag; tone + stipple are MCDrawing options; outputs in docs/drawings/) |
 | — | **Review checkpoint with user** | Done (user approved, Phase 4 started) |
 | 4 | Openings: windows/doors, headers, jambs, sills, lintels, soldier courses | Done (`MCOpening`/`MCEditOpening`; PR jakeself-arch/rhino-mind-canvas#1) |
-| — | **Review checkpoint with user** | |
-| 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | |
+| — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
+| 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; branch `phase5-curtain-wall`) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
@@ -88,16 +92,40 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-14): Phase 4 reviewed + merged to main; waiting before Phase 5.** Phases 0, 0.5, 1, 2, 3, 4 done and
-verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`, `test_phase2.py`,
-`test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`), `test_phase4.py`
-(`run(doc, drawing_on=True, captures=True)`, ~25 s). Phase 4 was developed on branch `phase4-openings`,
-PR jakeself-arch/rhino-mind-canvas#1 (merged into main after the review comments were addressed).
+**Current state (2026-10-15): Phase 5 (curtain wall) done and merged to main.** Phases 0, 0.5,
+1–5 done and verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`,
+`test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
+`test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~40 s), `test_phase5.py`
+(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~30 s). Run each in an empty, unsaved
+document of your own `spawn_slot` (they clear the doc; `test_phase5` asserts `not doc.Path`).
 Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`,
-`c_window_section_1-1-2.png` (window head + sill, brick veneer / 6" metal stud).
+`c_window_section_1-1-2.png`, `d_curtainwall_plan_<style>.png` (1-1/2" plans at a vertical
+mullion for captured / ssg4 / ssg2 / butt / unitized), `d_curtainwall_plan_corner.png`,
+`d_curtainwall_section_spandrel.png` and `d_curtainwall_section_unitized.png` (1-1/2" sections
+at a transom / spandrel / slab edge with anchors and safing).
 
-**Waiting for the user's go-ahead** before Phase 5 (curtain wall). Do not start Phase 5
-until they say so.
+**Workflow for phases 6–8 (user, 2026-10-15):** continue through every remaining phase without
+review stops, one phase per session: branch `phase<N>-<topic>` from main, PR, merge when the
+tests pass, then the next session starts from main. **Next: Phase 6 (floors + roofs).**
+
+**Phase 5 summary:** kind `curtain_wall` (`kinds/curtainwall.py` + `mindcanvas/curtainwall/`),
+assemblies in `library/assemblies/curtainwalls.json`, mullion profiles in
+`library/profiles/curtainwall.json`, materials in `library/materials/curtainwall.json`, a CW door
+type in `library/openings/curtainwall_doors.json`. Commands `MCCurtainWall`, `MCEditCurtainWall`;
+`MCSectionCut` takes curtain walls and has `Plan=Yes` (horizontal clipping plane, plan detail);
+`MCSchedule` adds a curtain-wall panel schedule; `MCOpening` puts a door in a curtain-wall bay;
+`MCDrawing SetLOD` also rebuilds curtain walls.
+
+**Phase 5 known limitations:** corner mullions are an L of two tube legs (one per face, mitered
+covers wrap the corner; concave corners use the same L pushed to the interior) — no special
+corner extrusions; glass in arc facets is square-cut and meets the bisector mullion at a slight
+angle; transoms stop at the end of the corner L (a small hollow behind the cap at transom
+height); only one opening per bay, doors take the bay's full clear width, windows in a bay are
+not supported (the hook works but the unit is a regular window frame); unitized jambs reuse the
+split-mullion halves (no special jamb receptor); setting blocks only under captured / pocket
+glazing (none for 4-side SSG); anchors are generic clip angles (no embed plates / bolts) and
+skip corners and butt joints; the floor slab is not modeled (tests add a concrete box);
+curtain-wall parts carry no `mc.x.length` for gaskets / seals (takeoff counts them by part).
 
 **Phase 4 review (2026-10-14), addressed:** frames sit at the insulation line (brick returns get
 sheet-metal closures + sealant at the brick face; `"position": "brick"` keeps the old placement);

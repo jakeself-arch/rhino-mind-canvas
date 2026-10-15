@@ -24,12 +24,14 @@ section hatches, ready for detailed section drawings.
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
 | `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
 | `MCEditOpening` | Change the type, size, sill, swing / hinge, head course or SnapHead of selected windows / doors (click their line or any of their parts), or `Remove` them |
+| `MCCurtainWall` | Pick a curtain-wall assembly, then select curves (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
+| `MCEditCurtainWall` | Grid (Equal / Fixed / List, Spacing, Bays), Transoms, Rows (infill per row), Cell (click panels to cycle vision / spandrel / shadow box), Style, Mullion profile, Spandrel (Glass / Metal), Slabs (anchors), Stack (unitized), Location, Flip, Detail, Height, BaseOffset |
 | `MCUpdate` | Rebuild selected walls (Enter = all), e.g. after editing library files |
 | `MCLive` | Toggle live update (walls follow their curves while you edit them) |
-| `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²) and a window / door schedule (type, size, sill, count), optional CSV |
+| `MCSchedule` | Material takeoff (count, ft³, linear ft, ft²), a window / door schedule (type, size, sill, count) and a curtain-wall panel schedule (panels per infill type, glass / panel area), optional CSV |
 | `MCPurge` | Remove orphaned parts, openings whose wall is gone, and unused member blocks |
 | `MCLibrary` | Reload the library, list assemblies, open the library folder |
-| `MCSectionCut` | Click a wall: clipping plane perpendicular to it + a saved wall-section view |
+| `MCSectionCut` | Click a wall or curtain wall: clipping plane perpendicular to it + a saved wall-section view. `Plan=Yes`: a horizontal cut at the picked height (or `CutHeightInches` above the base) and a top view, for plan details |
 | `MCDisplaySetup` | Apply a drawing scale's section styles and the *MC Section* display mode to the view |
 | `MCDrawing` | Finished 2D drawing of the current view (SVG with true line weights + PNG, or baked curves): cut poché, material hatches, tone hatching, stipple. `Window` crops it |
 | `MCDrawingTag` | Mark objects as Ground (stippled), NoTone, Exclude or NoCut for drawings |
@@ -85,6 +87,49 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
   liners and a stool, a sill pan and a head drip cap (walls without brick).
 - Types live in `library/openings/*.json` (see "Customizing the library").
 
+## Curtain walls
+- `MCCurtainWall` → pick an assembly (`CW - Captured, Aluminum 2-1/2 x 6`, `CW - 4-Side SSG ...`,
+  `CW - 2-Side SSG ...`, `CW - Butt Glazed ...`, `CW - Unitized ...`, steel and timber versions)
+  → select curves. Like walls, the **curve is the curtain wall** (exterior on the left of an open
+  curve, outside of a closed one; `Location` says where the curve sits: exterior face of the
+  glass by default, glass centre, face of the caps, or back of the mullions).
+- **Grid**: each straight run is divided into bays — `Equal` (equal bays no wider than
+  `Spacing`), `Fixed` (a `Spacing` module from the start of each run, the remainder in the last
+  bay), or `List` (bay widths, repeated). Polyline kinks over 25° get an **L-shaped corner
+  mullion** (convex and concave); arcs are **faceted**: every bay is a flat panel and the mullion
+  between two facets sits on the bisector. `Transoms` are heights above the base; the sill and
+  head are always there.
+- **Infill** per row (bottom → top, the last repeats; `Rows` in `MCEditCurtainWall`, e.g. `V,V,S`)
+  and per cell (`Cell`: click panels to cycle **vision** → **spandrel** → **shadow box**):
+  vision = insulated glass (two lites + spacer); spandrel = opaque spandrel glass (or a metal
+  panel: `Spandrel=Metal`) with an air space, mineral wool and a back pan; shadow box = vision
+  glass with a back pan and insulation at the back of the mullions.
+- **Joint styles** (`Style`):
+  - **Captured** (stick): tube mullion with screw spline, thermal isolator, pressure plate, snap
+    cap and EPDM gaskets each side of the glass; verticals run full height, horizontals between.
+  - **SSG4** (4-side structurally glazed): no caps — structural silicone + spacer tape bond the
+    glass to the tube, a silicone weather seal on a backer rod fills the joint.
+  - **SSG2**: SSG verticals with captured horizontals (`"ssg_sides": "horizontal"` swaps them).
+  - **Butt**: no vertical mullions — silicone butt joints (outer + inner seal, backer rod),
+    captured head and sill; `"butt": {"backup": "fin"}` adds glass fins.
+  - **Unitized**: split mullions (male / female halves with integral exterior lips, interlocking
+    legs, weather and air seal gaskets); `Stack` heights get split horizontals (stack joints);
+    the sill sits on a starter sill, the head in a head receptor.
+- **Mullions**: `Mullion` picks a profile — aluminum (default `2-1/2 x 6`), steel tubes, or timber
+  (solid glulam with an aluminum glazing adaptor carrying the pressure plate).
+- **Detail level**: Schematic (panels + plain mullion boxes), Design (profiles, caps, glass as one
+  slab, back pans), Detail (gaskets, isolators, pressure plates, IGU lites + spacers, silicone,
+  backer rods, setting blocks, perimeter sealant + backer rod at head / sill / jambs, and with
+  `Slabs` set: clip-angle anchors at every mullion, fire safing + smoke seal at each slab edge).
+- **Doors**: `MCOpening` with a door type on a curtain wall puts the door in the bay you click; it
+  fills the bay's clear width, gets a transom over its head, and the sill under it is left out
+  (`Door - Aluminum Entrance, Full Lite` is made for this).
+- **Drawings**: `MCSectionCut` works on curtain walls; `Plan=Yes` makes a plan detail at a
+  mullion. See `docs/drawings/d_curtainwall_*.png` for 1-1/2" plans of every style and sections
+  at a spandrel / slab edge.
+- `MCSchedule` lists panels per curtain wall and infill type with their glass area; the
+  takeoff totals mullion / transom / cap lengths and glass area per material.
+
 ### Example: two-sided brick wall
 Select a brick-veneer wall → `MCLayers` → `Replace` → pick the last layer (Gypsum) →
 choose the brick layer from the list → optionally `Insert` an "Air Space" before it →
@@ -122,6 +167,21 @@ files load alphabetically and later entries with the same name win. Run `MCLibra
   the top of `windows.json` for every key. Lintels are `family: "lintel"` angles in
   `library/profiles/openings.json`, picked by `max_span`; headers come from the framing
   system's `"header"` table (`library/framing/*.json`).
+- **Curtain wall** (`library/assemblies/*.json`, `"kind": "curtain_wall"`): style, mullion
+  (+ optional transom) profile, grid, spacing, transoms, infill rows, and any setting from
+  `mindcanvas/curtainwall/settings.py` (glazing, bite, gasket, cap depth, SSG joint, butt joint /
+  fins, unitized split, spandrel, shadow box, anchors, perimeter joint). See the comment at the
+  top of `library/assemblies/curtainwalls.json`:
+  ```json
+  "My Curtain Wall": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "captured",
+    "mullion": "CW Aluminum 2-1/2 x 7-1/2", "grid": "fixed", "spacing": 60,
+    "transoms": [30, 126], "infill": {"rows": ["vision", "vision", "spandrel"]},
+    "cap": {"depth": "1-1/2"}, "glazing": {"lites": 2, "glass": "1/4", "space": "1/2"}
+  }
+  ```
+  Mullion profiles live in `library/profiles/curtainwall.json` (`width`, `depth`, `t`, `material`,
+  `solid` for timber).
 - **Layer preset** (`library/layers/*.json`): a reusable layer ("Gypsum Board 5/8",
   "Metal Studs 6"). Appears in `MCLayers`; assemblies can use `{"preset": "Gypsum Board 5/8"}`
   and override any key. Every layer used in any assembly also shows up in `MCLayers`,
