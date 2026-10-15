@@ -1,0 +1,57 @@
+{
+  "_comment": "Curtain walls (kind curtain_wall). Lengths in inches. style: captured | ssg4 | ssg2 | butt | unitized. grid: equal | fixed | list with spacing / bays. transoms: heights above the base; infill.rows: vision | spandrel | shadow_box per row, bottom -> top (the last repeats); infill.cells: {\"bay,row\": type}. Every key of mindcanvas/curtainwall/settings.py DEFAULTS can be set here (glazing, cap, ssg, butt, unitized, spandrel, shadow_box, anchors, perimeter, ...) and per wall with MCEditCurtainWall.",
+
+  "CW - Captured, Aluminum 2-1/2 x 6": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "captured",
+    "mullion": "CW Aluminum 2-1/2 x 6", "grid": "equal", "spacing": 60,
+    "transoms": [30, 126],
+    "infill": {"rows": ["vision", "vision", "spandrel"]}
+  },
+  "CW - 4-Side SSG, Aluminum 2-1/2 x 6": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "ssg4",
+    "mullion": "CW Aluminum 2-1/2 x 6", "grid": "equal", "spacing": 60,
+    "transoms": [30, 126],
+    "infill": {"rows": ["vision", "vision", "spandrel"]}
+  },
+  "CW - 2-Side SSG, Aluminum 2-1/2 x 6": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "ssg2", "ssg_sides": "vertical",
+    "mullion": "CW Aluminum 2-1/2 x 6", "grid": "equal", "spacing": 60,
+    "transoms": [30, 126],
+    "infill": {"rows": ["vision", "vision", "spandrel"]}
+  },
+  "CW - Butt Glazed, Captured Head + Sill": {
+    "kind": "curtain_wall", "default_height": "10'", "style": "butt",
+    "mullion": "CW Aluminum 2-1/2 x 4-1/2", "grid": "equal", "spacing": 48,
+    "transoms": [],
+    "infill": {"rows": ["vision"]},
+    "butt": {"joint": "1/2", "backup": "none"}
+  },
+  "CW - Butt Glazed, Glass Fins": {
+    "kind": "curtain_wall", "default_height": "14'", "style": "butt",
+    "mullion": "CW Aluminum 2-1/2 x 4-1/2", "grid": "equal", "spacing": 60,
+    "transoms": [],
+    "infill": {"rows": ["vision"]},
+    "butt": {"joint": "1/2", "backup": "fin", "fin": {"depth": 12, "t": "3/4"}}
+  },
+  "CW - Unitized, Aluminum 3 x 6": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "unitized",
+    "mullion": "CW Aluminum 3 x 6, Unitized", "grid": "equal", "spacing": 60,
+    "transoms": [30, 126],
+    "infill": {"rows": ["vision", "vision", "spandrel"]},
+    "unitized": {"split": "1/2", "lip": "1/8"}
+  },
+  "CW - Captured, Steel 2 x 6": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "captured",
+    "mullion": "CW Steel 2 x 6", "grid": "equal", "spacing": 60,
+    "transoms": [30, 126],
+    "infill": {"rows": ["vision", "vision", "spandrel"]},
+    "cap": {"depth": "3/4", "material": "Aluminum"}
+  },
+  "CW - Captured, Timber 3 x 7-1/2": {
+    "kind": "curtain_wall", "default_height": "13'-4\"", "style": "captured",
+    "mullion": "CW Timber 3 x 7-1/2", "grid": "equal", "spacing": 60,
+    "transoms": [30, 126],
+    "infill": {"rows": ["vision", "vision", "spandrel"]},
+    "spandrel": {"panel": "metal"}
+  }
+}

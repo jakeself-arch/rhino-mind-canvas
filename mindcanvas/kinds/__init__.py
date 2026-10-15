@@ -8,11 +8,12 @@ A kind with HOSTED = True (openings) has no parts of its own: building it builds
 (host_of(doc, obj)).
 """
 
-from . import opening, wall
+from . import curtainwall, opening, wall
 
 KINDS = {
     "wall": wall,
     "opening": opening,
+    "curtain_wall": curtainwall,
 }
 
 

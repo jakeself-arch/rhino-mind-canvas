@@ -1,0 +1,13 @@
+{
+  "_comment": "Curtain-wall mullions (inches). width = face (sightline), depth = through the wall, t = wall thickness of the tube; solid: true for timber (an aluminum glazing adaptor carries the pressure plate, 'adaptor' = its base thickness). material = mullion material. Pick with \"mullion\" (and optionally \"transom\") in a curtain-wall assembly or MCEditCurtainWall.",
+
+  "CW Aluminum 2-1/2 x 4-1/2": {"type": "tube", "family": "cw_mullion", "width": "2-1/2", "depth": "4-1/2", "t": "1/8", "material": "Aluminum"},
+  "CW Aluminum 2-1/2 x 6":     {"type": "tube", "family": "cw_mullion", "width": "2-1/2", "depth": 6,       "t": "1/8", "material": "Aluminum"},
+  "CW Aluminum 2-1/2 x 7-1/2": {"type": "tube", "family": "cw_mullion", "width": "2-1/2", "depth": "7-1/2", "t": "1/8", "material": "Aluminum"},
+  "CW Aluminum 3 x 8":         {"type": "tube", "family": "cw_mullion", "width": 3,       "depth": 8,       "t": "5/32", "material": "Aluminum"},
+  "CW Aluminum 3 x 6, Unitized": {"type": "tube", "family": "cw_mullion", "width": 3,     "depth": 6,       "t": "1/8", "material": "Aluminum"},
+  "CW Steel 2 x 6":            {"type": "tube", "family": "cw_mullion", "width": 2,       "depth": 6,       "t": "3/16", "material": "Structural Steel"},
+  "CW Steel 2 x 8":            {"type": "tube", "family": "cw_mullion", "width": 2,       "depth": 8,       "t": "1/4", "material": "Structural Steel"},
+  "CW Timber 3 x 7-1/2":       {"type": "rect", "family": "cw_mullion", "width": 3,       "depth": "7-1/2", "solid": true, "adaptor": "1/8", "material": "Glulam"},
+  "CW Timber 3 x 9-1/2":       {"type": "rect", "family": "cw_mullion", "width": 3,       "depth": "9-1/2", "solid": true, "adaptor": "1/8", "material": "Glulam"}
+}

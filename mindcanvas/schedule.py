@@ -128,3 +128,51 @@ def write_openings_csv(rows, path):
         w.writeheader()
         for r in rows:
             w.writerow(r)
+
+
+# -- curtain walls -------------------------------------------------------------
+def curtain_walls(doc, driver_ids=None):
+    """Curtain-wall panel schedule: one row per curtain wall and infill type with the panel
+    count and the nominal glass / panel area (ft2, visible glass + bite). driver_ids: None = all."""
+    from . import library
+    from .kinds import curtainwall as cwkind
+    lib = library.get()
+    if driver_ids is None:
+        drivers = meta.all_drivers(doc, cwkind.KIND)
+    else:
+        drivers = [doc.Objects.FindId(d) for d in driver_ids]
+        drivers = [d for d in drivers if d is not None and meta.get(d, meta.TYPE) == cwkind.KIND]
+    out = []
+    for d in drivers:
+        try:
+            ctx = cwkind.make_context(doc, lib, d, meta.get(d, meta.ASSEMBLY), meta.params(d))
+            s = cwkind.summary(ctx)
+        except Exception as ex:
+            out.append({"wall": str(d.Id)[:8], "assembly": meta.get(d, meta.ASSEMBLY), "panel": "error: {}".format(ex),
+                        "count": 0, "area_ft2": 0.0, "bays": 0, "rows": 0})
+            continue
+        for p in s["panels"]:
+            out.append({"wall": str(d.Id)[:8], "assembly": meta.get(d, meta.ASSEMBLY), "panel": p["panel"],
+                        "count": p["count"], "area_ft2": round(p["area_ft2"], 2), "bays": s["bays"],
+                        "rows": s["rows"]})
+    return out
+
+
+def format_curtain_walls(rows):
+    lines = ["{:<10} {:<40} {:<12} {:>6} {:>10} {:>9}".format(
+        "Wall", "Curtain wall", "Panel", "Count", "Area ft2", "Bays x rows")]
+    for r in rows:
+        lines.append("{:<10} {:<40} {:<12} {:>6} {:>10.1f} {:>9}".format(
+            r["wall"], r["assembly"][:40], r["panel"][:12], r["count"], r["area_ft2"],
+            "{} x {}".format(r["bays"], r["rows"])))
+    lines.append("{:<10} {:<40} {:<12} {:>6} {:>10.1f}".format(
+        "Total", "", "", sum(r["count"] for r in rows), sum(r["area_ft2"] for r in rows)))
+    return "\n".join(lines)
+
+
+def write_curtain_walls_csv(rows, path):
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["wall", "assembly", "panel", "count", "area_ft2", "bays", "rows"])
+        w.writeheader()
+        for r in rows:
+            w.writerow(r)
