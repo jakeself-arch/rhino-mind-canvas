@@ -1,0 +1,21 @@
+{
+  "_comment": "Curtain-wall materials (see core.json for the format). Gaskets, silicone, thermal breaks and sheet metal cut solid black so they read as heavy lines in 1-1/2\" details; spandrel glass is opaque.",
+
+  "Gasket":              {"color": [30, 30, 32], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Structural Silicone": {"color": [40, 40, 44], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Thermal Break":       {"color": [70, 70, 75], "section": {"fill": "solid", "color": [60, 60, 60]}, "print": {"weight": 0.13}},
+  "Setting Block":       {"color": [60, 60, 64], "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Spandrel Glass":      {"color": [70, 90, 100], "render": {"transparency": 0.0, "gloss": 0.9},
+                          "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Back Pan":            {"color": [150, 155, 160], "render": {"gloss": 0.4},
+                          "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Shadow Box Pan":      {"color": [60, 64, 70], "render": {"gloss": 0.3},
+                          "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.13}},
+  "Metal Panel":         {"color": [165, 170, 175], "render": {"gloss": 0.5},
+                          "section": {"fill": "solid", "color": [0, 0, 0]}, "print": {"weight": 0.18}},
+  "Panel Core":          {"color": [230, 230, 225], "section": {"fill": "white"}, "print": {"weight": 0.09}},
+  "Fire Safing":         {"color": [205, 190, 120],
+                          "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1, "rotation": 45}, "print": {"weight": 0.13}},
+  "Glulam":              {"color": [206, 164, 108], "render": {"gloss": 0.15},
+                          "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}}
+}

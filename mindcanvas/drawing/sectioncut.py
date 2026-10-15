@@ -8,7 +8,6 @@ import System
 import Rhino
 
 from .. import geo, library, meta, units
-from ..kinds import wall as wallkind
 from . import displaymode, styles
 from .pipeline import CLIP_KEY
 
@@ -18,12 +17,22 @@ NAME_KEY = "mc.section"
 
 
 def wall_frame(doc, driver, point, lib=None):
-    """(plane at the cut point: X = wall tangent, Y = exterior, Z up; wall info)."""
+    """(plane at the cut point: X = driver tangent, Y = exterior, Z up; assembly info).
+    Works for any kind with bands (walls, curtain walls)."""
+    from .. import kinds
     lib = lib or library.get()
-    ctx = wallkind.make_context(doc, lib, driver, meta.get(driver, meta.ASSEMBLY), meta.params(driver))
+    kmod = kinds.get(meta.get(driver, meta.TYPE, "wall"))
+    ctx = kmod.make_context(doc, lib, driver, meta.get(driver, meta.ASSEMBLY), meta.params(driver))
     crv = ctx.curve
     ok, t = crv.ClosestPoint(G.Point3d(point.X, point.Y, crv.PointAtStart.Z))
     frame = geo.frame_at(crv, t, ctx.base_z)
+    grid = getattr(ctx, "grid", None)
+    if grid is not None:        # curtain wall: the facet (bay chord) under the point
+        hit = grid.cell_at(point)
+        if hit is not None:
+            bay = grid.bays[hit[0]]
+            u, y = bay.local(point)
+            frame = bay.frame(min(max(u, 0.0), bay.c), ctx.base_z)
     d_ext = max(b.d_ext for b in ctx.bands)
     d_int = min(b.d_int for b in ctx.bands)
     z0 = min(ctx.z_range(b)[0] for b in ctx.bands)
@@ -95,6 +104,55 @@ def make(doc, driver, point, view=None, name=None, depth_in=0.0, perspective=Fal
         vp.SetCameraLocations(origin, cam)
         vp.CameraUp = Z
         vp.ZoomBoundingBox(box)
+    if style is not None:
+        try:
+            from . import sectionstyle
+            sectionstyle.apply(doc, styles.get(style))
+        except Exception:
+            pass
+    displaymode.assign(view)
+    idx = doc.NamedViews.FindByName(name)
+    if idx >= 0:
+        doc.NamedViews.Delete(idx)
+    doc.NamedViews.Add(name, vp.Id)
+    view.Redraw()
+    return {"name": name, "clip_ids": ids, "plane": cut_plane, "origin": origin, "frame": frame}
+
+
+def make_plan(doc, driver, point, view=None, name=None, cut_z=None, depth_in=24.0, style=None,
+              margin_in=18.0):
+    """Plan cut: a horizontal clipping plane at cut_z (default: the picked point's elevation)
+    keeping what is below, a "depth" plane depth_in lower, and a top view centred on the
+    point (parallel). Returns dict(name, clip_ids, plane, origin, frame)."""
+    view = view or doc.Views.ActiveView
+    vp = view.ActiveViewport
+    inch = units.inch_scale(doc)
+    frame, w = wall_frame(doc, driver, point)
+    z = point.Z if cut_z is None else cut_z
+    origin = G.Point3d(point.X, point.Y, z)
+    cut_plane = G.Plane(origin, -G.Vector3d.ZAxis)
+    if name is None:
+        name = "MC Plan {}".format(len(list(doc.Objects.FindByObjectType(D.ObjectType.ClipPlane) or [])) + 1)
+    _clear_previous(doc, name)
+    half = abs(w["d_ext"] - w["d_int"]) * 0.5 + margin_in * inch
+    ids = []
+    for role, pl in (("cut", cut_plane),
+                     ("depth", G.Plane(origin - G.Vector3d.ZAxis * (depth_in * inch), G.Vector3d.ZAxis))):
+        if role == "depth" and not (depth_in and depth_in > 0):
+            continue
+        a = D.ObjectAttributes()
+        a.SetUserString(NAME_KEY, name)
+        a.SetUserString(CLIP_KEY, role)
+        a.Name = name if role == "cut" else name + " depth"
+        cid = doc.Objects.AddClippingPlane(pl, 4 * half, 4 * half, [vp.Id])
+        if cid != System.Guid.Empty:
+            doc.Objects.ModifyAttributes(cid, a, True)
+            ids.append(cid)
+    vp.ChangeToParallelProjection(True)
+    vp.SetCameraLocations(origin, origin + G.Vector3d.ZAxis * (60.0 * 12 * inch))
+    vp.CameraUp = frame.YAxis
+    box = G.BoundingBox([origin - G.Vector3d(half, half, 0), origin + G.Vector3d(half, half, 0)])
+    vp.ZoomBoundingBox(box)
     if style is not None:
         try:
             from . import sectionstyle

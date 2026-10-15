@@ -1,5 +1,6 @@
-"""MCOpening: place windows and doors in walls. Click a wall where the opening's center goes
-(in plan or 3D); repeat, Enter to finish."""
+"""MCOpening: place windows and doors in walls (and doors in curtain-wall bays: the unit fills the
+bay clicked and gets a head transom). Click where the opening's center goes (in plan or 3D);
+repeat, Enter to finish."""
 
 import scriptcontext
 import Rhino
@@ -23,7 +24,7 @@ def pick_type(lib, current=None):
 def wall_filter(doc):
     def _ok(rh_obj, geom, ci):
         drv = meta.driver_of(doc, rh_obj)
-        return drv is not None and meta.get(drv, meta.TYPE) == "wall"
+        return drv is not None and meta.get(drv, meta.TYPE) in ("wall", "curtain_wall")
     return RI.Custom.GetObjectGeometryFilter(_ok)
 
 

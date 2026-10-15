@@ -105,17 +105,58 @@ after every host build `engine` moves each opening line to where the host put it
 - Live mode: moving / deleting an opening rebuilds its host; deleting a host deletes its
   openings. Wrap engine-side edits of driver objects in `live.quiet()`.
 
+## Curtain walls
+Kind `curtain_wall` (`kinds/curtainwall.py`), code in `mindcanvas/curtainwall/`. It has no layer
+stack and no components; the kind builds everything itself.
+
+- **Settings** (`settings.py`): `merged(assembly, params)` = `DEFAULTS` ← assembly ← driver
+  params ← `params["overrides"]` (dicts merge, lists replace). Add a new key to `DEFAULTS` with a
+  default so existing assemblies keep working. `Dims(lib, settings)` resolves every section
+  dimension in **inches** (IGU thickness `T`, gasket `g`, bite, spline, cap, SSG joint, split, ...)
+  and the mullion / transom profiles (`mp`, `tp`: `w`, `D`, `t`, `material`, `solid`).
+  `V_STYLE` / `H_STYLE` map a system style to the joint style of verticals and horizontals
+  (captured / ssg / butt / split / unit).
+- **Context**: `make_context` returns a `BuildContext` with `ctx.cw` (settings), `ctx.dims`,
+  `ctx.yG` (y of the exterior glass face; y = signed offset, + = exterior, as for walls),
+  `ctx.grid`, one pseudo band "Curtain Wall" (`d_ext` = front of caps, `d_int` = back of
+  mullions; used by section cuts and openings) and `ctx.openings`.
+- **Grid** (`grid.py`, model units): `vertices` (kind `start` / `end` / `inline` / `corner`,
+  `X` = mullion axis on the bisector, `turn` in degrees, + = concave), `bays` (straight chords:
+  `frame(u, z)`, `local(p)`, `world(u, y, z)`), `horizontals` (sill / transom / stack / head),
+  `rows`, `infill(bay, row)`, `cell_at(point)`.
+- **Sections** (`sections.py`): 2D member sections in (a, q) inches — a across the member, q depth
+  behind the glass face. `vertical(dims, kind, lod)` / `horizontal(dims, kind, lod)` return a
+  `Section` with `members` (role, material, loops, `cover`, `detail`), the glass edges
+  `edge_neg` / `edge_pos`, `struct_half` / `cover_half` (where crossing members stop) and
+  `setting` (setting block seat). A new joint style = a new section function + an entry in
+  `V_STYLE` / `H_STYLE`.
+- **Build** (`build.py`): every bay end gets a `BayEnd` (glass edge u, `struct` / `cover` /
+  `miter` cut lines); horizontals are swept between those lines (trimmed at facets), verticals
+  are extruded plan sections, corners are built in world plan (L tube from two legs + covers
+  clipped on the bisector). **Every part is a block instance** whose name is
+  `MC CW <role> <dims> #<hash>`; the hash covers every number that shapes it, so identical
+  members share a definition. Parts carry `mc.x.length` (mullions, transoms, caps, plates) and
+  `mc.x.area` + `mc.x.panel` + `mc.x.cell` on the first lite of each panel.
+- **Openings** in a curtain wall: `kinds.curtainwall.place_opening` snaps an opening to the bay
+  nearest its station; `Builder._openings` sizes it to the bay's clear width, adds a head transom
+  and drops the infill (and, for doors, the sill) below it; the unit comes from `openings.units`.
+- **Schedule**: `kinds.curtainwall.summary(ctx)` (panels per infill type with nominal areas,
+  bays, rows) feeds `schedule.curtain_walls`.
+- Drawing: `drawing.sectioncut.wall_frame` works for any kind with bands (a curtain wall uses the
+  bay chord under the point); `sectioncut.make_plan` makes a horizontal cut for plan details.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,
-`library/openings/<topic>.json`.
+`library/openings/<topic>.json`. Curtain walls: `library/assemblies/curtainwalls.json`,
+`library/profiles/curtainwall.json`, `library/materials/curtainwall.json`.
 Material entries: see `library/materials/core.json` (color, render, section, print).
 
 ## Commands
 Command logic lives in `mindcanvas/cmd/<name>.py` with `run()`; `commands/MC<Name>.py` is a
 6-line entry script (copy an existing one). Shared helpers in `mindcanvas/cmd/ui.py`
 (`select_drivers`, `pick_from_list`, `pick_assembly`, option helpers, `report`).
-Engine API: `engine.create / build / build_many / update_params / set_override / set_assembly /
+Engine API (any kind, incl. curtain walls): `engine.create / build / build_many / update_params / set_override / set_assembly /
 rebuild_all / add_opening / update_opening / delete_openings`.
 
 ## Version control

@@ -65,10 +65,12 @@ def clip_planes(doc, vp):
 
 
 def set_lod(doc, style, say=None):
-    """Rebuild walls whose LOD differs from the style's. Returns the number rebuilt."""
+    """Rebuild walls and curtain walls whose LOD differs from the style's. Returns the number rebuilt."""
     st = styles.get(style)
     n = 0
-    for d in meta.all_drivers(doc, "wall"):
+    for d in meta.all_drivers(doc):
+        if meta.get(d, meta.TYPE) not in ("wall", "curtain_wall"):
+            continue
         if meta.params(d).get("lod", "detail") != st.lod:
             engine.update_params(doc, d, {"lod": st.lod})
             n += 1
