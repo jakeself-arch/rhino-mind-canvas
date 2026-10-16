@@ -6,7 +6,8 @@ finished the user's command. Nothing is queued while Undo/Redo is running,
 because undo restores the old parts itself.
 
 Openings: editing or deleting an opening's line rebuilds its host; deleting a host deletes
-its openings.
+its openings. Joins: building an assembly rebuilds the ones joined to it (engine.build); deleting
+one rebuilds the assemblies it was joined to (user text mc.joined).
 """
 
 import sys
@@ -61,6 +62,10 @@ def enable():
                 host = e.TheObject.Attributes.GetUserString("mc.host")
                 if host:   # an opening: its host rebuilds without it
                     state["queue"].append((sn, System.Guid(host)))
+                joined = e.TheObject.Attributes.GetUserString("mc.joined")
+                for pid in (joined or "").split(","):
+                    if pid:   # walls / floors / roofs joined to it rebuild without it
+                        state["queue"].append((sn, System.Guid(pid)))
         except Exception as ex:
             print("Mind Canvas live (delete): {}".format(ex))
 
@@ -88,6 +93,8 @@ def enable():
                     elif _meta().is_driver(obj):
                         r = engine.build(doc, oid)
                         seen.add((sn, r.driver_id))     # an opening built its host
+                        for j in r.joined:              # joined assemblies were rebuilt with it
+                            seen.add((sn, j.driver_id))
                         for w in r.warnings:
                             print("Mind Canvas: " + w)
                 except Exception as ex:

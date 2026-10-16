@@ -1,7 +1,8 @@
 """Floor layer builders. Every band of a floor is horizontal: band.d_ext = top z, band.d_int =
 bottom z (model units). Components (layer "component"):
 
-    solid, membrane   slab over the boundary (option inset: inches inward, e.g. ceilings)
+    solid, membrane   slab over the boundary (option inset: inches inward, e.g. ceilings; with
+                      walls along the boundary the inset follows each wall's interior face)
     void              nothing
     joists            rim + joists (design), + blocking / bridging + cavity fill (detail)
     deck              composite metal deck (ribs across the joists) + concrete in its flutes
@@ -43,11 +44,24 @@ def slab(ctx, z0, z1, inset=0.0):
     return [geo.extrude_region(r, z0, z1 - z0, ctx.tol) for r in regions], crv
 
 
+def edge_slab(ctx, z0, z1, poly, dists):
+    """Slab over the boundary polygon (CCW) with every edge moved inward by its own distance
+    (joins: ceilings and finish floors stop at the walls along each edge)."""
+    pts = hgeo.offset_edges(poly, [-d for d in dists])
+    crv = G.PolylineCurve([G.Point3d(x, y, 0) for x, y in pts + [pts[0]]])
+    regions = G.Brep.CreatePlanarBreps(crv, ctx.tol) or []
+    return [geo.extrude_region(r, z0, z1 - z0, ctx.tol) for r in regions], crv
+
+
 def solid(ctx, band):
     if band.index in getattr(ctx, "absorbed", {}):
         return []          # a concrete topping poured with the deck flutes (see deck)
     o = ctx.options(band)
-    breps, crv = slab(ctx, band.d_int, band.d_ext, ctx.u(o.get("inset", 0) or 0))
+    joined = getattr(ctx, "join_insets", {}).get(band.index)
+    if joined is not None:
+        breps, crv = edge_slab(ctx, band.d_int, band.d_ext, *joined)
+    else:
+        breps, crv = slab(ctx, band.d_int, band.d_ext, ctx.u(o.get("inset", 0) or 0))
     extra = {"area": round(_area_in2(ctx, crv), 2)}
     role = o.get("role") or ("membrane" if band.component == "membrane" else "solid")
     return [Part(b, band.material, role=role, extra=dict(extra)) for b in breps]

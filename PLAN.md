@@ -48,7 +48,10 @@ mindcanvas/            Python package (the engine)
                        (3D members as hashed block instances, corners, infill, anchors, seals)
   openings/            phase 4: opening drivers + placement (core), section sweeps / mitered
                        frames (geom), window + door units, trim, sill pan, drip (units)
-  engine.py            build / rebuild / delete for a driver
+  joins/               phase 7: plan.py (pure 2D L / T rules: EndCut zones, notches, backers),
+                       find.py (detection from drivers: walls, floors, roofs), geom.py (joined
+                       outlines / solids, centerline, roof infill)
+  engine.py            build / rebuild / delete for a driver (+ rebuild joined partners)
   live.py              watches driver edits and rebuilds (toggle)
   schedule.py          quantity takeoff -> CSV
   drawing/             phase 3: display mode, MCDrawing, tone hatch, stipple, line weights
@@ -95,21 +98,32 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
-| 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | |
+| 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; PR jakeself-arch/rhino-mind-canvas#4; verified in Rhino 2026-10-15) |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-15): Phase 6 (floors + roofs) done and merged to main.** Phases 0, 0.5,
-1–6 done and verified in Rhino. All tests pass: `tests/test_phase0.py`, `test_phase1.py`,
+**Current state (2026-10-15): Phase 7 (joins) verified in Rhino** on branch
+`claude/phase-7-resume-xd05z7`. `tests/test_phase7.py` (`run(doc, drawing_on=True, captures=True,
+log=<path>)`, ~17 s) passes; the offline tests (`tests/offline/test_join_plan.py`,
+`test_join_find.py`) run with Rhino's CPython (`%USERPROFILE%\.rhinocode\py39-rh8\python.exe`,
+no system Python on this machine). Only test fixes were needed: the 2x6 wood wall's sheathing is
+OSB, and the gable section's crop window spans the wall normal (it was zero-width) at a quarter
+point off the ridge. `test_phase0`..`test_phase6` + `test_layers` still pass with joins on (the
+earlier drawings only changed by random curls / stipple). New drawings: `docs/drawings/f_corner_plan_1-1-2`,
+`f_tee_plan_1-1-2`, `f_gable_section_1-1-2`. Open in the gable section: the gable wall's interior
+gypsum continues above the ceiling into the attic. Merged via PR jakeself-arch/rhino-mind-canvas#4. **Next: Phase 8 (UI + entourage), branch `phase8-ui-entourage` from main.**
+Phases 0, 0.5, 1–7 done and verified in Rhino. All earlier tests passed at Phase 7:
+`tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
 `test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py`
 (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~45 s), `test_phase6.py`
 (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~25 s; `only="drawings"` runs just the
 details). Run each in an empty, unsaved document of your own `spawn_slot` (they clear the doc;
-`test_phase5`/`test_phase6` assert `not doc.Path`). After a run, `git checkout` the regenerated
-images of earlier phases (`git diff --name-only -- docs | xargs git checkout --`).
+`test_phase5`..`test_phase7` assert `not doc.Path`). After a run, `git checkout` the regenerated
+images of earlier phases (`git diff --name-only -- docs | xargs git checkout --`) unless joins
+changed them on purpose.
 Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`,
 `c_window_section_1-1-2.png`, `d_curtainwall_plan_<style>.png` (1-1/2" plans at a vertical
 mullion for captured / ssg4 / ssg2 / butt / unitized), `d_curtainwall_plan_corner.png`,
@@ -120,14 +134,33 @@ at a transom / spandrel / slab edge with anchors and safing), `e_roof_eave_secti
 `e_floor_deck_section_1-1-2.png` (concrete on composite deck over C-joists).
 
 **Workflow for phases 7–8 (user, 2026-10-15):** continue through every remaining phase without
-review stops, one phase per session: branch `phase<N>-<topic>` from main, PR, merge when the
-tests pass, then the next session starts from main. **Next: Phase 7 (joins: L/T wall joins,
-wall↔floor, wall↔roof).** Hooks for Phase 7: floors and roofs only know their boundary + datum
-(`base_offset`: floor framing bottom = wall top; roof plate height = wall top) and the roof's
-`wall_depth` / `wall_ext` / `wall_int`; floor ceilings / finish floors use a fixed `inset`. The
-test details extend the lower wall's exterior layers over the rim with `extend_top` overrides;
-Phase 7 should compute these from the actual walls (rim/band covered by sheathing, ceiling and
-finish insets from the wall stack, gable-end wall tops following the rake, high shed walls).
+review stops, one phase per session: branch from main, PR, merge when the tests pass, then the
+next session starts from main. Phase 7 lives on `claude/phase-7-resume-xd05z7` (cloud session
+branch name) until it is verified.
+
+**Phase 7 summary** (package `mindcanvas/joins/`, command `MCJoin`): automatic joins found from the
+drivers. **L** between two wall ends (wrap: layers outside the core miter on each side of the corner,
+the primary core runs to the other's outer core face, the secondary stops at the primary's inner
+core face, backer stud; miter; butt; none; `join_priority`); square brick-on-brick corners lap
+course by course (`masonry.JoinEnd`). **T** (joining core through the host's finish to its core,
+host notched + two backer studs; butt). **Wall under a floor** (exterior layers up over the rim to
+the wall above / the structure top; floor ceilings and finish floors with an `inset` option inset
+per edge to the walls' interior faces). **Wall under a roof** (roof `wall_depth` / `wall_ext` /
+`wall_int` from the walls unless set in its params; exterior layers lowered under the rafters;
+every layer filled up to the rafter bottom line: gable ends, shed side and high walls, gable studs
++ fill). Engine cascade (`build(..., joined=True)`, `mc.joined`), live delete cascade. Hooks:
+`BuildContext.solids` / `z_range`, `kinds.wall.stack_offsets`, `floors.build.edge_slab`.
+
+**Phase 7 known limitations:** joins only between separate wall drivers' ends (a wall's own
+polyline corners work as before); three walls at one point: the closest pair wins; joined walls must
+overlap in height; an L or T cut applies over each wall's whole height (only a T host's notch is
+limited to the joining wall's height); curved hosts are linearized at the T point; brick
+ties, base flashing and shelf angles still end at the driver ends; masonry in a T host is not
+notched; roof infill only on straight walls (curved walls warned) and stops at the rafter bottom
+line (no rake plate, exterior layers do not continue up to the roof deck at the rake); exterior
+layers at eaves stop at the lowest rafter-bottom point over them (a < 1" wedge is left out);
+wall `base_offset` / floor `base_offset` / roof `base_offset` are still set by hand (no
+auto-height); floors / roofs are matched to walls by straight edges within the wall thickness + 1".
 
 **Phase 6 summary** (branch `phase6-floors-roofs`, PR jakeself-arch/rhino-mind-canvas#3): kinds `floor` (`kinds/floor.py` +
 `mindcanvas/floors/`) and `roof` (`kinds/roof.py` + `mindcanvas/roofs/`), shared geometry in

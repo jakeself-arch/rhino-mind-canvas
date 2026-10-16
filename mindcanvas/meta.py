@@ -13,6 +13,7 @@ LAYER = "mc.layer"          # assembly layer name, e.g. "Framing" (part)
 ROLE = "mc.role"            # "stud", "plate", "brick", "solid", ... (part)
 MATERIAL = "mc.material"    # material name (part)
 EXTRA_PREFIX = "mc.x."      # free-form per-part data, e.g. mc.x.length
+JOINED = "mc.joined"        # ids of the assemblies joined to this one at its last build (driver)
 
 DRIVER_KIND = "driver"
 PART_KIND = "part"
@@ -67,3 +68,18 @@ def all_drivers(doc, kind=None):
     if kind:
         out = [o for o in out if get(o, TYPE) == kind]
     return out
+
+
+def joined_ids(obj):
+    raw = get(obj, JOINED)
+    return set(x for x in raw.split(",") if x) if raw else set()
+
+
+def write_joined(doc, obj, ids):
+    """Remember the joined assemblies (rebuilt when this one changes or is deleted)."""
+    raw = ",".join(sorted(ids))
+    if (get(obj, JOINED) or "") == raw:
+        return
+    attrs = obj.Attributes.Duplicate()
+    attrs.SetUserString(JOINED, raw)
+    doc.Objects.ModifyAttributes(obj, attrs, True)

@@ -21,6 +21,11 @@ get a full corner (wood: end stud + flat corner stud + backer; metal: two
 studs, webs toward the corner); oblique corners get a stud on each side.
 stud_stations(ctx, band) gives their distances along ctx.curve.
 
+Joins (mindcanvas/joins): at a joined wall end the centerline, plates and tracks run to the join
+cut (an L's primary wall runs through to the other wall's outer core face, the secondary stops at
+the primary's inner core face; a T's joining wall stops at the host's core). Backer studs are
+added where other walls join this one (ctx.joins.backers).
+
 Openings (ctx.openings): studs the rough opening displaces are dropped; grid studs inside it
 become cripples (above the header, and under the sill of windows), so the layout continues on
 the same grid. Wood: king + jack (trimmer) each side, built-up header on the jacks (plies on
@@ -165,10 +170,11 @@ class Layout(object):
         if self.spacing < 2 * self.w:
             ctx.warn("Stud spacing too small; using {}.".format(units.format_inches(4 * w_in)))
             self.spacing = 4 * self.w
-        self.center = geo.offset(ctx.curve, band.d_mid, ctx.tol)
+        self.center = _centerline(ctx, band.d_mid)
         self.length_in = self.center.GetLength() / ctx.s
         self._split()
         self._place()
+        self._backers()
         self.ops = self._openings()
 
     def opt(self, key, default=None):
@@ -253,6 +259,29 @@ class Layout(object):
                     kept.append((s, 1, "field"))
             for s, facing, kind in sorted(kept):
                 self.studs.append(_Stud(i, s, facing, kind))
+
+    def _backers(self):
+        """Extra studs where other walls join this one (joins: L corner backer, T backers):
+        field studs within a stud width give way; a backer next to an end / corner stud is
+        dropped."""
+        J = getattr(self.ctx, "joins", None)
+        if J is None or not J.backers:
+            return
+        w = self.w
+        z = self.center.PointAtStart.Z
+        for bk in J.backers:
+            p = bk.point(self.band.d_mid, w)
+            if p is None:
+                continue
+            seg, sc = self._seg_station(G.Point3d(p[0], p[1], z))
+            Ls = self.segs[seg].GetLength()
+            if sc < 0.5 * w - 1e-9 or sc > Ls - 0.5 * w + 1e-9:
+                continue
+            near = [st for st in self.studs if st.seg == seg and abs(st.s - sc) < w - 1e-9]
+            if any(st.kind != "field" for st in near):
+                continue
+            self.studs = [st for st in self.studs if st not in near] + [_Stud(seg, sc, 1, "corner")]
+        self.studs.sort(key=lambda st: (st.seg, st.s))
 
     # -- openings --------------------------------------------------------------------
     def _seg_station(self, point):
@@ -360,6 +389,9 @@ class Layout(object):
             a, b = geo.offset(ctx.curve, d_hi, tol), geo.offset(ctx.curve, d_lo, tol)
             outer, inner = (a, b) if _area(a) > _area(b) else (b, a)
             cutters.append(inner)
+        elif _joined(ctx):
+            from ..joins import geom as jgeom
+            outer = jgeom.outline(ctx, d_hi, d_lo)
         else:
             outer = geo.band_outline_open(ctx.curve, d_hi, d_lo, tol)
         z = self.center.PointAtStart.Z
@@ -372,6 +404,19 @@ class Layout(object):
         min_area = self.D * ctx.u(0.25)
         self._pieces = [c for c in (res or []) if c.IsClosed and _area(c) > min_area]
         return self._pieces
+
+
+def _joined(ctx):
+    J = getattr(ctx, "joins", None)
+    return J is not None and bool(J.ends) and not ctx.curve.IsClosed
+
+
+def _centerline(ctx, d):
+    """Centerline of a framing band; at joined wall ends it runs to the join cut (joins)."""
+    if _joined(ctx):
+        from ..joins import geom as jgeom
+        return jgeom.centerline(ctx, d)
+    return geo.offset(ctx.curve, d, ctx.tol)
 
 
 def layout(ctx, band):
@@ -408,11 +453,16 @@ def _channel(ctx, d_hi, d_lo, z_lo, z_hi, t, opening):
     e = max(d_hi - d_lo, z_hi - z_lo)
     ci = [d_lo + t, d_hi - t, z_lo + t, z_hi - t]
     ci[{"up": 3, "down": 2, "ext": 1, "int": 0}[opening]] += e if opening in ("up", "ext") else -e
-    outer = geo.band_solids(ctx.curve, d_hi, d_lo, z_lo, z_hi - z_lo, tol)
+    if _joined(ctx):
+        from ..joins import geom as jgeom
+        outer = jgeom.band_solids(ctx, d_hi, d_lo, z_lo, z_hi, notch=False)
+    else:
+        outer = geo.band_solids(ctx.curve, d_hi, d_lo, z_lo, z_hi - z_lo, tol)
     try:
         crv = ctx.curve
         if not crv.IsClosed:
-            crv = crv.Extend(G.CurveEnd.Both, 2 * e, G.CurveExtensionStyle.Line) or crv
+            reach = ctx.joins.reach if _joined(ctx) else 0.0
+            crv = crv.Extend(G.CurveEnd.Both, 2 * e + reach, G.CurveExtensionStyle.Line) or crv
         cut = geo.band_solids(crv, ci[1], ci[0], ci[2], ci[3] - ci[2], tol)
         res = G.Brep.CreateBooleanDifference(outer, cut, tol)
         if res and len(res) == len(outer):

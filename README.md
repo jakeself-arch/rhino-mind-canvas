@@ -21,6 +21,7 @@ section drawings.
 | `MCWall` | Pick an assembly, then select curves (or `Draw`) to make walls. Options: Height, Location line, Flip, Detail level |
 | `MCEdit` | Change height, base offset, location line, flip or detail level of selected walls |
 | `MCSetAssembly` | Swap the assembly type of selected walls |
+| `MCJoin` | How selected walls join others: `Start` / `End` = Auto / Wrap / Miter / Butt / None, `Priority` (at an L the higher one runs through), `Report` lists every join (L, T, floors, roofs) |
 | `MCLayers` | Edit the layer stack of selected walls: Replace, Insert, Remove, Thickness, ToExterior/ToInterior, Mirror, Reset, **SaveAs** a new assembly. Changes show immediately; Esc undoes them |
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
 | `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
@@ -135,14 +136,38 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
 - `MCSchedule` lists panels per curtain wall and infill type with their glass area; the
   takeoff totals mullion / transom / cap lengths and glass area per material.
 
+## How walls join (Phase 7)
+Joins are automatic: draw walls so their ends meet and they join; nothing to select.
+- **L**: two wall ends whose lines cross near both ends (drawn on any location line). The layers
+  outside the structure miter around the corner on each side; one wall's framing runs through to
+  the far face of the other's framing, the other stops against it (a backer stud in the through
+  wall gives the inside finish nailing). Brick on both walls of a square corner **laps**: the
+  courses alternate. Styles (`MCJoin`): **Wrap** (default), **Miter** (everything on one miter),
+  **Butt** (one wall runs through whole), **None**. `Priority` picks the wall that runs through
+  (else the thicker structure).
+- **T**: a wall ending inside another wall (on its face, center or core). The joining wall's
+  framing runs through the host's finish to its studs; the host's finish is notched around it and
+  gets two backer studs. `Butt` stops the joining wall at the host's face (no notch).
+- **Under a floor**: a wall whose top is at the floor's framing bottom and that runs along the
+  floor's boundary carries its exterior layers (sheathing, WRB, cladding) up over the rim joist to
+  the wall above. The floor's ceiling and finish floor stop at the interior face of the wall on each
+  edge (no fixed inset).
+- **Under a roof**: a wall whose top is at the roof's plate height along its plate line gives the
+  roof its bearing-wall dimensions; its exterior layers stop under the rafter tails; gable-end and
+  shed walls are filled up to the underside of the rafters (gable studs on the stud grid, cavity
+  fill, every layer).
+- Moving, editing or deleting a wall, floor or roof rebuilds everything joined to it (also what it
+  was joined to before the edit).
+
 ## Floors and roofs
 - **The closed curve is the floor / roof.** A floor's boundary is the outside face of its rim
   (= the outside face of the wall framing below); a roof's boundary is the **plate line** (the
   outside face of the wall framing it bears on). Edit the curve and the floor / roof rebuilds.
-- **Stacking on walls** (until Phase 7 joins them): give a floor `Elevation` = the wall height (its
-  joists bear on the top plates) and the wall above `BaseOffset` = the top of the subfloor; give a
-  roof `PlateHeight` = the wall height. Ceilings stop `inset` inside the boundary (6" = a 2x6 wall
-  + 1/2" gypsum) and the finish floor stops at the wall above.
+- **Stacking on walls**: give a floor `Elevation` = the wall height (its joists bear on the top
+  plates) and the wall above `BaseOffset` = the top of the subfloor; give a roof `PlateHeight` = the
+  wall height. Draw the boundary on the outside face of the wall framing (walls with Location =
+  CoreExterior can share the same curve points). The joins then do the rest (see above); without
+  walls, ceilings stop `inset` inside the boundary (6" = a 2x6 wall + 1/2" gypsum).
 - **Floors** (`Floor - 2x10 Wood Joists, Plywood`, `... 11-7/8" I-Joist, OSB`,
   `... 10" Metal Joists, Plywood`, `... Concrete on Metal Deck / 10" Metal Joists`): layers top →
   bottom (finish, subfloor / deck + concrete, joists, ceiling). Joists run across the **short** way

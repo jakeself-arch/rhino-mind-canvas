@@ -22,6 +22,12 @@ def report(result, label="Built"):
     say("{} {} parts in {:.2f}s.".format(label, len(result.part_ids), result.seconds))
     for w in result.warnings:
         say("  warning: " + w)
+    joined = getattr(result, "joined", None) or []
+    if joined:
+        say("  + rebuilt {} joined assemblies ({} parts).".format(len(joined), sum(len(r.part_ids) for r in joined)))
+        for r in joined:
+            for w in r.warnings:
+                say("  warning (joined): " + w)
 
 
 def _idx(ret):

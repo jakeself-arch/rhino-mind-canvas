@@ -11,6 +11,11 @@
     delete_openings(doc, host_id)
 
 Openings are drivers of a HOSTED kind: build(opening) re-reads its line and builds the host.
+
+Joins (mindcanvas/joins): an assembly's geometry depends on the drivers joined to it (walls at an
+L / T, the floors and roofs over walls). build() rebuilds those partners afterwards - the ones
+joined now and the ones joined at the last build (user text mc.joined) - so a move that breaks a
+join cleans up the other side too. Partners are rebuilt without cascading further.
 """
 
 import json
@@ -41,11 +46,13 @@ def setup_document(doc):
 
 
 class BuildResult(object):
-    def __init__(self, driver_id, part_ids, warnings, seconds):
+    def __init__(self, driver_id, part_ids, warnings, seconds, partners=None):
         self.driver_id = driver_id
         self.part_ids = part_ids
         self.warnings = warnings
         self.seconds = seconds
+        self.partners = set(partners or ())   # ids joined now or at the previous build
+        self.joined = []                      # BuildResults of the partners rebuilt with it
 
     def __repr__(self):
         return "<BuildResult {} parts in {:.2f}s, {} warnings>".format(
@@ -98,10 +105,10 @@ def _bake(doc, ctx, part, driver_id, group_index):
     return doc.Objects.Add(part.geometry, attrs)
 
 
-def build(doc, driver_id, lib=None, sync=True):
+def build(doc, driver_id, lib=None, sync=True, joined=True):
     """Regenerate a driver's parts. Parts are computed first, so a failure
     leaves the previous parts untouched. For an opening: re-read its line (sync)
-    and build its host."""
+    and build its host. joined: also rebuild the assemblies joined to it."""
     t0 = time.time()
     lib = lib or library.get()
     driver_id = _guid(driver_id)
@@ -117,7 +124,7 @@ def build(doc, driver_id, lib=None, sync=True):
                                time.time() - t0)
         if sync:
             kmod.sync(doc, obj, host)
-        return build(doc, host.Id, lib)
+        return build(doc, host.Id, lib, joined=joined)
     ctx = kmod.make_context(doc, lib, obj, meta.get(obj, meta.ASSEMBLY), meta.params(obj))
     parts = kmod.build(ctx)
 
@@ -131,11 +138,43 @@ def build(doc, driver_id, lib=None, sync=True):
         else:
             ctx.warn("A '{}' part on layer '{}' could not be added.".format(p.role, p.layer_name))
     _place_opening_lines(doc, ctx)
+    now = set(getattr(ctx, "join_partners", None) or ())
+    now.discard(str(driver_id))
+    partners = now | meta.joined_ids(obj)
+    with _quiet():
+        meta.write_joined(doc, doc.Objects.FindId(driver_id), now)
     warnings = list(ctx.warnings) + list(lib.warnings)
     if not tolerance_ok(doc):
         warnings.insert(0, "Model tolerance is coarser than 1/256\"; thin layers may be "
                            "missing. Run MCSetup.")
-    return BuildResult(driver_id, ids, warnings, time.time() - t0)
+    result = BuildResult(driver_id, ids, warnings, time.time() - t0, partners)
+    if joined:
+        rebuild_partners(doc, [result], lib, skip={str(driver_id)})
+    return result
+
+
+def rebuild_partners(doc, results, lib=None, skip=()):
+    """Rebuild (without cascading) the joined partners of the given build results that are not
+    in `skip`; their results are appended to the first result's `joined`."""
+    lib = lib or library.get()
+    seen = set(skip) | set(str(r.driver_id) for r in results)
+    todo = sorted(set(p for r in results for p in r.partners) - seen)
+    out = []
+    for pid in todo:
+        try:
+            o = doc.Objects.FindId(System.Guid(pid))
+        except Exception:
+            o = None
+        if o is None or o.IsDeleted or not meta.is_driver(o) or hosted_kind(o):
+            continue
+        try:
+            out.append(build(doc, o.Id, lib, joined=False))
+        except Exception as ex:
+            if results:
+                results[0].warnings.append("A joined assembly could not be rebuilt: {}".format(ex))
+    if results:
+        results[0].joined.extend(out)
+    return out
 
 
 def _place_opening_lines(doc, ctx):
@@ -158,7 +197,10 @@ def hosted_kind(obj):
 
 def rebuild_all(doc, kind=None, lib=None):
     lib = lib or library.get()
-    return [build(doc, d.Id, lib) for d in meta.all_drivers(doc, kind) if not hosted_kind(d)]
+    out = [build(doc, d.Id, lib, joined=False) for d in meta.all_drivers(doc, kind) if not hosted_kind(d)]
+    if kind is not None:
+        out += rebuild_partners(doc, out, lib)
+    return out
 
 
 def build_many(doc, drivers, lib=None):
@@ -176,8 +218,8 @@ def build_many(doc, drivers, lib=None):
         if str(d.Id) in seen:
             continue
         seen.add(str(d.Id))
-        out.append(build(doc, d.Id, lib))
-    return out
+        out.append(build(doc, d.Id, lib, joined=False))
+    return out + rebuild_partners(doc, out, lib)
 
 
 # -- openings -----------------------------------------------------------------

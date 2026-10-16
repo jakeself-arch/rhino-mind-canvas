@@ -19,6 +19,8 @@ Layer options (lengths in inches):
 
 Coursing starts at ctx.z_range(band)[0]; each course = bed joint + brick. Corners (90 deg) lap:
 alternate courses run through, the other leg stops behind them. Other angles are mitered.
+Joined wall ends (mindcanvas/joins) stop on the join's cut line (JoinEnd); a square L between two
+brick walls laps like a corner (the primary wall runs through on even courses).
 Arcs and free curves get straight bricks on chords laid tight on the inner side; head joints open
 up toward the outer side.
 LOD: schematic = solid band, design = bricks, detail = bricks + bed/head joints + weeps.
@@ -222,6 +224,57 @@ class Corner(object):
             xs = [c / self.tb_na for c in (y_f, y_b)]
             return (min(xs) if through else max(xs)), 0.0
         return 0.0, (1.0 - self.nn) / self.tb_na
+
+
+class JoinEnd(object):
+    """A wall end joined to another wall (mindcanvas/joins), seen from one straight leg: the
+    leg's courses stop on the join's cut line x = a + b*y (leg coordinates). At a square corner
+    with brick on both walls (cut.lap) alternate courses lap: the primary wall's bricks run
+    through on even courses, the other wall's on odd ones, so the two walls bond."""
+
+    straight = True
+    fixed = True       # the parity is shared with the other wall: never re-optimized
+
+    def __init__(self, leg, cut, d, at_start):
+        self.at_start = at_start
+        self.p = 0
+        self.ab = self._local(leg, cut.line_at(d))
+        lap = getattr(cut, "lap", None)
+        self.lap = False
+        if lap is not None:
+            front, back = self._local(leg, lap[0]), self._local(leg, lap[1])
+            if abs(front[1]) < 0.02 and abs(back[1]) < 0.02:
+                self.lap = True
+                self.x_front, self.x_back, self.primary = front[0], back[0], lap[2]
+
+    @staticmethod
+    def _local(leg, line):
+        q = G.Vector3d(line.p[0] - leg.p0.X, line.p[1] - leg.p0.Y, 0)
+        v = G.Vector3d(line.v[0], line.v[1], 0)
+        xq, yq = q * leg.t, q * leg.n
+        vt, vn = v * leg.t, v * leg.n
+        if abs(vn) < 1e-9:      # a cut along the leg cannot happen at a join (>= 15 degrees)
+            return xq, 0.0
+        b = vt / vn
+        return xq - b * yq, b
+
+    def mine(self, i):
+        return (i % 2 == 0) == bool(self.primary)
+
+    def a_through(self, i):
+        if not self.lap:
+            return False
+        return (not self.mine(i)) if self.at_start else self.mine(i)
+
+    def end_line(self, la, y_f, y_b, through):
+        if self.lap:
+            return (self.x_front if through else self.x_back), 0.0
+        return self.ab
+
+    def start_line(self, y_f, y_b, through):
+        if self.lap:
+            return (self.x_front if through else self.x_back), 0.0
+        return self.ab
 
 
 class Course(object):
@@ -688,8 +741,30 @@ class Veneer(object):
             corners.append(Corner(legs[-1], legs[0]))
         if any(not k.straight for k in corners):
             ctx.warn("Brick corners next to curved segments are approximate.")
+        if not c.IsClosed:
+            self._join_ends(legs)
         self._prepare(legs, corners)
         return legs
+
+    def _join_ends(self, legs):
+        """Wall ends joined to other walls (ctx.joins): the first / last leg stops on the cut."""
+        J = getattr(self.ctx, "joins", None)
+        if J is None or not J.ends:
+            return
+        names = ("start", "end") if self.sign > 0 else ("end", "start")
+        d = self.band.d_mid
+        for leg, name, at_start in ((legs[0], names[0], True), (legs[-1], names[1], False)):
+            cut = J.ends.get(name)
+            if cut is None:
+                continue
+            if not leg.straight:
+                self.ctx.warn("Brick at a joined end of a curved wall is not cut to the join.")
+                continue
+            je = JoinEnd(leg, cut, d, at_start)
+            if at_start:
+                leg.start = je
+            else:
+                leg.end = je
 
     def _prepare(self, legs, corners):
         """Joint width per leg (bond the run out) and per-leg bond phase / corner parity."""
@@ -715,7 +790,8 @@ class Veneer(object):
         for idx, leg in enumerate(legs):
             if leg.closed or not leg.straight:
                 continue
-            end_free = leg.end is not None and leg.end.lap and not (closed_loop and idx == n - 1)
+            end_free = leg.end is not None and leg.end.lap and not (closed_loop and idx == n - 1) \
+                and not getattr(leg.end, "fixed", False)
             best = None
             for p in ([0, 1] if end_free else [leg.end.p if leg.end else 0]):
                 if leg.end is not None:
@@ -1090,7 +1166,7 @@ class Veneer(object):
                 continue
             key = (round(c.d, 9), round(c.bed, 9))
             if key not in cache:
-                cache[key] = geo.band_solids(self.curve, self.y_face - self.recess, self.y_face - c.d, 0.0, c.bed, ctx.tol)
+                cache[key] = self._strip(self.y_face - self.recess, self.y_face - c.d, c.bed)
             solids = []
             for s in cache[key]:
                 b = s.DuplicateBrep()
@@ -1102,6 +1178,15 @@ class Veneer(object):
                 out.append(Part(b, self.mortar, role="mortar_bed",
                                 extra={"area": round(face_len * (c.bed + c.h) / ctx.s, 3)}))
         return out
+
+    def _strip(self, y_a, y_b, h):
+        """Solids of the strip y_a..y_b (veneer offsets) from z = 0 to h, stopped at join cuts."""
+        ctx = self.ctx
+        J = getattr(ctx, "joins", None)
+        if J is not None and J.ends and not ctx.curve.IsClosed:
+            from ..joins import geom as jgeom
+            return jgeom.band_solids(ctx, self.sign * y_a, self.sign * y_b, 0.0, h, notch=False)
+        return geo.band_solids(self.curve, y_a, y_b, 0.0, h, ctx.tol)
 
     # -- openings: bed joint cutters, lintel, sill, head course, flashing -----------------
     def _bed_cutters(self):

@@ -14,7 +14,9 @@ Driver params (JSON on the boundary curve; lengths in inches):
     layers       optional per-floor layer stack replacing the assembly's
 
 Bands: LayerBand.d_ext = top z, d_int = bottom z (model units). Components: see floors/build.py.
-Walls below / above are positioned by height + base_offset (Phase 7 will join them).
+Walls below / above are positioned by height + base_offset. Joins (mindcanvas/joins): walls whose
+top is at the framing bottom and that run along the boundary carry their exterior layers up over
+the rim; layers with an `inset` option stop at the interior face of the wall on each edge.
 """
 
 import math
@@ -123,6 +125,8 @@ def make_context(doc, lib, driver_obj, assembly_name, params):
     ctx.local_poly = lambda frame: [(frame.local(G.Point3d(x, y, 0)).X, frame.local(G.Point3d(x, y, 0)).Y)
                                     for x, y in ctx.poly_world]
     ctx.openings = []
+    from .. import joins
+    joins.attach_floor(ctx, driver_obj)
     return ctx
 
 

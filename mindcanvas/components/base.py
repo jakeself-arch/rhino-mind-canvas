@@ -92,6 +92,8 @@ class BuildContext(object):
         self.bands = []
         self.warnings = []
         self.openings = []            # openings.core.Opening records hosted by this assembly
+        self.joins = None             # joins.find.Joins of a wall (ends, notches, backers, z_top)
+        self.join_partners = set()    # ids of assemblies joined to this one (rebuilt with it)
 
     # -- units ------------------------------------------------------------
     def u(self, value):
@@ -124,17 +126,29 @@ class BuildContext(object):
 
     # -- vertical extents ----------------------------------------------
     def z_range(self, band):
-        """(z0, z1) for a band, honoring options extend_bottom / extend_top."""
+        """(z0, z1) for a band, honoring options extend_bottom / extend_top. Without an explicit
+        extend_top, joins may move the top (over a floor rim, under a roof: ctx.joins.z_top)."""
         z0 = self.base_z - self.u(self.option(band, "extend_bottom", 0))
-        z1 = self.base_z + self.height + self.u(self.option(band, "extend_top", 0))
+        top = self.option(band, "extend_top", None)
+        if top is None:
+            J = getattr(self, "joins", None)
+            dz = J.z_top.get(band.index, 0.0) if J is not None else 0.0
+        else:
+            dz = self.u(top)
+        z1 = self.base_z + self.height + dz
         return z0, z1
 
     # -- geometry shortcuts -------------------------------------------
     def solids(self, d_a, d_b, z0=None, z1=None):
+        """Solids of the strip between offsets d_a and d_b; walls with joins stop at their join
+        cuts and are notched where other walls join them (mindcanvas/joins)."""
         if z0 is None:
             z0 = self.base_z
         if z1 is None:
             z1 = self.base_z + self.height
+        if getattr(self, "joins", None) is not None:
+            from ..joins import geom as jgeom
+            return jgeom.band_solids(self, d_a, d_b, z0, z1)
         return geo.band_solids(self.curve, d_a, d_b, z0, z1 - z0, self.tol)
 
     def material_layer(self, material):

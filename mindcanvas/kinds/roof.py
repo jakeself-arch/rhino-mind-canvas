@@ -23,7 +23,9 @@ region (overhang | interior).
 
 Bands: LayerBand.d_ext / d_int = normal offsets (model units) above the rafter bottom; the lines of
 each band on each face are face.lines[band.index] = (bottom, top). Ceiling bands carry absolute z.
-Walls under a roof: set the roof's base_offset to the wall height (Phase 7 will join them).
+Walls under a roof: set the roof's base_offset to the wall height. Joins (mindcanvas/joins): the
+wall dimensions come from the walls along the plate line (unless set in the params); those walls
+stop their exterior layers under the rafters and are filled up to the roof (gable ends, sheds).
 """
 
 import math
@@ -113,6 +115,8 @@ def make_context(doc, lib, driver_obj, assembly_name, params):
             z -= cth[i]
     # faces + layer lines
     ctx.poly_world = hgeo.curve_points(curve, tol)
+    from .. import joins
+    joins.attach_roof(ctx, driver_obj)        # wall_depth / wall_ext / wall_int from the walls under it
     sname, sysd, pname, prof, msg = rbuild.rafter_member(lib, ctx, ctx.structure)
     metal = sysd.get("type") == "metal"
     ctx.faces = rshape.faces(ctx, st, metal)
