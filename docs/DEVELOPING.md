@@ -311,6 +311,76 @@ tag `exclude`, and `drawing/scene.py` skips the layer, so they never reach a dra
 - **Testing**: `tests/test_phase9.py` calls the live Idle handler directly
   (`scriptcontext.sticky[live.STICKY_KEY]["handlers"][2](None, None)`) after `doc.Objects.Transform`
   / `Replace` / `Delete`, which is what Rhino does after a gumball edit.
+- A box with one opening rides along when its opening's frame moves (its wall moved, e.g. by a wall
+  mass), even if it still cuts the wall; only a frame that turned around while the box still fits
+  (a flipped wall) leaves it in place.
+
+## Wall masses (Phase 10)
+`mindcanvas/wallmasses.py`; `masses.sync` / `masses.release` dispatch to it for `mc.type = wall`.
+User text: the mass has `mc.assembly` (the wall assembly for a new wall), `mc.wall` (its wall id)
+and `mc.params` = `flip`, `side` (outward normal [x, y] of the face the automatic rule chose last),
+`wall` (create params); the wall driver has `mc.mass` (`masses.MASS`) and `mc.mass.line` (`LINE`:
+driver start / mid point, cap midpoints `ci` / `cj`, end extensions `ext`, which cap it `start`s at;
+written at every sync).
+
+- **Footprint** (`Footprint(doc, mass)`, model units): the flat downward bottom face (else an
+  error). Mass param `mode` (`MODES`): `perimeter` = the outer loop alone is chain A (a closed
+  wall, exterior outside, `B` = None, holes ignored, `f.perimeter` and `f.ring` set, flip ignored,
+  `t` = half the smaller bbox side); `strip` = never a perimeter (holes are an error); `auto` = a
+  ring with one hole, a strip when its thickness <= `STRIP_RATIO` (1/3) x its shorter long face,
+  otherwise (a cube, a non-strip outline, more holes) a perimeter. `set_mode` changes it (and drops
+  the stored side). Outer loop + one hole = a ring (chains A = outer, B = hole; a closed wall). Otherwise the
+  loop's segments (split at kinks, collinear lines merged) are searched for two non-adjacent CAP
+  segments whose remaining chains stay a constant distance apart (edge midpoints within 15 %; caps
+  <= 3 x that thickness; shortest caps win): chains A and B run from cap i to cap j. No such pair:
+  the minimum-area rectangle is used (warning). `Chain.o` = outward normal at mid-length,
+  `Chain.left` = it is on the left of the chain's direction. `polys` = 2D outline for the 2D tests.
+- **Groups**: footprints that overlap in z and lie within `GAP_IN` (1") in plan. `auto_side`: ring ->
+  A; a face whose outside point (just off its mid) is enclosed (all of `RAYS` rays hit the group's
+  outlines) is interior; else the face farther from the group's area centroid; else the stored
+  `side`, else the face toward the active viewport's camera (perspective: camera location;
+  parallel views: direction, plan views have no say), else the left of the cap i -> cap j axis.
+  Then `flip` takes the other face.
+- **Corners** (`_end_cut`): for each cap of a strip, every group member the cap touches (within the
+  gap) whose exterior line (extended by its end tangents) crosses this end's tangent line within
+  `t_self + t_other + gap` at >= 15 degrees: crossing near that line's end (or past it) = L -> this
+  line ends at the crossing (both walls compute the same point); otherwise T -> it ends at the other
+  WALL's near face (`m.T` = its assembly thickness inward of its exterior face when we come from
+  inside, else its exterior face). Nearest |extension| wins. `_set_end` extends with a line or trims.
+- **Driver** (`derive`): the exterior chain (with corners), oriented exterior-on-the-left, offset by
+  `-y_ext` (the reference's exterior face offset; new walls `reference = exterior_face`, so 0),
+  reversed when flipped (wall `flip` = mass `flip`), at `z0 - base_offset`. Params written: height
+  (mass), flip; the rest of the wall's params is kept. The wall's assembly wins over the mass's.
+  `_write` replaces the driver only when the curve / height / flip / assembly changed, remapping
+  the openings' stations first (`_remap_openings`: projection when the mass did not change, else
+  distance from cap i minus the old extension there).
+- **sync_many(doc, masses)**: footprints of every wall mass in the doc, groups, the seeds' groups +
+  the masses of walls joined to the seeds' walls at the last build (a mass moved away); sides for
+  every member of those groups (store `side`), derive + write, then `engine.build_many` on the
+  changed walls inside `_driving()` (follow() is off; `masses._driving` is NOT set, so opening masses
+  follow their walls). Returns a `masses.SyncResult` (`walls`, `results`, `warnings`).
+- **follow(doc, ctx, wall)** (engine.build of a wall, not while driving): mass bottom / height to
+  `ctx.base_z` / `ctx.height` (z scale + move); a driver whose start / mid moved from `mc.mass.line`
+  moves the mass rigidly (start + direction), then the group is synced.
+- **after_params** (`engine.update_params` / `set_assembly` call it via `_after_wall_params`): a
+  change of `flip`, `reference`, `layers` or `overrides` (or an assembly change) copies the flip to
+  the mass and syncs it (the face position / thickness of this wall and the T ends of its neighbors).
+- **release(doc, id)** (live Idle for every deleted id, via `masses.release`): walls with `mc.mass`
+  = id are deleted with their parts and openings (opening masses left without openings go too); the
+  mass with `mc.wall` = id is deleted; the neighbors are synced, other joined walls rebuilt.
+- **Arrows**: `show_arrows(True)` subscribes once to `DisplayPipeline.DrawForeground` (handler kept
+  in `scriptcontext.sticky[ARROWS_KEY]`); arrows come from `_store_arrow` at each sync and are drawn
+  for visible masses on visible layers. Display only.
+- **Panel / selection**: `eto.editor.selected_drivers` maps a selected wall mass to its wall.
+- **Testing**: `tests/test_phase10.py` (same live pattern as Phase 9). Note `SetCameraLocations`
+  takes (target, camera). Run drawing tests one `run_python` call each.
+- **Perimeters as T hosts**: a strip whose end touches a perimeter's outline (a partition inside a
+  block) always T's: to the interior face from inside, to the exterior face from outside.
+- **Not yet**: a mass running past a corner by more than the gap makes a T; two touching perimeter
+  blocks make two closed walls; courtyards (holes) of a perimeter get no walls; collinear masses are
+  separate walls; corners with plain (mass-less) walls are not adjusted; sloped tops use the highest
+  point; masses with two or more holes; moving a wall mass together with its opening mass moves the
+  opening mass twice.
 
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,

@@ -12,7 +12,9 @@
 
 Openings are drivers of a HOSTED kind: build(opening) re-reads its line and builds the host.
 Opening masses (mindcanvas/masses.py) write opening params; after every host build the masses
-with one opening follow it (masses.follow).
+with one opening follow it (masses.follow). Wall masses (mindcanvas/wallmasses.py) write wall
+drivers; a mass-driven wall's mass follows its base / height / moved line (wallmasses.follow), and
+flip / reference / layer edits re-derive it from its mass (wallmasses.after_params).
 
 Joins (mindcanvas/joins): an assembly's geometry depends on the drivers joined to it (walls at an
 L / T, the floors and roofs over walls). build() rebuilds those partners afterwards - the ones
@@ -141,6 +143,8 @@ def build(doc, driver_id, lib=None, sync=True, joined=True):
             ctx.warn("A '{}' part on layer '{}' could not be added.".format(p.role, p.layer_name))
     _place_opening_lines(doc, ctx)
     _follow_masses(doc, ctx)
+    if kind == "wall":
+        _follow_wall_mass(doc, ctx, driver_id)
     now = set(getattr(ctx, "join_partners", None) or ())
     now.discard(str(driver_id))
     partners = now | meta.joined_ids(obj)
@@ -202,6 +206,14 @@ def _follow_masses(doc, ctx):
         masses.follow(doc, ctx)
     except Exception as ex:
         ctx.warn("Opening masses could not follow their openings: {}".format(ex))
+
+
+def _follow_wall_mass(doc, ctx, driver_id):
+    from . import wallmasses
+    try:
+        wallmasses.follow(doc, ctx, doc.Objects.FindId(driver_id))
+    except Exception as ex:
+        ctx.warn("The wall mass could not follow its wall: {}".format(ex))
 
 
 def hosted_kind(obj):
@@ -325,13 +337,23 @@ def _quiet():
 
 def update_params(doc, driver_obj, changes, lib=None):
     prm = meta.params(driver_obj)
+    old = dict(prm)
     for k, v in changes.items():
         if v is None:
             prm.pop(k, None)
         else:
             prm[k] = v
     meta.write_driver(doc, driver_obj, meta.get(driver_obj, meta.TYPE), meta.get(driver_obj, meta.ASSEMBLY), prm)
-    return build(doc, driver_obj.Id, lib)
+    r = build(doc, driver_obj.Id, lib)
+    return _after_wall_params(doc, driver_obj, old, prm, lib) or r
+
+
+def _after_wall_params(doc, driver_obj, old, new, lib, force=False):
+    """A mass-driven wall: flip / reference / thickness changes re-derive it from its mass."""
+    if meta.get(driver_obj, meta.TYPE) != "wall":
+        return None
+    from . import wallmasses
+    return wallmasses.after_params(doc, driver_obj.Id, old, new, lib, force)
 
 
 def set_override(doc, driver_obj, layer_name, key, value, lib=None):
@@ -353,9 +375,11 @@ def set_assembly(doc, driver_obj, assembly_name, lib=None):
     lib = lib or library.get()
     kind = lib.assembly(assembly_name).get("kind", "wall")
     prm = meta.params(driver_obj)
+    old = dict(prm)
     prm.pop("layers", None)  # a per-wall stack belonged to the old assembly
     meta.write_driver(doc, driver_obj, kind, assembly_name, prm)
-    return build(doc, driver_obj.Id, lib)
+    r = build(doc, driver_obj.Id, lib)
+    return _after_wall_params(doc, driver_obj, old, prm, lib, force=True) or r
 
 
 def orphan_parts(doc):
