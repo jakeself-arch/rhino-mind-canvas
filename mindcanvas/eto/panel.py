@@ -223,7 +223,8 @@ class MindCanvasPanel(object):
     def open_editor(self):
         name = meta.get(self.drivers[0], meta.ASSEMBLY) if self.drivers else None
         try:
-            ed = editor_mod.AssemblyEditor(self.doc, self.lib, name=name, drivers=self.drivers)
+            from . import visual
+            ed = visual.VisualAssemblyEditor(self.doc, self.lib, name=name, drivers=self.drivers)
         except Exception as ex:
             self.say(str(ex))
             return None
