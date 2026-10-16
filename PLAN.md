@@ -114,7 +114,7 @@ docs/                  findings, user guide
 | | **Second roadmap (2026-10-15): push / pull mass drivers + visual editors.** Masses show overall form only (their thickness is arbitrary); they control the existing drivers, the kinds are not rewritten. | |
 | 9 | Mass drivers core + opening masses: a box crossing a wall = the rough opening (width x height; depth ignored); gumball scale / move / face drag rebuilds in live mode; numeric edits resize the box | Done (`MCOpeningMass`; `mindcanvas/masses.py`; PR jakeself-arch/rhino-mind-canvas#6; user approved the merge 2026-10-16) |
 | — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | Done (user approved Phase 9, asked for Phase 10) |
-| 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); the finished exterior face on the mass's outer face (user, 2026-10-16), a flip arrow, closed rings orient themselves, open groups: exterior away from the group | Done (`MCWallMass`; `mindcanvas/wallmasses.py`; branch `phase10-wall-masses`, PR pending review) |
+| 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); the finished exterior face on the mass's outer face (user, 2026-10-16), a flip arrow, closed rings orient themselves, open groups: exterior away from the group | Done (`MCWallMass`; `mindcanvas/wallmasses.py`; branch `phase10-wall-masses`, PR jakeself-arch/rhino-mind-canvas#7) |
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
 | 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
@@ -123,7 +123,7 @@ docs/                  findings, user guide
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
 **Current state (2026-10-16): second roadmap, Phase 10 (wall masses) done on branch
-`phase10-wall-masses`, PR open, not merged** (the user decides when to merge). Next is Phase 11
+`phase10-wall-masses` (PR jakeself-arch/rhino-mind-canvas#7), not merged** (the user decides when to merge). Next is Phase 11
 (roof masses): start it only when the user asks.
 
 **Phase 10 summary** (details in `docs/DEVELOPING.md`, "Wall masses"):
