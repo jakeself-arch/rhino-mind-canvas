@@ -98,7 +98,7 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
-| 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Code complete, **not yet run in Rhino** (`MCJoin`; `mindcanvas/joins/`; branch `claude/phase-7-resume-xd05z7`; run `tests/test_phase7.py`) |
+| 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; branch `claude/phase-7-resume-xd05z7`; verified in Rhino 2026-10-15) |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
 
 ## Resume here
