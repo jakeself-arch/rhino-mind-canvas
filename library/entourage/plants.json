@@ -1,0 +1,10 @@
+{
+  "_comment": "Line-drawn trees and shrubs (MCEntourage). generator 'tree': style bare (winter branching) | canopy (scalloped crown + foliage strokes) | conifer; height, spread (crown width / height), depth (branching levels, bare), trunk (diameter), strokes (canopy). generator 'shrub': height, width, bumps, strokes. 'seed' picks the random variation; MCEntourage Random=Yes gives every placement its own.",
+  "Tree - Bare, 30 ft":             {"generator": "tree", "style": "bare", "height": "30'", "depth": 6, "seed": 4},
+  "Tree - Bare, 18 ft":             {"generator": "tree", "style": "bare", "height": "18'", "depth": 5, "seed": 7},
+  "Tree - Canopy, 28 ft":           {"generator": "tree", "style": "canopy", "height": "28'", "spread": 0.7, "seed": 2},
+  "Tree - Canopy, 16 ft":           {"generator": "tree", "style": "canopy", "height": "16'", "spread": 0.6, "strokes": 45, "seed": 5},
+  "Tree - Conifer, 24 ft":          {"generator": "tree", "style": "conifer", "height": "24'", "seed": 3},
+  "Shrub - 3 ft":                   {"generator": "shrub", "height": "3'", "width": "5'", "seed": 1},
+  "Shrub - 2 ft Hedge":             {"generator": "shrub", "height": "2'", "width": "8'", "bumps": 16, "seed": 6}
+}

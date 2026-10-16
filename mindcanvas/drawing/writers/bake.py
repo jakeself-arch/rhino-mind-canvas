@@ -18,7 +18,7 @@ G = Rhino.Geometry
 D = Rhino.DocObjects
 ROOT = "MindCanvas Drawing"
 KEY = "mc.drawing"
-ORDER = {"tone": 1, "edge": 2, "junction": 2, "hidden": 2, "silhouette": 3, "stipple": 4,
+ORDER = {"tone": 1, "edge": 2, "junction": 2, "hidden": 2, "silhouette": 3, "entourage": 3, "stipple": 4,
          "fill": 10, "cut_hatch": 11, "cut_inner": 12, "cut": 13}
 WHITE = System.Drawing.Color.White
 BLACK = System.Drawing.Color.Black

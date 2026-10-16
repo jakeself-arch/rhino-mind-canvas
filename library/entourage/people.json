@@ -1,0 +1,10 @@
+{
+  "_comment": "Line-drawn people for section drawings (MCEntourage). generator 'person': pose front | walk, height, dress suit | coat | dress, arm down | bent, bag true | false, facing right | left (walk), stride (degrees, walk). See mindcanvas/entourage/shapes.py.",
+  "Person - Standing, Suit":        {"generator": "person", "pose": "front", "height": "5'-10\"", "dress": "suit"},
+  "Person - Standing, Coat":        {"generator": "person", "pose": "front", "height": "5'-9\"", "dress": "coat", "arm": "bent"},
+  "Person - Standing, Dress":       {"generator": "person", "pose": "front", "height": "5'-5\"", "dress": "dress", "bag": true},
+  "Person - Walking, Suit":         {"generator": "person", "pose": "walk", "height": "5'-11\"", "dress": "suit"},
+  "Person - Walking, Coat":         {"generator": "person", "pose": "walk", "height": "5'-8\"", "dress": "coat", "facing": "left", "bag": true},
+  "Person - Walking, Dress":        {"generator": "person", "pose": "walk", "height": "5'-5\"", "dress": "dress", "stride": 16},
+  "Person - Child":                 {"generator": "person", "pose": "front", "height": "3'-10\"", "dress": "suit"}
+}
