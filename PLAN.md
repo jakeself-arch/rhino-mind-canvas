@@ -111,7 +111,7 @@ docs/                  findings, user guide
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; PR jakeself-arch/rhino-mind-canvas#4; verified in Rhino 2026-10-15) |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | Done (`MCPanel`/`MCAssemblyEditor`/`MCProfileCapture`/`MCTrim`/`MCEntourage`; PR jakeself-arch/rhino-mind-canvas#5; verified in Rhino 2026-10-15) |
 | | **Second roadmap (2026-10-15): push / pull mass drivers + visual editors.** Masses show overall form only (their thickness is arbitrary); they control the existing drivers, the kinds are not rewritten. | |
-| 9 | Mass drivers core + opening masses: a box crossing a wall = the rough opening (width x height; depth ignored); gumball scale / move / face drag rebuilds in live mode; numeric edits resize the box | Done (`MCOpeningMass`; `mindcanvas/masses.py`; PR jakeself-arch/rhino-mind-canvas#6), waiting for the user's review |
+| 9 | Mass drivers core + opening masses: a box crossing a wall = the rough opening (width x height; depth ignored); gumball scale / move / face drag rebuilds in live mode; numeric edits resize the box | Done (`MCOpeningMass`; `mindcanvas/masses.py`; PR jakeself-arch/rhino-mind-canvas#6; user approved the merge 2026-10-16) |
 | — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | |
 | 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); default: the finished exterior face on the mass's outer face, a flip arrow, closed rings orient themselves (confirm with the user first) | |
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
@@ -121,11 +121,10 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-15): second roadmap, Phase 9 done; STOP for the user's review.** Phase 9
-(mass drivers + opening masses) is on branch `phase9-opening-masses` (PR jakeself-arch/rhino-mind-canvas#6).
-The user wants to try the gumball workflow before Phase 10 (wall masses) starts: do not
-begin Phase 10 until they say so, and confirm the wall-mass reference (exterior face on the mass's
-outer face, flip arrow) with them first.
+**Current state (2026-10-16): second roadmap, Phase 9 merged into main.** Phase 9 (mass drivers +
+opening masses) came from branch `phase9-opening-masses` (PR jakeself-arch/rhino-mind-canvas#6); the user
+approved the merge. Next is Phase 10 (wall masses): start it only when the user asks, and confirm
+the wall-mass reference (exterior face on the mass's outer face, flip arrow) with them first.
 
 **Phase 9 summary** (details in `docs/DEVELOPING.md`, "Mass drivers"):
 - `mindcanvas/masses.py`: a closed solid tagged `mc.kind = mass` on `MindCanvas::_Masses`
