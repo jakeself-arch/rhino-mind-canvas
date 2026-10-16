@@ -120,7 +120,7 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | |
 | 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); default: the finished exterior face on the mass's outer face, a flip arrow, closed rings orient themselves (confirm with the user first) | |
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
-| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | Done, awaiting review (`MCAssemblyEditor` / panel open it; `mindcanvas/asmview.py`, `asmfields.py`, `preview.py`, `eto/visual.py`, `eto/sectionview.py`; branch `claude/phase12-visual-editor-725423`) |
+| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | Done, awaiting review (`MCAssemblyEditor` / panel open it; `mindcanvas/asmview.py`, `asmfields.py`, `preview.py`, `eto/visual.py`, `eto/sectionview.py`; branch `claude/phase12-visual-editor-725423`, PR jakeself-arch/rhino-mind-canvas#8) |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
 
 ## Resume here
