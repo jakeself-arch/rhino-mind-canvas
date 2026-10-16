@@ -24,7 +24,7 @@ def material_layers(doc):
         if layer is None or layer.IsDeleted:
             continue
         path = layer.FullPath
-        if path.startswith(root) and path.count("::") == 1 and path != docutil.DRIVER_LAYER:
+        if path.startswith(root) and path.count("::") == 1 and path not in (docutil.DRIVER_LAYER, docutil.MASS_LAYER):
             yield layer.Index, layer.Name
 
 

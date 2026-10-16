@@ -11,6 +11,8 @@ unit's sill elevation, lying on the host's driver curve. User text:
         swing in|out, hinge left|right (seen from the exterior)        doors
         head  none|soldier|sailor                                       brick course over the lintel
         overrides         {"<type key>": value} merged over the opening type
+        ro                {"width", "bottom", "top"}: the rough opening as an opening mass drew it
+                          (mindcanvas/masses.py); dropped when the size is edited by number
 
 The opening's parts belong to the host (mc.driver = host id, mc.x.opening = opening id), so a
 host rebuild regenerates everything. Moving the line re-reads station / sill / width from it
@@ -214,12 +216,27 @@ def sync_from_geometry(doc, op_obj, host_obj):
     changed = any(abs(float(new[k]) - float(prm.get(k, 0) or 0)) > SNAP_IN
                   for k in ("station", "sill", "width"))
     if changed:
+        new.pop("ro", None)   # the line moved: a mass follows the opening now
         write(doc, op_obj, meta.get(op_obj, meta.ASSEMBLY), new, host_obj.Id)
     return changed
 
 
+GEOMETRY_KEYS = ("width", "height", "sill", "station")
+
+
+def _differs(a, b):
+    if a is None or b is None:
+        return a is not b
+    try:
+        return abs(units.parse_length(a) - units.parse_length(b)) > SNAP_IN
+    except Exception:
+        return a != b
+
+
 def update(doc, op_obj, changes):
     prm = meta.params(op_obj)
+    if "ro" not in changes and any(_differs(changes[k], prm.get(k)) for k in GEOMETRY_KEYS if k in changes):
+        prm.pop("ro", None)   # sized by number: a mass follows the unit size now
     for k, v in changes.items():
         if v is None:
             prm.pop(k, None)

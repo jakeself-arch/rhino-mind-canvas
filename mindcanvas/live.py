@@ -6,8 +6,10 @@ finished the user's command. Nothing is queued while Undo/Redo is running,
 because undo restores the old parts itself.
 
 Openings: editing or deleting an opening's line rebuilds its host; deleting a host deletes
-its openings. Joins: building an assembly rebuilds the ones joined to it (engine.build); deleting
-one rebuilds the assemblies it was joined to (user text mc.joined).
+its openings. Opening masses (mindcanvas/masses.py): a gumball edit of a mass re-derives its
+openings (masses.sync); deleting a mass deletes its openings. Joins: building an assembly
+rebuilds the ones joined to it (engine.build); deleting one rebuilds the assemblies it was
+joined to (user text mc.joined).
 """
 
 import sys
@@ -44,7 +46,8 @@ def enable():
         try:
             if state["busy"] or _undoing(e.Document):
                 return
-            if _meta().is_driver(e.NewRhinoObject):
+            new = e.NewRhinoObject
+            if _meta().is_driver(new) or _meta().is_mass(new):
                 state["queue"].append((e.Document.RuntimeSerialNumber, e.ObjectId))
         except Exception as ex:
             print("Mind Canvas live (replace): {}".format(ex))
@@ -55,7 +58,10 @@ def enable():
             doc = e.TheObject.Document or Rhino.RhinoDoc.ActiveDoc
             if state["busy"] or _undoing(doc):
                 return
-            if _meta().is_driver(e.TheObject):
+            if _meta().is_mass(e.TheObject):
+                # a deleted mass takes its openings along (a Replace: Idle syncs it instead)
+                state["queue"].append((doc.RuntimeSerialNumber, e.ObjectId))
+            elif _meta().is_driver(e.TheObject):
                 # a Replace also fires Delete for the old object; Idle sorts it out
                 sn = doc.RuntimeSerialNumber
                 state["queue"].append((sn, e.ObjectId))
@@ -76,6 +82,7 @@ def enable():
         items, state["queue"] = state["queue"], []
         try:
             engine = __import__("mindcanvas.engine", fromlist=["x"])
+            masses = __import__("mindcanvas.masses", fromlist=["x"])
             seen = set()
             for sn, oid in items:
                 if (sn, oid) in seen:
@@ -90,6 +97,16 @@ def enable():
                     if obj is None or obj.IsDeleted:
                         engine.delete_parts(doc, oid)
                         engine.delete_openings(doc, oid)   # a deleted wall takes its openings along
+                        for r in masses.release(doc, oid):   # a deleted mass takes its openings along
+                            seen.add((sn, r.driver_id))
+                    elif _meta().is_mass(obj):
+                        sr = masses.sync(doc, obj)
+                        for r in sr.results:
+                            seen.add((sn, r.driver_id))
+                            for j in r.joined:
+                                seen.add((sn, j.driver_id))
+                        for w in sr.warnings + [w for r in sr.results for w in r.warnings]:
+                            print("Mind Canvas: " + w)
                     elif _meta().is_driver(obj):
                         r = engine.build(doc, oid)
                         seen.add((sn, r.driver_id))     # an opening built its host
