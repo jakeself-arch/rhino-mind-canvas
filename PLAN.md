@@ -98,7 +98,7 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user** | Skipped: user asked (2026-10-15) to continue through phases 5–8 without review stops |
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
-| 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; branch `claude/phase-7-resume-xd05z7`; verified in Rhino 2026-10-15) |
+| 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; PR jakeself-arch/rhino-mind-canvas#4; verified in Rhino 2026-10-15) |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
 
 ## Resume here
@@ -113,7 +113,7 @@ OSB, and the gable section's crop window spans the wall normal (it was zero-widt
 point off the ridge. `test_phase0`..`test_phase6` + `test_layers` still pass with joins on (the
 earlier drawings only changed by random curls / stipple). New drawings: `docs/drawings/f_corner_plan_1-1-2`,
 `f_tee_plan_1-1-2`, `f_gable_section_1-1-2`. Open in the gable section: the gable wall's interior
-gypsum continues above the ceiling into the attic. **Next: PR + merge, then Phase 8.**
+gypsum continues above the ceiling into the attic. Merged via PR jakeself-arch/rhino-mind-canvas#4. **Next: Phase 8 (UI + entourage), branch `phase8-ui-entourage` from main.**
 Phases 0, 0.5, 1–7 done and verified in Rhino. All earlier tests passed at Phase 7:
 `tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
