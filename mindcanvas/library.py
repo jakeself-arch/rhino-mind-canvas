@@ -9,6 +9,7 @@ Sections:
                 {"preset": "<name>", ...overrides}
     styles      name -> drawing style (phase 3)
     openings    name -> window / door type (phase 4, see mindcanvas/openings)
+    entourage   name -> line-drawn figure (phase 8, see mindcanvas/entourage)
 
 Adding content never requires code: drop a new .json file into the right
 folder. Keys starting with "_" (e.g. "_comment") are ignored. Later files
@@ -18,8 +19,9 @@ override earlier ones (alphabetical), so a "zz_my_overrides.json" wins.
 import json
 import os
 
-SECTIONS = ("materials", "profiles", "framing", "assemblies", "layers", "styles", "openings")
+SECTIONS = ("materials", "profiles", "framing", "assemblies", "layers", "styles", "openings", "entourage")
 USER_ASSEMBLIES = "zz_user_assemblies.json"
+USER_FILE = "zz_user_{}.json"      # e.g. library/profiles/zz_user_profiles.json
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LIBRARY_DIR = os.path.join(ROOT, "library")
@@ -141,9 +143,15 @@ class Library(object):
                 out[k] = v
         return out
 
-    def save_assembly(self, name, definition):
-        """Write an assembly to library/assemblies/zz_user_assemblies.json."""
-        path = os.path.join(self.directory, "assemblies", USER_ASSEMBLIES)
+    def save_entry(self, section, name, definition, filename=None):
+        """Write one entry to library/<section>/<filename> (default zz_user_<section>.json),
+        keeping the file's other entries. Returns the path."""
+        if section not in SECTIONS:
+            raise LibraryError("Unknown library section '{}'".format(section))
+        folder = os.path.join(self.directory, section)
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+        path = os.path.join(folder, filename or USER_FILE.format(section))
         content = {}
         if os.path.exists(path):
             with open(path, "r", encoding="utf-8") as f:
@@ -153,6 +161,32 @@ class Library(object):
             json.dump(content, f, indent=2)
         self.load()
         return path
+
+    def remove_entry(self, section, name, filename=None):
+        """Delete an entry from a user file (never from the shipped files). Returns True if found."""
+        path = os.path.join(self.directory, section, filename or USER_FILE.format(section))
+        if not os.path.exists(path):
+            return False
+        with open(path, "r", encoding="utf-8") as f:
+            content = json.load(f)
+        if name not in content:
+            return False
+        del content[name]
+        if content:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(content, f, indent=2)
+        else:
+            os.remove(path)
+        self.load()
+        return True
+
+    def is_user_entry(self, section, name):
+        src = self.sources.get((section, name), "")
+        return os.path.basename(src).startswith("zz_")
+
+    def save_assembly(self, name, definition):
+        """Write an assembly to library/assemblies/zz_user_assemblies.json."""
+        return self.save_entry("assemblies", name, definition, USER_ASSEMBLIES)
 
     def style(self, name):
         return self.data["styles"].get(name)

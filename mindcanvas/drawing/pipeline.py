@@ -229,6 +229,8 @@ def make(doc, view=None, style=None, tone_on=None, stipple_on=None, say=None, in
             split = float(st.depth.get("split_mm", 12))
             for pts, cls, d, idx in hld.segments(H, depth, s, split, hidden, tol):
                 g = 0 <= idx < len(items) and items[idx].ground
+                if cls != "hidden" and 0 <= idx < len(items) and items[idx].role == "entourage":
+                    cls = "entourage"
                 lines.append(([(x * s, y * s) for x, y in pts], cls, d, g))
         T["hld_items"] = added
     T["hld"] = time.time() - t

@@ -1,6 +1,6 @@
 """The finished 2D drawing, in paper millimetres (x right, y UP, origin bottom-left).
 
-    lines     [(pts, cls, dn)]    projected lines: silhouette | edge | junction | tone | hidden
+    lines     [(pts, cls, dn)]    projected lines: silhouette | edge | junction | tone | hidden | entourage
     dots      [(x, y, dn)]        ground stipple beyond the cut
     regions   [cut.Region]        cut poche with hatch / dots, painted last
     ground    [(pts, dots)]       ground cut lines (heavy) + their stipple band

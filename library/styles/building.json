@@ -4,7 +4,7 @@
   "1/16\" = 1'-0\"": {
     "extends": "1/8\" = 1'-0\"", "option": "Sixteenth", "scale": 192,
     "classes": {"cut": {"w": 0.5}, "cut_inner": {"w": 0.1}, "silhouette": {"w": 0.25}, "edge": {"w": 0.13},
-                "junction": {"w": 0.13}, "tone": {"w": 0.06}, "stipple": {"w": 0.12}},
+                "junction": {"w": 0.13}, "tone": {"w": 0.06}, "stipple": {"w": 0.12}, "entourage": {"w": 0.14}},
     "min_part_mm": 0.6,
     "tone": {"levels": [[-0.35, 0.4], [0.05, 0.7], [0.25, 1.2]], "min_mm": 0.28}
   },
@@ -12,7 +12,7 @@
   "1/8\" = 1'-0\"": {
     "extends": "base", "option": "Eighth", "scale": 96, "lod": "schematic", "cut_mode": "white",
     "classes": {"cut": {"w": 0.6}, "cut_inner": {"w": 0.13}, "silhouette": {"w": 0.3}, "edge": {"w": 0.15},
-                "junction": {"w": 0.15}, "tone": {"w": 0.065}, "stipple": {"w": 0.14}},
+                "junction": {"w": 0.15}, "tone": {"w": 0.065}, "stipple": {"w": 0.14}, "entourage": {"w": 0.16}},
     "min_part_mm": 0.6,
     "min_cut_mm": 0.5,
     "tone": {"levels": [[-0.35, 0.42], [0.05, 0.75], [0.25, 1.3]]}

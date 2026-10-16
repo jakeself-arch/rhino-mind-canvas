@@ -30,6 +30,7 @@ mindcanvas/            Python package (the engine)
     solid.py           continuous layer (sheathing, gypsum, rigid insulation, membrane, void)
     framing.py         studs/plates/tracks/cavity fill (phase 1)
     masonry.py         bricks, mortar, ties, flashing, weeps (phase 2)
+    sweep.py           a profile swept along a wall face: trims, cornices (phase 8)
   kinds/               assembly kinds (how a driver becomes layer bands)
     wall.py
     opening.py         hosted kind: an opening builds through its host
@@ -52,6 +53,12 @@ mindcanvas/            Python package (the engine)
                        find.py (detection from drivers: walls, floors, roofs), geom.py (joined
                        outlines / solids, centerline, roof infill)
   engine.py            build / rebuild / delete for a driver (+ rebuild joined partners)
+  entourage/           phase 8: shapes.py (pure-Python figure generators: people, trees, shrubs,
+                       captured), place.py (card + line blocks, placement, FaceView)
+  capture.py           phase 8: curves drawn in Rhino -> custom profiles / figures in the library
+  trims.py             phase 8: per-wall trims (sweep extras in params["extras"])
+  asmedit.py           phase 8: assembly editor model (no UI)
+  eto/                 phase 8: Eto views: widgets.py, editor.py (assembly editor), panel.py (MCPanel)
   live.py              watches driver edits and rebuilds (toggle)
   schedule.py          quantity takeoff -> CSV
   drawing/             phase 3: display mode, MCDrawing, tone hatch, stipple, line weights
@@ -62,6 +69,7 @@ library/
   framing/*.json       framing systems (wood, metal) — stud/plate/track rules
   assemblies/*.json    assembly definitions (stack of layers)
   styles/*.json        drawing styles per scale
+  entourage/*.json     line-drawn figures (generator + params, or captured outlines)
 commands/              one Rhino entry script per command (MCWall.py, MCUpdate.py, ...)
 tools/install.py       registers command aliases in Rhino
 tests/                 scripts run inside Rhino (via run_python) that build + assert
@@ -99,44 +107,103 @@ docs/                  findings, user guide
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; PR jakeself-arch/rhino-mind-canvas#4; verified in Rhino 2026-10-15) |
-| 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | |
+| 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | Done (`MCPanel`/`MCAssemblyEditor`/`MCProfileCapture`/`MCTrim`/`MCEntourage`; verified in Rhino 2026-10-15) |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-15): Phase 7 (joins) verified in Rhino** on branch
-`claude/phase-7-resume-xd05z7`. `tests/test_phase7.py` (`run(doc, drawing_on=True, captures=True,
-log=<path>)`, ~17 s) passes; the offline tests (`tests/offline/test_join_plan.py`,
-`test_join_find.py`) run with Rhino's CPython (`%USERPROFILE%\.rhinocode\py39-rh8\python.exe`,
-no system Python on this machine). Only test fixes were needed: the 2x6 wood wall's sheathing is
-OSB, and the gable section's crop window spans the wall normal (it was zero-width) at a quarter
-point off the ridge. `test_phase0`..`test_phase6` + `test_layers` still pass with joins on (the
-earlier drawings only changed by random curls / stipple). New drawings: `docs/drawings/f_corner_plan_1-1-2`,
-`f_tee_plan_1-1-2`, `f_gable_section_1-1-2`. Open in the gable section: the gable wall's interior
-gypsum continues above the ceiling into the attic. Merged via PR jakeself-arch/rhino-mind-canvas#4. **Next: Phase 8 (UI + entourage), branch `phase8-ui-entourage` from main.**
-Phases 0, 0.5, 1–7 done and verified in Rhino. All earlier tests passed at Phase 7:
-`tests/test_phase0.py`, `test_phase1.py`,
+**Current state (2026-10-15): the roadmap is complete.** Phase 8 (UI + entourage) is done and
+verified in Rhino on branch `phase8-ui-entourage` (PR: see the roadmap row). `tests/test_phase8.py`
+(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~16 s) passes, and so do
+`test_phase0`..`test_phase7` + `test_layers` on the same code. The Phase 7 open item is fixed: under
+an attic ceiling a gable wall's interior layers (gypsum) stop at the ceiling. Fixing it also showed
+that the sheathing of joined gable walls was not filled up to the rafters (its join-zone face had
+extra collinear points; `joins.geom.band_polys` now simplifies them), so `f_gable_section_1-1-2`
+changed on purpose. New drawings: `docs/drawings/g_section_perspective_quarter` (gable house cut
+across the ridge, people, trees, shrubs, tone + stipple), `g_entourage_sheet_quarter` (every library
+figure), `g_trim_base_1-1-2` / `g_trim_crown_1-1-2` (swept trims in section).
+
+**Testing.** Every test runs in an empty, unsaved document of your own `spawn_slot` (they clear the
+doc; `test_phase5`..`test_phase8` assert `not doc.Path`): `tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
-`test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py`
-(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~45 s), `test_phase6.py`
-(`run(doc, drawing_on=True, captures=True, log=<path>)`, ~25 s; `only="drawings"` runs just the
-details). Run each in an empty, unsaved document of your own `spawn_slot` (they clear the doc;
-`test_phase5`..`test_phase7` assert `not doc.Path`). After a run, `git checkout` the regenerated
-images of earlier phases (`git diff --name-only -- docs | xargs git checkout --`) unless joins
-changed them on purpose.
+`test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py` to
+`test_phase8.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 s;
+`test_phase6` takes `only="drawings"`). Offline (no Rhino): `tests/offline/test_join_plan.py`,
+`test_entourage_shapes.py`,
+`test_join_find.py` with `%USERPROFILE%\.rhinocode\py39-rh8\python.exe` (no system Python on this
+machine). After a run, `git checkout` the regenerated images of earlier phases
+(`git diff --name-only -- docs | xargs git checkout --`) unless a change was on purpose.
+`test_phase8` writes `zz_test_phase8.json` library files and test assemblies into
+`zz_user_assemblies.json`, and removes / restores them at the end (also when it fails).
 Sample drawings: `docs/drawings/a_section_perspective_eighth.png`, `b_wall_section_1-1-2.png`,
 `c_window_section_1-1-2.png`, `d_curtainwall_plan_<style>.png` (1-1/2" plans at a vertical
 mullion for captured / ssg4 / ssg2 / butt / unitized), `d_curtainwall_plan_corner.png`,
 `d_curtainwall_section_spandrel.png` and `d_curtainwall_section_unitized.png` (1-1/2" sections
 at a transom / spandrel / slab edge with anchors and safing), `e_roof_eave_section_1-1-2.png`
 (gable eave on a 2x6 wall), `e_roof_flat_edge_1-1-2.png` (low-slope edge),
-`e_floor_section_1-1-2.png` (platform frame: wall, rim, joist, subfloor, wall above) and
-`e_floor_deck_section_1-1-2.png` (concrete on composite deck over C-joists).
+`e_floor_section_1-1-2.png` (platform frame: wall, rim, joist, subfloor, wall above),
+`e_floor_deck_section_1-1-2.png` (concrete on composite deck over C-joists), `f_*` (joins),
+`g_*` (entourage, trims).
 
-**Workflow for phases 7–8 (user, 2026-10-15):** continue through every remaining phase without
-review stops, one phase per session: branch from main, PR, merge when the tests pass, then the
-next session starts from main. Phase 7 lives on `claude/phase-7-resume-xd05z7` (cloud session
-branch name) until it is verified.
+**Workflow (user, 2026-10-15):** phases 5-8 ran without review stops, one phase per session: branch
+from main, PR, merge when the tests pass. With Phase 8 merged there is no next phase; further work
+starts from the known gaps below.
+
+**Phase 8 summary** (branch `phase8-ui-entourage`):
+- **Entourage** (`mindcanvas/entourage/`, `library/entourage/*.json`, command `MCEntourage`):
+  pure-Python generators (`shapes.py`: `person` front / walk, suit / coat / dress, bag, bent arm,
+  child by height; `tree` bare (recursive branching, scaled to its height) / canopy (scalloped
+  crown + foliage strokes) / conifer; `shrub`; `custom` = captured) produce layered 2D cards in
+  inches. `place.py` turns a figure into a block (one planar Brep card per layer, unioned outlines,
+  stacked 1/4" apart in depth, plus line curves), shared per shape hash; instances face -Y and
+  `face_view` turns them about their base point toward a viewport's camera; `rebuild` reseeds /
+  mirrors in place. Drawings: `scene.py` collects the curves of `MC Entourage` blocks, the HLD
+  draws them (curves on a card stay visible; cards hide what is behind them), `pipeline.py` gives
+  their segments the class `entourage` (style `classes.entourage`, 0.2 mm; thinner at 1/8" and
+  1/16"); figures carry `mc.draw = notone,nocut` (no tone, no poche).
+- **Profile capture** (`mindcanvas/capture.py`, `MCProfileCapture`, `MCEntourage Capture`): curves
+  in the active construction plane, relative to a base point, polylinized at 1/64", become a
+  `custom` profile (`loops` with holes; `profiles.custom` reads them) in
+  `library/profiles/zz_user_profiles.json`, or a `custom` figure in
+  `library/entourage/zz_user_entourage.json`. `Library.save_entry / remove_entry / is_user_entry`
+  (library assemblies, profiles and figures are never overwritten).
+- **Trims** (`components/sweep.py`, `mindcanvas/trims.py`, `MCTrim`, `library/profiles/trim.json`):
+  the `sweep` component sweeps a profile along the interior / exterior face at base / top / a
+  height (mitered around polyline corners, stopped at join cuts, cut at openings, takeoff length);
+  used as an assembly extra or per wall in `params["extras"]` (the wall kind now builds both).
+- **Assembly editor** (`mindcanvas/asmedit.py` model, `mindcanvas/eto/editor.py` view,
+  `MCAssemblyEditor`): modeless Eto window: assemblies by kind, layer list with name / component /
+  material / thickness / core / options JSON, add / duplicate / remove / up / down / mirror, other
+  settings as JSON (curtain walls are settings only), checks, Save As (user assemblies only),
+  Apply to the selected assemblies.
+- **Panel** (`mindcanvas/eto/panel.py`, `MCPanel`): modeless Eto window with tabs Build (command
+  buttons), Selection (assembly / height / base offset / LOD -> Apply, Edit assembly), Drawing
+  (scale, tone, stipple, SetLOD, folder -> draw the active view; section cut, display setup, tags),
+  Entourage (figure, height, random, mirror -> Place, Face the view, Capture), Library.
+- Eto under Rhino 8 CPython: controls take no keyword properties in their constructors (use
+  `eto/widgets.py`); modeless windows are kept alive in a module list (`_OPEN`).
+
+**Known gaps (end of the roadmap)**, beyond the per-phase limitations below:
+- UI: the panel is a floating Eto window, not a docked Rhino panel (docking needs a compiled
+  plug-in to register a panel class); the Selection tab edits height / base offset / LOD /
+  assembly only (the other options stay in the MCEdit* commands); the assembly editor edits
+  options and settings as raw JSON (no per-key widgets) and has no live preview (Apply after Save);
+  command buttons need the `tools/install.py` aliases; the Eto UI is tested through its handlers
+  (no click / layout / HiDPI testing).
+- Entourage: people are simple outline figures (front standing and walking profile only; no
+  seated figures, cyclists, groups, cars or furniture); figures are flat cards, so they read
+  correctly only after FaceView (MCEntourage faces the view at placement) and look thin from the
+  side; people do not vary by seed (trees and shrubs do); no automatic scatter; captured figures
+  have a single card layer.
+- Trims: no miter where two separate walls' trims meet at a joined corner (each stops square at
+  the face line), no returns at free wall ends and no casings around openings (the trim just stops
+  at the rough opening); exterior trims sit on the cladding face (the cladding is not stopped above
+  a water table); trims are not offered in MCLayers.
+- Profile capture: captured profiles are used by trims only (framing, mullion and lintel families
+  need their own dimension keys); arcs become polylines.
+- Still open from earlier phases: see the Phase 1-7 limitations below (track legs vs sheathing,
+  insulation through bridging, mitered plates, no auto-height, single-ridge roofs, no floor
+  openings, joins only between separate drivers' ends, ...).
 
 **Phase 7 summary** (package `mindcanvas/joins/`, command `MCJoin`): automatic joins found from the
 drivers. **L** between two wall ends (wrap: layers outside the core miter on each side of the corner,

@@ -12,7 +12,8 @@ Types:
     angle   a (leg along X), b (leg along Y), t - corner at origin
     tube    width, depth, t                  - hollow rectangle (two loops)
     i_joist width, depth, flange, web        - I-section (flanges along X)
-    custom  points [[x, y], ...]             - any closed outline (inches)
+    custom  points [[x, y], ...]             - any closed outline (inches), or
+            loops [[[x, y], ...], ...]       - outer outline first, then holes (MCProfileCapture)
 
 To add a new shape type, add a function below and register it in BUILDERS.
 """
@@ -85,8 +86,8 @@ def i_joist(p, s):
 
 
 def custom(p, s):
-    pts = [(units.parse_length(x), units.parse_length(y)) for x, y in p["points"]]
-    return [_pl(pts, s)]
+    loops = p.get("loops") or [p["points"]]
+    return [_pl([(units.parse_length(x), units.parse_length(y)) for x, y in lp], s) for lp in loops]
 
 
 BUILDERS = {

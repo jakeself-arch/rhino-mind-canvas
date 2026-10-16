@@ -190,8 +190,9 @@ def build(ctx):
         for p in comp.build(ctx, band):
             p.layer_name = p.layer_name or band.name
             parts.append(p)
-    # assembly-level extras that span several layers (ties, flashing, ...)
-    for i, spec in enumerate(ctx.assembly.get("extras", [])):
+    # assembly-level extras that span several layers (ties, flashing, ...), then the wall's own
+    # (params["extras"]: trims added with MCTrim)
+    for i, spec in enumerate(ctx.assembly.get("extras", []) + (ctx.params.get("extras") or [])):
         band = LayerBand(-1 - i, spec, 0.0, 0.0)
         comp = components.get(band.component)
         for p in comp.build(ctx, band):

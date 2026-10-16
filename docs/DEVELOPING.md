@@ -234,13 +234,46 @@ params), never from generated parts, so build order never matters.
   fake of `Rhino.Geometry` (straight polylines) for quick logic checks; geometry needs Rhino
   (`tests/test_phase7.py`).
 
+## UI, entourage, trims (Phase 8)
+- **Eto** (`mindcanvas/eto/`): views only; the logic is in plain modules (`asmedit.AssemblyModel`,
+  `entourage.place`, `trims`) so tests drive it without clicks. Under Rhino 8 CPython (pythonnet)
+  Eto controls take no keyword properties in their constructors: use the helpers in
+  `eto/widgets.py` (`label`, `button(text, handler)`, `dropdown(items, index, handler)`, `rows(...)`).
+  Python lists work as `DataStore`. Modeless windows (`forms.Form`) are kept in a module list
+  (`_OPEN`) so they outlive the command's script; handlers capture `self`. Tests build the views,
+  set control values and call the `on_*` handlers (see `tests/test_phase8.py`).
+- **Entourage** (`mindcanvas/entourage/`): `shapes.py` is pure Python: a generator
+  `fn(params, random.Random) -> [Layer]` registered with `@generator("name")`; a `Layer` is one flat
+  card at a `depth` (smaller = nearer the viewer) with closed `loops` (unioned into the card) and
+  open `lines`, in inches (x across, y up from the ground). `place.py` builds blocks named
+  `MC Entourage <name> #<hash of the shape>` (definition in the XZ plane, facing -Y; cards
+  `GAP` = 1/4" apart in depth) and instances with `mc.kind = entourage`, `mc.entourage`,
+  `mc.params` (seed, mirror, overrides), `mc.role = entourage`, `mc.draw = nocut,notone`.
+  `drawing/scene.py` collects curves only from blocks whose name starts with `MC Entourage `
+  (`LINE_BLOCKS`); `pipeline.py` classes their HLD segments as `entourage`.
+  Quick offline check: `python -c "import sys; sys.path[:0]=['tests/offline/fake','.']; from
+  mindcanvas.entourage import shapes; ..."` (needs the fake `Rhino` only for `units`).
+- **Capture** (`mindcanvas/capture.py`): `read(doc, curves, plane, base)` -> (loops, lines) in inches
+  (loops counter-clockwise, largest first); `profile_definition` / `entourage_definition`. Save with
+  `Library.save_entry(section, name, defn, filename=None)` (default `zz_user_<section>.json`);
+  `remove_entry`, `is_user_entry`. Profiles of type `custom` may have `loops` (outline + holes).
+- **Sweep component** (`components/sweep.py`): an extra (assembly `extras` or the wall's
+  `params["extras"]`, both built by `kinds/wall.build`) with options `profile`, `face`, `z`, `offset`.
+  The rail is `joins.geom.centerline(ctx, d)` of the face, the profile plane X = out of the face, Y = up;
+  `Brep.CreateFromSweep` miters polyline corners; holes are swept and subtracted; openings cut it
+  via `op.cutter`. `mindcanvas/trims.py` adds / removes per-wall trims (`MCTrim`).
+- **Assembly editor model** (`mindcanvas/asmedit.py`): edits a copy of an assembly; layer edits
+  expand presets first (a shared preset is never changed); `save_as` refuses library names;
+  `apply` needs a saved model.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,
 `library/openings/<topic>.json`. Curtain walls: `library/assemblies/curtainwalls.json`,
 `library/profiles/curtainwall.json`, `library/materials/curtainwall.json`. Floors and roofs:
 `library/assemblies/floors.json`, `library/assemblies/roofs.json`, `library/framing/joists.json`,
-`library/profiles/floors_roofs.json`, `library/materials/floors_roofs.json`.
+`library/profiles/floors_roofs.json`, `library/materials/floors_roofs.json`. Entourage:
+`library/entourage/*.json`; trims: `library/profiles/trim.json`.
 Material entries: see `library/materials/core.json` (color, render, section, print).
 
 ## Commands

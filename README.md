@@ -17,11 +17,15 @@ section drawings.
 ## Commands
 | Command | What it does |
 |---|---|
+| `MCPanel` | The Mind Canvas panel: a floating window with every tool (build buttons, edit the selection, draw the view, entourage, library) |
 | `MCSetup` | Prepare the model (tolerance, driver layer, live update on) |
 | `MCWall` | Pick an assembly, then select curves (or `Draw`) to make walls. Options: Height, Location line, Flip, Detail level |
 | `MCEdit` | Change height, base offset, location line, flip or detail level of selected walls |
 | `MCSetAssembly` | Swap the assembly type of selected walls |
 | `MCJoin` | How selected walls join others: `Start` / `End` = Auto / Wrap / Miter / Butt / None, `Priority` (at an L the higher one runs through), `Report` lists every join (L, T, floors, roofs) |
+| `MCAssemblyEditor` | Edit library assemblies in a window (layers, materials, thicknesses, options, settings), save them as your own and apply them to the selected walls / floors / roofs / curtain walls |
+| `MCTrim` | Add (or remove) a swept profile on the interior / exterior face of selected walls: base, chair rail, crown, water table, or a profile you captured. Options: Profile, Face, Height (Base / Top / Custom), OffsetInches |
+| `MCProfileCapture` | Turn closed curves you drew into a library profile (base point = where it sits on the wall face) for MCTrim |
 | `MCLayers` | Edit the layer stack of selected walls: Replace, Insert, Remove, Thickness, ToExterior/ToInterior, Mirror, Reset, **SaveAs** a new assembly. Changes show immediately; Esc undoes them |
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
 | `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
@@ -40,9 +44,58 @@ section drawings.
 | `MCSectionCut` | Click a wall, curtain wall, floor or roof: clipping plane perpendicular to it + a saved section view (floors are cut along the joists, roofs along the slope of the face you click). `Plan=Yes`: a horizontal cut at the picked height (or `CutHeightInches` above the base) and a top view, for plan details |
 | `MCDisplaySetup` | Apply a drawing scale's section styles and the *MC Section* display mode to the view |
 | `MCDrawing` | Finished 2D drawing of the current view (SVG with true line weights + PNG, or baked curves): cut poché, material hatches, tone hatching, stipple. `Window` crops it |
+| `MCEntourage` | Place line-drawn people, trees and shrubs (click points; each faces the view). Options: Type, HeightInches, Random, Mirror, FaceView (turn figures to the current view), Reseed, Capture (your own figure from curves) |
 | `MCDrawingTag` | Mark objects as Ground (stippled), NoTone, Exclude or NoCut for drawings |
 
 Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
+
+## The panel and the assembly editor (Phase 8)
+- **`MCPanel`** opens a floating window (it stays open while you model):
+  - **Build**: buttons for every command (walls, curtain walls, floors, roofs, windows / doors,
+    edits, layers, framing, joins, trims, setup, update, live, schedule, purge).
+  - **Selection**: click *Use the selected assemblies*, then change their assembly, height, base
+    offset or detail level and *Apply*; *Edit assembly...* opens the editor on the first one.
+  - **Drawing**: scale, tone, stipple, SetLOD and folder; *Draw the active view* writes the SVG +
+    PNG at once (same as MCDrawing); section cut, display setup, drawing tags.
+  - **Entourage**: pick a figure, an optional height, Random / Mirror, then *Place...*; *Face the
+    view* turns the selected figures (or all) toward the active view's camera.
+  - **Library**: reload, open the folder, assembly editor, capture a profile.
+  The buttons run the MC commands, so run `tools/install.py` once after updating.
+- **`MCAssemblyEditor`** (or *Edit assembly...*): choose a kind and an assembly; the layers are
+  listed exterior / top first. Select a layer to change its name, component, material,
+  thickness, core flag or options (JSON); Add / Duplicate / Remove / Up / Down / Mirror. Every
+  other setting of the assembly (curtain walls: all of them) is editable as JSON. *Save* writes
+  it under the name you give to `library/assemblies/zz_user_assemblies.json` (library assemblies
+  are never overwritten); *Apply to selected* gives the assemblies selected in the model the
+  saved assembly.
+
+## Entourage (Phase 8)
+- `MCEntourage` places **line-drawn figures** in the spirit of 1960s-70s section perspectives:
+  people (standing in front view, walking in profile; suit, coat or dress; with a bag; a child),
+  trees (bare winter branching, scalloped canopy with foliage strokes, conifer) and shrubs.
+  They are flat cards: each faces the view you place it in; after moving the camera, use
+  `FaceView` (or *Face the view* in the panel). `Random=Yes` gives every tree / shrub its own
+  branching; `Reseed` changes selected ones.
+- In `MCDrawing` figures draw as fine outlines (class `entourage`), hide what is behind them, are
+  hidden by walls in front of them, and get no tone or poche. See
+  `docs/drawings/g_section_perspective_quarter.png` and `g_entourage_sheet_quarter.png`.
+- **Your own figures**: draw closed curves (outlines) and open curves (detail lines) in a Front
+  view, run `MCEntourage` -> `Capture`, pick the base point (where it stands) and a name. It is
+  saved to `library/entourage/zz_user_entourage.json`.
+- Figures are data: `library/entourage/*.json` (`generator` person / tree / shrub / custom and
+  its options, see the comments at the top of `people.json` and `plants.json`).
+
+## Trims and captured profiles (Phase 8)
+- `MCTrim` sweeps a profile along a wall face: `Trim - Base 3-1/2`, `Base 5-1/4`,
+  `Chair Rail 2-1/2`, `Crown 3-5/8` (at the top), `Water Table 6` (exterior), or your own. Trims
+  miter around a polyline wall's corners, stop where a joined wall's face stops, and are cut at
+  doors / windows that overlap them. `MCSchedule` totals their length (material Wood Trim, role trim).
+- `MCProfileCapture`: draw the profile in the Top view (X = out of the wall face, Y = up), select
+  its closed curves (the largest is the outline, the others holes), click the base point (the
+  point that sits on the wall face at the trim height), choose family Trim and a material, name
+  it. It goes to `library/profiles/zz_user_profiles.json` and shows up in `MCTrim`.
+- In an assembly, a trim is an extra: `{"component": "sweep", "name": "Base", "material":
+  "Wood Trim", "options": {"profile": "Trim - Base 3-1/2", "face": "interior", "z": "base"}}`.
 
 ## How walls work
 - The **curve is the wall**. It lives on the `MindCanvas::_Drivers` layer (orange, never prints).
@@ -155,7 +208,7 @@ Joins are automatic: draw walls so their ends meet and they join; nothing to sel
 - **Under a roof**: a wall whose top is at the roof's plate height along its plate line gives the
   roof its bearing-wall dimensions; its exterior layers stop under the rafter tails; gable-end and
   shed walls are filled up to the underside of the rafters (gable studs on the stud grid, cavity
-  fill, every layer).
+  fill, every layer; under an attic ceiling the interior finish stops at the ceiling).
 - Moving, editing or deleting a wall, floor or roof rebuilds everything joined to it (also what it
   was joined to before the edit).
 
@@ -289,6 +342,10 @@ files load alphabetically and later entries with the same name win. Run `MCLibra
   systems (member family, spacing, rim plies, blocking, strap, ridge family, typical spans,
   member names). Members are profiles in `library/profiles/floors_roofs.json` (lumber, I-joists
   `"type": "i_joist"`, rim boards, metal C-joists + joist tracks, composite decks).
+- **Entourage** (`library/entourage/*.json`): `{"generator": "tree", "style": "canopy", "height":
+  "28'", "spread": 0.7, "seed": 2}`; generators and options in `mindcanvas/entourage/shapes.py`.
+- **Trim profile** (`library/profiles/*.json`, `"family": "trim"`): a `custom` outline with X = out of
+  the wall face and Y = up from the trim height (see `library/profiles/trim.json`).
 - **Layer preset** (`library/layers/*.json`): a reusable layer ("Gypsum Board 5/8",
   "Metal Studs 6"). Appears in `MCLayers`; assemblies can use `{"preset": "Gypsum Board 5/8"}`
   and override any key. Every layer used in any assembly also shows up in `MCLayers`,

@@ -135,13 +135,39 @@ def band_polys(ctx, band):
         ch, cl = geo.offset(ctx.curve, d_hi, ctx.tol), geo.offset(ctx.curve, d_lo, ctx.tol)
     ok_h, ph = ch.TryGetPolyline()
     ok_l, pl = cl.TryGetPolyline()
-    if not (ok_h and ok_l) or ph.Count != pl.Count or ph.Count < 2:
+    if not (ok_h and ok_l):
         return []
+    # join zones leave collinear points on the faces (e.g. 4 on the sheathing's outer face, 2 on
+    # its inner one): drop them so both faces pair up segment by segment
+    ph, pl = _simplify(ph, ctx.tol), _simplify(pl, ctx.tol)
+    if len(ph) < 2 or len(pl) < 2:
+        return []
+    if len(ph) != len(pl):
+        quad = ph + list(reversed(pl))
+        return [quad] if abs(hgeo.area(quad)) > ctx.tol * ctx.tol else []
     out = []
-    for i in range(ph.Count - 1):
-        quad = [(ph[i].X, ph[i].Y), (ph[i + 1].X, ph[i + 1].Y), (pl[i + 1].X, pl[i + 1].Y), (pl[i].X, pl[i].Y)]
+    for i in range(len(ph) - 1):
+        quad = [ph[i], ph[i + 1], pl[i + 1], pl[i]]
         if abs(hgeo.area(quad)) > ctx.tol * ctx.tol:
             out.append(quad)
+    return out
+
+
+def _simplify(poly, tol):
+    """2D points of a polyline without duplicates and collinear interior points."""
+    pts = []
+    for p in poly:
+        q = (p.X, p.Y)
+        if not pts or abs(q[0] - pts[-1][0]) + abs(q[1] - pts[-1][1]) > tol:
+            pts.append(q)
+    out = pts[:1]
+    for i in range(1, len(pts) - 1):
+        a, b, c = out[-1], pts[i], pts[i + 1]
+        cross = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0])
+        if abs(cross) > tol * max(1e-9, ((c[0] - a[0]) ** 2 + (c[1] - a[1]) ** 2) ** 0.5):
+            out.append(b)
+    if len(pts) > 1:
+        out.append(pts[-1])
     return out
 
 
@@ -217,7 +243,8 @@ def _framing_infill(ctx, rc, band, z_bot, min_h):
 
 def roof_infill(ctx):
     """Every layer of a wall filled from its top up to the rafter bottom line of the roof over it
-    (gable ends, the walls of shed roofs). Pieces lower than 1" are left out."""
+    (gable ends, the walls of shed roofs). Pieces lower than 1" are left out. Under a roof with an
+    attic ceiling the layers on the interior side of the core stop at the wall top (the ceiling)."""
     J = getattr(ctx, "joins", None)
     if J is None or not J.roofs:
         return []
@@ -227,8 +254,13 @@ def roof_infill(ctx):
         if all(f.p <= 1e-9 for f in rc.faces):
             continue
         curved = False
+        # under an attic ceiling the layers inside the structure (gypsum, ...) stop at the ceiling
+        cores = [b.index for b in ctx.bands if b.spec.get("core")]
+        attic = bool(getattr(rc, "ceiling_bands", None)) and cores
         for band in ctx.bands:
             if band.component == "void" or band.thickness <= ctx.tol:
+                continue
+            if attic and band.index > max(cores):
                 continue
             z_bot = ctx.z_range(band)[1]
             try:
