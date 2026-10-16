@@ -107,13 +107,13 @@ docs/                  findings, user guide
 | 5 | Curtain wall: grid, IGUs, spandrels, joint styles (captured, 4-side SSG, 2-side SSG, butt, unitized), mullion materials | Done (`MCCurtainWall`/`MCEditCurtainWall`; kind `curtain_wall`; PR jakeself-arch/rhino-mind-canvas#2) |
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; PR jakeself-arch/rhino-mind-canvas#4; verified in Rhino 2026-10-15) |
-| 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | Done (`MCPanel`/`MCAssemblyEditor`/`MCProfileCapture`/`MCTrim`/`MCEntourage`; verified in Rhino 2026-10-15) |
+| 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | Done (`MCPanel`/`MCAssemblyEditor`/`MCProfileCapture`/`MCTrim`/`MCEntourage`; PR jakeself-arch/rhino-mind-canvas#5; verified in Rhino 2026-10-15) |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
 **Current state (2026-10-15): the roadmap is complete.** Phase 8 (UI + entourage) is done and
-verified in Rhino on branch `phase8-ui-entourage` (PR: see the roadmap row). `tests/test_phase8.py`
+verified in Rhino on branch `phase8-ui-entourage` (PR jakeself-arch/rhino-mind-canvas#5). `tests/test_phase8.py`
 (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~16 s) passes, and so do
 `test_phase0`..`test_phase7` + `test_layers` on the same code. The Phase 7 open item is fixed: under
 an attic ceiling a gable wall's interior layers (gypsum) stop at the ceiling. Fixing it also showed
