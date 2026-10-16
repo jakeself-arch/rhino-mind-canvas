@@ -1,8 +1,8 @@
 """The Mind Canvas panel (MCPanel): a floating, modeless window with every tool in one place.
 
 Tabs
-    Build      buttons for the commands (walls, curtain walls, floors, roofs, openings, edits,
-               joins, trims, setup, update, live, schedule, purge)
+    Build      buttons for the commands (walls, curtain walls, floors, roofs, openings, opening
+               masses, edits, joins, trims, setup, update, live, schedule, purge)
     Selection  the selected assemblies: assembly, height, base offset, detail level -> Apply;
                "Edit assembly" opens the assembly editor on the first one
     Drawing    scale, tone, stipple, SetLOD, output folder -> Draw the active view now; section
@@ -27,8 +27,9 @@ from . import widgets as w
 
 LODS = ["schematic", "design", "detail"]
 BUILD = [("Wall", "MCWall"), ("Curtain wall", "MCCurtainWall"), ("Floor", "MCFloor"), ("Roof", "MCRoof"),
-         ("Window / door", "MCOpening"), ("Edit walls", "MCEdit"), ("Layers", "MCLayers"),
-         ("Framing", "MCFraming"), ("Joins", "MCJoin"), ("Trim", "MCTrim"), ("Edit opening", "MCEditOpening"),
+         ("Window / door", "MCOpening"), ("Opening mass", "MCOpeningMass"), ("Edit walls", "MCEdit"),
+         ("Layers", "MCLayers"), ("Framing", "MCFraming"), ("Joins", "MCJoin"), ("Trim", "MCTrim"),
+         ("Edit opening", "MCEditOpening"),
          ("Edit curtain wall", "MCEditCurtainWall"), ("Edit floor", "MCEditFloor"), ("Edit roof", "MCEditRoof"),
          ("Setup model", "MCSetup"), ("Update", "MCUpdate"), ("Live on / off", "MCLive"),
          ("Schedule", "MCSchedule"), ("Purge", "MCPurge")]

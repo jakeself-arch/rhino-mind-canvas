@@ -3,7 +3,7 @@
 
 import Rhino
 
-from .. import engine, library, meta
+from .. import engine, library, masses, meta
 from ..openings import core
 from . import ui
 from .opening import Settings
@@ -55,9 +55,11 @@ def run():
         if res == RI.GetResult.Option:
             if gg.OptionIndex() == i_remove:
                 hosts = [core.host_of(doc, o) for o in ops]
+                mass_ids = [meta.get(o, masses.MASS) for o in ops if meta.get(o, masses.MASS)]
                 with engine._quiet():
                     for o in ops:
                         doc.Objects.Delete(o, True)
+                masses.delete_unused(doc, mass_ids)   # a removed opening takes its mass along
                 for h in dict((str(h.Id), h) for h in hosts if h is not None).values():
                     ui.report(engine.build(doc, h.Id, lib), "Rebuilt wall:")
                 doc.Views.Redraw()
@@ -76,6 +78,7 @@ def run():
             if type_changed:
                 core.set_type(doc, o, s.type_name)
                 o = doc.Objects.FindId(o.Id)
+                masses.set_type(doc, o, s.type_name)
             h = core.host_of(doc, o)
             core.update(doc, o, s.snapped(h, params) if h is not None else params)
             if h is not None:

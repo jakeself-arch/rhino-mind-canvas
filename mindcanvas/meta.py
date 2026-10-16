@@ -17,6 +17,7 @@ JOINED = "mc.joined"        # ids of the assemblies joined to this one at its la
 
 DRIVER_KIND = "driver"
 PART_KIND = "part"
+MASS_KIND = "mass"          # a solid that controls drivers (mindcanvas/masses.py)
 
 
 def get(obj, key, default=None):
@@ -30,6 +31,10 @@ def is_driver(obj):
 
 def is_part(obj):
     return obj is not None and get(obj, KIND) == PART_KIND
+
+
+def is_mass(obj):
+    return obj is not None and get(obj, KIND) == MASS_KIND
 
 
 def params(obj):

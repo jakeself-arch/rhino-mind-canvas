@@ -11,6 +11,8 @@
     delete_openings(doc, host_id)
 
 Openings are drivers of a HOSTED kind: build(opening) re-reads its line and builds the host.
+Opening masses (mindcanvas/masses.py) write opening params; after every host build the masses
+with one opening follow it (masses.follow).
 
 Joins (mindcanvas/joins): an assembly's geometry depends on the drivers joined to it (walls at an
 L / T, the floors and roofs over walls). build() rebuilds those partners afterwards - the ones
@@ -138,6 +140,7 @@ def build(doc, driver_id, lib=None, sync=True, joined=True):
         else:
             ctx.warn("A '{}' part on layer '{}' could not be added.".format(p.role, p.layer_name))
     _place_opening_lines(doc, ctx)
+    _follow_masses(doc, ctx)
     now = set(getattr(ctx, "join_partners", None) or ())
     now.discard(str(driver_id))
     partners = now | meta.joined_ids(obj)
@@ -189,6 +192,16 @@ def _place_opening_lines(doc, ctx):
                     and cur.PointAtEnd.DistanceTo(line.PointAtEnd) < tol):
                 continue
             doc.Objects.Replace(op.id, line)
+
+
+def _follow_masses(doc, ctx):
+    if not getattr(ctx, "openings", None):
+        return
+    from . import masses
+    try:
+        masses.follow(doc, ctx)
+    except Exception as ex:
+        ctx.warn("Opening masses could not follow their openings: {}".format(ex))
 
 
 def hosted_kind(obj):
@@ -273,20 +286,30 @@ def update_opening(doc, op_obj, changes=None, type_name=None, lib=None):
     from .openings import core
     with _quiet():
         if type_name:
+            from . import masses
             core.set_type(doc, op_obj, type_name)
             op_obj = doc.Objects.FindId(op_obj.Id)
+            masses.set_type(doc, op_obj, type_name)
         if changes:
             core.update(doc, op_obj, changes)
     return build(doc, op_obj.Id, lib, sync=False)
 
 
 def delete_openings(doc, host_id):
+    """Delete a host's openings, and their masses when no other wall uses them."""
+    from . import masses
     from .openings import core
     n = 0
+    mass_ids = []
     with _quiet():
         for o in core.hosted(doc, host_id):
+            mid = meta.get(o, masses.MASS)
             if doc.Objects.Delete(o, True):
                 n += 1
+                if mid:
+                    mass_ids.append(mid)
+    if mass_ids:
+        masses.delete_unused(doc, mass_ids)
     return n
 
 

@@ -60,6 +60,8 @@ mindcanvas/            Python package (the engine)
   asmedit.py           phase 8: assembly editor model (no UI)
   eto/                 phase 8: Eto views: widgets.py, editor.py (assembly editor), panel.py (MCPanel)
   live.py              watches driver edits and rebuilds (toggle)
+  masses.py            phase 9: mass drivers: solids pushed / pulled with the gumball that write the
+                       params of existing drivers (opening masses: box cut = rough opening)
   schedule.py          quantity takeoff -> CSV
   drawing/             phase 3: display mode, MCDrawing, tone hatch, stipple, line weights
   dev.py               reload helper for development
@@ -108,11 +110,46 @@ docs/                  findings, user guide
 | 6 | Floors + roofs: joists, rafters, flat/shed/gable | Done (`MCFloor`/`MCEditFloor`/`MCRoof`/`MCEditRoof`; kinds `floor`, `roof`; PR jakeself-arch/rhino-mind-canvas#3) |
 | 7 | Joins: L/T wall joins, wall↔floor, wall↔roof | Done (`MCJoin`; `mindcanvas/joins/`; PR jakeself-arch/rhino-mind-canvas#4; verified in Rhino 2026-10-15) |
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | Done (`MCPanel`/`MCAssemblyEditor`/`MCProfileCapture`/`MCTrim`/`MCEntourage`; PR jakeself-arch/rhino-mind-canvas#5; verified in Rhino 2026-10-15) |
+| | **Second roadmap (2026-10-15): push / pull mass drivers + visual editors.** Masses show overall form only (their thickness is arbitrary); they control the existing drivers, the kinds are not rewritten. | |
+| 9 | Mass drivers core + opening masses: a box crossing a wall = the rough opening (width x height; depth ignored); gumball scale / move / face drag rebuilds in live mode; numeric edits resize the box | Done (`MCOpeningMass`; `mindcanvas/masses.py`; branch `phase9-opening-masses`), waiting for the user's review |
+| — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | |
+| 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); default: the finished exterior face on the mass's outer face, a flip arrow, closed rings orient themselves (confirm with the user first) | |
+| 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
+| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | |
+| 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-15): the roadmap is complete.** Phase 8 (UI + entourage) is done and
+**Current state (2026-10-15): second roadmap, Phase 9 done; STOP for the user's review.** Phase 9
+(mass drivers + opening masses) is on branch `phase9-opening-masses` (PR: see the roadmap table /
+GitHub). The user wants to try the gumball workflow before Phase 10 (wall masses) starts: do not
+begin Phase 10 until they say so, and confirm the wall-mass reference (exterior face on the mass's
+outer face, flip arrow) with them first.
+
+**Phase 9 summary** (details in `docs/DEVELOPING.md`, "Mass drivers"):
+- `mindcanvas/masses.py`: a closed solid tagged `mc.kind = mass` on `MindCanvas::_Masses`
+  (translucent, never printed, layer tag `exclude`, skipped by the drawing scene). Where it cuts a
+  wall's mid surface, the cut's bounding rectangle is the rough opening; the opening driver gets
+  width / height / sill / station from it (unit = RO - shims; doors have no shim at the floor) and
+  `params["ro"]`. One box through two walls opens both; corners / wall ends are rejected.
+- Two-way: `masses.sync` (mass -> openings, run by live mode on every Replace of a mass) and
+  `masses.follow` (engine.build: a mass with one opening follows numeric edits, a moved opening
+  line and a moved / turned wall; SnapHead moves only the unit). Deleting a box deletes its
+  openings; deleting a wall / removing an opening deletes boxes left without openings; a type change
+  in MCEditOpening goes to the box.
+- `MCOpeningMass` (`cmd/openingmass.py`): click a wall (opening + box) or select solids (each
+  becomes a mass), options Type / Width / Height / Sill / Swing / Hinge / HeadCourse / SnapHead /
+  Convert (box existing openings) / Show. Panel Build tab: "Opening mass".
+- `tests/test_phase9.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~9 s) passes, and
+  so do `test_phase0`..`test_phase8` + `test_layers`. Live rebuild of a 24' brick veneer wall at
+  detail after a gumball move: ~0.5 s. New outputs: `docs/drawings/h_opening_masses_quarter`
+  (a brick wall whose three openings come from masses; no mass in the drawing),
+  `docs/captures/phase9_masses.png`.
+- Not yet: a wall moved into a free box does not open (a box syncs on its own edits only);
+  curtain-wall hosts; corner windows.
+
+**Previous state (2026-10-15): the first roadmap was complete.** Phase 8 (UI + entourage) is done and
 verified in Rhino on branch `phase8-ui-entourage` (PR jakeself-arch/rhino-mind-canvas#5). `tests/test_phase8.py`
 (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~16 s) passes, and so do
 `test_phase0`..`test_phase7` + `test_layers` on the same code. The Phase 7 open item is fixed: under
@@ -124,10 +161,10 @@ across the ridge, people, trees, shrubs, tone + stipple), `g_entourage_sheet_qua
 figure), `g_trim_base_1-1-2` / `g_trim_crown_1-1-2` (swept trims in section).
 
 **Testing.** Every test runs in an empty, unsaved document of your own `spawn_slot` (they clear the
-doc; `test_phase5`..`test_phase8` assert `not doc.Path`): `tests/test_phase0.py`, `test_phase1.py`,
+doc; `test_phase5`..`test_phase9` assert `not doc.Path`): `tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
 `test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py` to
-`test_phase8.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 s;
+`test_phase9.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 / 9 s;
 `test_phase6` takes `only="drawings"`). Offline (no Rhino): `tests/offline/test_join_plan.py`,
 `test_entourage_shapes.py`,
 `test_join_find.py` with `%USERPROFILE%\.rhinocode\py39-rh8\python.exe` (no system Python on this

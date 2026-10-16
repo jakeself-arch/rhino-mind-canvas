@@ -168,7 +168,7 @@ class Scene(object):
         if layer is None or not layer.IsVisible:
             return True
         path = layer.FullPath
-        return path.startswith(DRAWING_ROOT) or path == docutil.DRIVER_LAYER
+        return path.startswith(DRAWING_ROOT) or path in (docutil.DRIVER_LAYER, docutil.MASS_LAYER)
 
     def _add(self, geom, xf, ixf, key, obj, material, role, flags, bbox, block):
         it = Item()

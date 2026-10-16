@@ -266,6 +266,52 @@ params), never from generated parts, so build order never matters.
   expand presets first (a shared preset is never changed); `save_as` refuses library names;
   `apply` needs a saved model.
 
+## Mass drivers (Phase 9)
+`mindcanvas/masses.py`. A **mass** is a closed solid (Brep / Extrusion) the user pushes and pulls
+with the gumball; it controls existing drivers and never replaces them (the kinds are unchanged).
+User text: `mc.kind = mass` (`meta.MASS_KIND`, `meta.is_mass`; NOT a driver, so `all_drivers`
+never returns it), `mc.type` (what it drives: `opening` in Phase 9), `mc.assembly` (the opening
+type for new openings), `mc.params` (`snap`, `swing`, `hinge`, `head`). Masses live on
+`docutil.MASS_LAYER` (`MindCanvas::_Masses`): translucent render material, plot weight -1, layer
+tag `exclude`, and `drawing/scene.py` skips the layer, so they never reach a drawing.
+
+- **Opening masses**: `crossings(doc, lib, brep, warnings)` intersects the mass with every
+  candidate wall's **mid surface** (the oriented driver offset to the middle of the stack, extruded
+  vertically; `WallInfo` gets the stack offsets without building the wall). The cut's bounding
+  rectangle in (station along the driver as drawn, z) is the **rough opening**; its width is
+  measured square to the wall at the middle of the cut (curved walls: the chord). Cuts that span a
+  kink of the driver or reach a wall end are rejected (no corner openings); a cut that is not a
+  rectangle warns and uses its bounding rectangle. Curtain walls are not hosts yet.
+- **Unit size**: `unit_params(type, ro)`: width = RO - 2 shim; windows sill = RO bottom + shim,
+  height = RO - 2 shim; doors sill = max(RO bottom, 0), height = RO top - shim - sill. The opening
+  keeps `params["ro"]` = {width, bottom, top} (inches above the host base) so SnapHead can move
+  the unit without moving the mass. `rough_opening(t, params)` is the inverse (uses "ro" if present).
+  `core.update` and `core.sync_from_geometry` drop "ro" when a size / position changes by number or
+  by the line, so the mass follows the unit again.
+- **Links**: each opening driver carries `mc.mass` (mass id) and `mc.mass.frame` (its plane at the
+  last host build: origin + X axis). One mass may drive openings in several walls.
+- **mass -> openings**: `sync(doc, mass)` creates / updates / deletes the mass's openings (only
+  width / height / sill / station / ro are written to existing openings: type, swing, hinge and head
+  stay as edited) and builds each affected host once, inside `_driving()` + `live.quiet()`.
+  `make(doc, solid, type, params)` tags a solid and syncs it; `from_opening(doc, op)` boxes an
+  existing opening (MCOpeningMass Convert / wall click); `release(doc, mass_id)` handles a deleted
+  mass; `engine.delete_openings` deletes masses left without openings (`delete_unused`).
+- **openings -> mass**: `engine.build` calls `masses.follow(doc, ctx)` after placing the opening
+  lines. Unless a mass sync is driving, a mass with exactly ONE opening is moved rigidly from the
+  stored frame to the new one (the wall moved / turned) and then scaled / moved in the opening's
+  frame (X along the wall, Z up; its depth is kept) until its cut matches the rough opening
+  (`target_local`: centered on the opening's station, not where the host may have nudged it clear
+  of a corner). Masses with several openings only follow their own edits. Every mass edit of the
+  engine is wrapped in `live.quiet()`.
+- **Live mode** (`live.py`): a Replace of a mass queues it; Idle runs `masses.sync`. A deleted mass
+  is queued too; Idle runs `masses.release`. Live handlers are closures made at `enable()`: after
+  reloading the code, toggle MCLive (tests call `live.disable(); live.enable()`).
+- **Not yet**: moving a wall into a free mass does not open it (a mass only syncs on its own
+  edits); masses for curtain-wall doors; corner windows.
+- **Testing**: `tests/test_phase9.py` calls the live Idle handler directly
+  (`scriptcontext.sticky[live.STICKY_KEY]["handlers"][2](None, None)`) after `doc.Objects.Transform`
+  / `Replace` / `Delete`, which is what Rhino does after a gumball edit.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,
