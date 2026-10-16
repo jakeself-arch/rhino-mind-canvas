@@ -59,6 +59,11 @@ mindcanvas/            Python package (the engine)
   trims.py             phase 8: per-wall trims (sweep extras in params["extras"])
   asmedit.py           phase 8: assembly editor model (no UI)
   eto/                 phase 8: Eto views: widgets.py, editor.py (assembly editor), panel.py (MCPanel)
+  asmview.py           phase 12: the drawn layer section as plain Python (layout, hit tests, click / drag
+                       reorder / drag thickness with snapping); eto/sectionview.py paints it
+  asmfields.py         phase 12: typed fields for component options + assembly settings
+  preview.py           phase 12: live preview sample of an unsaved assembly (MindCanvas::_Preview);
+                       eto/visual.py = the visual assembly editor window
   live.py              watches driver edits and rebuilds (toggle)
   masses.py            phase 9: mass drivers: solids pushed / pulled with the gumball that write the
                        params of existing drivers (opening masses: box cut = rough opening)
@@ -115,7 +120,7 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | |
 | 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); default: the finished exterior face on the mass's outer face, a flip arrow, closed rings orient themselves (confirm with the user first) | |
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
-| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | |
+| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | Done, awaiting review (`MCAssemblyEditor` / panel open it; `mindcanvas/asmview.py`, `asmfields.py`, `preview.py`, `eto/visual.py`, `eto/sectionview.py`; branch `claude/phase12-visual-editor-725423`, PR jakeself-arch/rhino-mind-canvas#8) |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
 
 ## Resume here
@@ -125,6 +130,24 @@ _Updated at every milestone. A new session should read this section, `docs/DEVEL
 opening masses) came from branch `phase9-opening-masses` (PR jakeself-arch/rhino-mind-canvas#6); the user
 approved the merge. Next is Phase 10 (wall masses): start it only when the user asks, and confirm
 the wall-mass reference (exterior face on the mass's outer face, flip arrow) with them first.
+
+**Phase 12 (visual assembly editor, 2026-10-16; built in parallel with Phase 10, not merged yet)**
+(details in `docs/DEVELOPING.md`, "Visual assembly editor"): `MCAssemblyEditor` and the panel's "Edit
+assembly" open `eto/visual.py`: a drawn section of the layer stack (walls exterior -> interior as a
+plan cut, floors / roofs top -> bottom, a roof's attic ceiling as a second stack; curtain walls are
+settings only) at true relative thickness with material tints + simple hatches, framing members at
+true size, core box, location line, labels. Click selects, drag reorders, dragging a boundary changes
+a thickness (1/16", Alt = 1/64"; framing / joist / rafter layers snap to the library member depths
+of their system, a named joist / rafter follows). Typed fields for the layer, each known option of
+its component and the assembly settings (dropdowns, lengths like 3-5/8 or 1'-6", checkboxes),
+advanced JSON for nested keys. Live preview: a 4' sample (floors 4' x 4', roofs 8' x 6', curtain
+walls 10') of the unsaved assembly on `MindCanvas::_Preview`, right of the model, rebuilt 0.6 s after
+a change, removed on close. The Phase 8 list editor stays reachable ("List editor..."). Logic in
+`asmedit.py` (extended), `asmview.py`, `asmfields.py`, `preview.py`. `tests/test_phase12.py`
+(`run(doc, captures=True, log=<path>)`, ~3 s) passes, and so do `test_phase0`..`test_phase9` +
+`test_layers`. Pictures: `docs/captures/phase12_section_*.png`, `phase12_window.png`,
+`phase12_preview.png`. Not yet: undo inside the editor, keyboard nudging, trims / extras in the
+drawing, a curtain-wall drawing (Phase 13 does profiles).
 
 **Phase 9 summary** (details in `docs/DEVELOPING.md`, "Mass drivers"):
 - `mindcanvas/masses.py`: a closed solid tagged `mc.kind = mass` on `MindCanvas::_Masses`
@@ -164,6 +187,7 @@ doc; `test_phase5`..`test_phase9` assert `not doc.Path`): `tests/test_phase0.py`
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
 `test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py` to
 `test_phase9.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 / 9 s;
+`test_phase12.py` the same, ~3 s;
 `test_phase6` takes `only="drawings"`). Offline (no Rhino): `tests/offline/test_join_plan.py`,
 `test_entourage_shapes.py`,
 `test_join_find.py` with `%USERPROFILE%\.rhinocode\py39-rh8\python.exe` (no system Python on this
