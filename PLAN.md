@@ -62,6 +62,7 @@ mindcanvas/            Python package (the engine)
   live.py              watches driver edits and rebuilds (toggle)
   masses.py            phase 9: mass drivers: solids pushed / pulled with the gumball that write the
                        params of existing drivers (opening masses: box cut = rough opening)
+  wallmasses.py        phase 10: wall masses: a strip / ring solid -> a wall driver on its exterior face
   schedule.py          quantity takeoff -> CSV
   drawing/             phase 3: display mode, MCDrawing, tone hatch, stipple, line weights
   dev.py               reload helper for development
@@ -112,8 +113,8 @@ docs/                  findings, user guide
 | 8 | UI + entourage: Eto panel, assembly editor, profile capture, line-drawn entourage | Done (`MCPanel`/`MCAssemblyEditor`/`MCProfileCapture`/`MCTrim`/`MCEntourage`; PR jakeself-arch/rhino-mind-canvas#5; verified in Rhino 2026-10-15) |
 | | **Second roadmap (2026-10-15): push / pull mass drivers + visual editors.** Masses show overall form only (their thickness is arbitrary); they control the existing drivers, the kinds are not rewritten. | |
 | 9 | Mass drivers core + opening masses: a box crossing a wall = the rough opening (width x height; depth ignored); gumball scale / move / face drag rebuilds in live mode; numeric edits resize the box | Done (`MCOpeningMass`; `mindcanvas/masses.py`; PR jakeself-arch/rhino-mind-canvas#6; user approved the merge 2026-10-16) |
-| — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | |
-| 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); default: the finished exterior face on the mass's outer face, a flip arrow, closed rings orient themselves (confirm with the user first) | |
+| — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | Done (user approved Phase 9, asked for Phase 10) |
+| 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); the finished exterior face on the mass's outer face (user, 2026-10-16), a flip arrow, closed rings orient themselves, open groups: exterior away from the group | Done (`MCWallMass`; `mindcanvas/wallmasses.py`; branch `phase10-wall-masses`, PR pending review) |
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
 | 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
@@ -121,10 +122,45 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-16): second roadmap, Phase 9 merged into main.** Phase 9 (mass drivers +
-opening masses) came from branch `phase9-opening-masses` (PR jakeself-arch/rhino-mind-canvas#6); the user
-approved the merge. Next is Phase 10 (wall masses): start it only when the user asks, and confirm
-the wall-mass reference (exterior face on the mass's outer face, flip arrow) with them first.
+**Current state (2026-10-16): second roadmap, Phase 10 (wall masses) done on branch
+`phase10-wall-masses`, PR open, not merged** (the user decides when to merge). Next is Phase 11
+(roof masses): start it only when the user asks.
+
+**Phase 10 summary** (details in `docs/DEVELOPING.md`, "Wall masses"):
+- User decisions (2026-10-16): the wall's finished EXTERIOR face lies on the mass's outer face (the
+  wall grows inward by the assembly thickness; the mass keeps the thickness it was drawn with);
+  the exterior side of masses that are not a closed ring is the face away from their group's
+  center; a lone box faces the camera at creation and keeps that side.
+- `mindcanvas/wallmasses.py`: a solid tagged `mc.type = wall` (`mc.wall` = its wall, the wall
+  `mc.mass` + `mc.mass.line`). Its flat bottom face is read as a STRIP (box, L / polyline strip,
+  curved strip: two long faces between two caps) or a RING (one hole -> a closed wall). The
+  exterior face line is extended / trimmed so the drivers meet at corners (L: both to the crossing
+  of the exterior faces; T: to the other wall's near face), so Phase 7 joins work unchanged.
+  Driver = exterior face line offset by the reference (new walls: `exterior_face`), at the mass
+  bottom - base_offset; height = mass height; wall `flip` mirrors the mass's `flip`.
+- Two-way: `sync` / `sync_many` (mass -> the walls of its group; live mode on every gumball edit,
+  via `masses.sync`), `follow` (engine.build: base / height edits resize the mass, a moved driver
+  line moves it), `after_params` (MCEdit Flip / Location, MCLayers, set_assembly re-derive from the
+  mass), `release` (a deleted mass deletes its wall + openings; a deleted wall deletes its mass;
+  neighbors re-derived). Openings keep their place along the wall; opening masses ride along with
+  a moved wall (`masses._fit` now moves a box with its opening's frame even when it still fits).
+- `MCWallMass` (`cmd/wallmass.py`): select solids -> wall masses of the chosen assembly; options
+  Assembly / Flip / Convert (existing walls get a mass, keeping their place) / Show. Panel Build
+  tab: "Wall mass". A blue arrow (display only) shows each mass's exterior side.
+- `tests/test_phase10.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~9 s) passes, and
+  so do `test_phase0`..`test_phase9` + `test_layers` (run the drawing tests one `run_python` call
+  each: several in one call leave the section cuts empty). Live rebuilds: wood ring wall height
+  scale 0.34 s, face drag of a corner mass (3 walls) 0.49 s, brick veneer 24' wall at detail moved
+  0.46 s. Captures: `docs/captures/phase10_wall_masses.png` (masses + arrows),
+  `phase10_wall_masses_walls.png` (masses hidden).
+- Limits: a mass that runs past a corner by more than 1" (its end does not touch the other mass)
+  makes a T, not an L; collinear masses are not merged; corners between a mass wall and a plain
+  wall are not adjusted; a sloped top uses the highest point; masses with more than one hole are
+  rejected; selecting a wall mass AND its opening mass and moving both moves the opening mass
+  twice; a wall moved into a free opening mass still does not open.
+
+**Phase 9** (mass drivers + opening masses) is merged into main from branch
+`phase9-opening-masses` (PR jakeself-arch/rhino-mind-canvas#6).
 
 **Phase 9 summary** (details in `docs/DEVELOPING.md`, "Mass drivers"):
 - `mindcanvas/masses.py`: a closed solid tagged `mc.kind = mass` on `MindCanvas::_Masses`
@@ -160,10 +196,10 @@ across the ridge, people, trees, shrubs, tone + stipple), `g_entourage_sheet_qua
 figure), `g_trim_base_1-1-2` / `g_trim_crown_1-1-2` (swept trims in section).
 
 **Testing.** Every test runs in an empty, unsaved document of your own `spawn_slot` (they clear the
-doc; `test_phase5`..`test_phase9` assert `not doc.Path`): `tests/test_phase0.py`, `test_phase1.py`,
+doc; `test_phase5`..`test_phase10` assert `not doc.Path`): `tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
 `test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py` to
-`test_phase9.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 / 9 s;
+`test_phase10.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 / 9 / 9 s;
 `test_phase6` takes `only="drawings"`). Offline (no Rhino): `tests/offline/test_join_plan.py`,
 `test_entourage_shapes.py`,
 `test_join_find.py` with `%USERPROFILE%\.rhinocode\py39-rh8\python.exe` (no system Python on this

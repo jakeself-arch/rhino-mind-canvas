@@ -7,7 +7,9 @@ because undo restores the old parts itself.
 
 Openings: editing or deleting an opening's line rebuilds its host; deleting a host deletes
 its openings. Opening masses (mindcanvas/masses.py): a gumball edit of a mass re-derives its
-openings (masses.sync); deleting a mass deletes its openings. Joins: building an assembly
+openings (masses.sync); deleting a mass deletes its openings. Wall masses (mindcanvas/wallmasses.py):
+a gumball edit re-derives the walls of the mass's group; deleting a wall mass deletes its wall,
+deleting a mass-driven wall deletes its mass (masses.release). Joins: building an assembly
 rebuilds the ones joined to it (engine.build); deleting one rebuilds the assemblies it was
 joined to (user text mc.joined).
 """
@@ -97,7 +99,7 @@ def enable():
                     if obj is None or obj.IsDeleted:
                         engine.delete_parts(doc, oid)
                         engine.delete_openings(doc, oid)   # a deleted wall takes its openings along
-                        for r in masses.release(doc, oid):   # a deleted mass takes its openings along
+                        for r in masses.release(doc, oid):   # a deleted mass takes its openings / wall along
                             seen.add((sn, r.driver_id))
                     elif _meta().is_mass(obj):
                         sr = masses.sync(doc, obj)
