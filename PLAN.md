@@ -104,16 +104,17 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
-**Current state (2026-10-15): Phase 7 (joins) written, not yet verified in Rhino.** It was written
-in a cloud session with no Rhino: the pure join math (`mindcanvas/joins/plan.py`) and the
-detection (`find.py`, against a fake `Rhino.Geometry`) were checked there; nothing that makes
-geometry has run. **Next session (on the user's machine, with the Rhino MCP): run
-`tests/test_phase7.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`), fix what fails,
-then re-run `test_phase0`..`test_phase6` + `test_layers` (joins change existing scenes: test_phase3's
-partition now T-joins the ring wall; walls under test_phase6's roofs lose their exterior layer tops
-under the rafters and give the roof its wall dimensions), review the new drawings
-(`docs/drawings/f_corner_plan_1-1-2`, `f_tee_plan_1-1-2`, `f_gable_section_1-1-2`), open a PR, merge,
-then Phase 8.** Phases 0, 0.5, 1–6 done and verified in Rhino. All earlier tests passed at Phase 6:
+**Current state (2026-10-15): Phase 7 (joins) verified in Rhino** on branch
+`claude/phase-7-resume-xd05z7`. `tests/test_phase7.py` (`run(doc, drawing_on=True, captures=True,
+log=<path>)`, ~17 s) passes; the offline tests (`tests/offline/test_join_plan.py`,
+`test_join_find.py`) run with Rhino's CPython (`%USERPROFILE%\.rhinocode\py39-rh8\python.exe`,
+no system Python on this machine). Only test fixes were needed: the 2x6 wood wall's sheathing is
+OSB, and the gable section's crop window spans the wall normal (it was zero-width) at a quarter
+point off the ridge. `test_phase0`..`test_phase6` + `test_layers` still pass with joins on (the
+earlier drawings only changed by random curls / stipple). New drawings: `docs/drawings/f_corner_plan_1-1-2`,
+`f_tee_plan_1-1-2`, `f_gable_section_1-1-2`. Open in the gable section: the gable wall's interior
+gypsum continues above the ceiling into the attic. **Next: PR + merge, then Phase 8.**
+Phases 0, 0.5, 1–7 done and verified in Rhino. All earlier tests passed at Phase 7:
 `tests/test_phase0.py`, `test_phase1.py`,
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
 `test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py`

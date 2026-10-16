@@ -359,7 +359,7 @@ def run_drawings(doc, lib, lj, tj, roof):
     a, b = lj["wood"]
     dwg = _plan(doc, lib, a, G.Point3d(0, f(14), f(4)), 16.0, "f_corner_plan_1-1-2")
     mats = set(rg.material for rg in dwg.regions)
-    for m in ("Fiber Cement Siding", "Plywood Sheathing", "Wood Framing", "Gypsum Board"):
+    for m in ("Fiber Cement Siding", "OSB Sheathing", "Wood Framing", "Gypsum Board"):
         assert m in mats, "{} missing from the corner plan".format(m)
     host, part = tj
     _plan(doc, lib, host, G.Point3d(f(12), f(-40), f(4)), 14.0, "f_tee_plan_1-1-2")
@@ -367,10 +367,15 @@ def run_drawings(doc, lib, lj, tj, roof):
     inch = units.inch_scale(doc)
     gable = [w for w in walls if roles(doc, w.driver_id)["gable_stud"] > 0][0]
     gc = _ctx(doc, lib, gable.driver_id).curve
-    mid = gc.PointAt(gc.Domain.Mid)
-    at = G.Point3d(mid.X, mid.Y, PLATE * inch)
-    _section(doc, lib, gable.driver_id, at, at + G.Vector3d(0, -20 * inch, -12 * inch),
-             at + G.Vector3d(0, 20 * inch, 70 * inch), "f_gable_section_1-1-2")
+    # a quarter along the gable wall (the middle is under the ridge board), cropped across the
+    # wall: sectioncut.make looks along the wall, so the drawing's horizontal is the wall normal
+    t = gc.Domain.ParameterAt(0.25)
+    p = gc.PointAt(t)
+    at = G.Point3d(p.X, p.Y, PLATE * inch)
+    n = G.Vector3d.CrossProduct(G.Vector3d.ZAxis, gc.TangentAt(t))
+    n.Unitize()
+    _section(doc, lib, gable.driver_id, at, at - n * (20 * inch) - G.Vector3d(0, 0, 12 * inch),
+             at + n * (20 * inch) + G.Vector3d(0, 0, 50 * inch), "f_gable_section_1-1-2")
 
 
 def run(doc, clear=True, drawing_on=True, captures=True, log=None):
