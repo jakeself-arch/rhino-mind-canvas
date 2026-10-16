@@ -10,12 +10,16 @@ mc.mass = <mass id> and mc.mass.line (where the last sync put the driver, see _s
 
 From mass to wall
     The mass's plan is read from its flat bottom face: a STRIP (two long faces between two caps:
-    a box, an L / polyline strip, a curved strip) or a RING (an outer loop around one hole). The
+    a box, an L / polyline strip, a curved strip), a RING (an outer loop around one hole) or a
+    PERIMETER (any solid block: a cube, an L-shaped / polygonal / round building; one closed wall
+    along its whole outline, exterior outside). params["mode"] = auto (default: a strip when it is
+    at most STRIP_RATIO as thick as it is long, a ring with one hole, else a perimeter) | strip |
+    perimeter (holes ignored). The
     wall's finished EXTERIOR face lies on one long face of the mass; the wall grows inward by the
     assembly's thickness (the mass's own thickness does not matter). Base = mass bottom (the
     driver sits base_offset below it), height = mass top - mass bottom.
 Which face is the exterior (auto, then `flip`)
-    1. a ring: its outer loop;
+    1. a ring or a perimeter: its outer loop (a perimeter ignores flip);
     2. a face whose outside is enclosed by the wall masses touching it (a closed ring of boxes)
        is interior; the other is exterior;
     3. in a group of touching masses: the face farther from the group's center;
@@ -54,6 +58,8 @@ G = Rhino.Geometry
 WALL = "mc.wall"                 # wall mass -> its wall driver id
 LINE = "mc.mass.line"            # wall driver -> where the last sync put it
 GAP_IN = 1.0                     # masses closer than this touch (groups, corners)
+MODES = ("auto", "strip", "perimeter")
+STRIP_RATIO = 1.0 / 3.0          # auto: a strip at most this thick for its length, else a perimeter
 RAYS = 72
 SIN_MIN = math.sin(math.radians(15.0))
 DEFAULT_REFERENCE = "exterior_face"
@@ -268,15 +274,18 @@ def _flat(curve, z):
 class Chain(object):
     """One long face of a mass (a curve at the mass bottom, running from cap i to cap j)."""
 
-    def __init__(self, name, curve, other):
+    def __init__(self, name, curve, other=None):
         self.name = name
         self.curve = curve
         ok, t = curve.LengthParameter(0.5 * curve.GetLength())
         P = curve.PointAt(t)
         T = curve.TangentAt(t)
         left = _unit((-T.Y, T.X))
-        Q, _ = _closest(other, P)
-        inward = _dot(_sub(_p2(Q), _p2(P)), left) > 0     # the other face is on the left
+        if other is None:       # a perimeter: the inside of the closed loop is inward
+            inward = curve.ClosedCurveOrientation(G.Vector3d.ZAxis) == G.CurveOrientation.CounterClockwise
+        else:
+            Q, _ = _closest(other, P)
+            inward = _dot(_sub(_p2(Q), _p2(P)), left) > 0     # the other face is on the left
         self.left = not inward                             # the outward normal is on the left
         self.o = left if self.left else (-left[0], -left[1])
         self.mid = _p2(P)
@@ -305,22 +314,41 @@ class Footprint(object):
                 outer = c
             else:
                 inner.append(c)
-        if outer is None or len(inner) > 1:
-            raise geo.GeometryError("A wall mass must be a strip or a ring (one hole at most); "
-                                    "use one mass per wall.")
-        self.ring = bool(inner)
+        if outer is None:
+            raise geo.GeometryError("A wall mass needs a flat, level bottom face.")
+        mode = str(meta.params(obj).get("mode") or "auto").lower()
+        if mode not in MODES:
+            mode = "auto"
+        self.perimeter = False
+        found, segs = None, None
+        if not inner and mode != "perimeter":
+            segs = _segments(outer, tol)
+            found = _strip(segs, tol)
+            if found is not None and mode == "auto" and found[2] > STRIP_RATIO * _chain_min(segs, found):
+                found = None        # a block (a cube, a room): its perimeter
+        if mode == "perimeter" or (mode == "auto" and (len(inner) > 1 or (not inner and found is None))):
+            if inner:
+                self.warnings.append("A perimeter wall mass follows its outer outline; its holes are ignored.")
+            inner = []
+            self.perimeter = True
+        elif inner and (mode == "strip" or len(inner) > 1):
+            raise geo.GeometryError("A strip wall mass cannot have holes (a ring has one); use Mode=Perimeter "
+                                    "or one mass per wall.")
+        self.ring = bool(inner) or self.perimeter
         if self.ring:
-            self.A = Chain("A", outer, inner[0])
-            self.B = Chain("B", inner[0], outer)
-            Q, _ = _closest(outer, inner[0].PointAtStart)
-            self.t = Q.DistanceTo(inner[0].PointAtStart)
+            self.A = Chain("A", outer, inner[0] if inner else None)
+            self.B = Chain("B", inner[0], outer) if inner else None
+            if inner:
+                Q, _ = _closest(outer, inner[0].PointAtStart)
+                self.t = Q.DistanceTo(inner[0].PointAtStart)
+            else:
+                obb = outer.GetBoundingBox(True)
+                self.t = 0.5 * min(obb.Max.X - obb.Min.X, obb.Max.Y - obb.Min.Y)
             self.caps = None
-            self.polys = [_polyline(outer), _polyline(inner[0])]
+            self.polys = [_polyline(outer)] + ([_polyline(inner[0])] if inner else [])
             c = outer.GetBoundingBox(True).Center
             self.ci = self.cj = _p2(c)
         else:
-            segs = _segments(outer, tol)
-            found = _strip(segs, tol)
             if found is None:
                 self.warnings.append("A wall mass is not a strip (two long faces between two ends); "
                                      "its bounding rectangle is used.")
@@ -389,6 +417,15 @@ def _bottom_face(brep, tol):
     if best is None:
         raise geo.GeometryError("A wall mass needs a flat, level bottom face.")
     return best
+
+
+def _chain_min(segs, found):
+    """Length of the shorter long face of a strip outline."""
+    i, j, _ = found
+    n = len(segs)
+    la = sum(segs[k].GetLength() for k in range(i + 1, j))
+    lb = sum(segs[k].GetLength() for k in list(range(j + 1, n)) + list(range(0, i)))
+    return min(la, lb)
 
 
 def _join(curves, tol):
@@ -691,7 +728,7 @@ def derive(doc, f, group, gap):
     tol = doc.ModelAbsoluteTolerance
     s_in = units.inch_scale(doc)
     mprm = meta.params(f.obj)
-    flip = bool(mprm.get("flip"))
+    flip = bool(mprm.get("flip")) and not f.perimeter
     ch = f.chain(f.side)
     E = ch.curve.DuplicateCurve()
     out = Derived()
@@ -704,7 +741,8 @@ def derive(doc, f, group, gap):
                 ext[k] = cut[1]
     out.ext = tuple(ext)
     # exterior on the left (flip: on the right); offset by the reference
-    D = E.DuplicateCurve()
+    ok, pl = E.TryGetPolyline()
+    D = G.PolylineCurve(pl) if ok else E.DuplicateCurve()
     if f.ring:
         if D.ClosedCurveOrientation(G.Vector3d.ZAxis) == G.CurveOrientation.CounterClockwise:
             D.Reverse()           # clockwise: left = outside
@@ -868,6 +906,10 @@ def sync_many(doc, objs, lib=None):
                 mprm = meta.params(g.obj)
                 auto = auto_side(doc, g, grp[g.id], mprm.get("side"))
                 g.side = other(auto) if mprm.get("flip") else auto
+                if g.perimeter:
+                    g.side = "A"
+                    if mprm.get("flip"):
+                        out.warnings.append("A perimeter wall mass keeps its exterior outside (Flip ignored).")
                 side = [round(v, 6) for v in g.chain(auto).o]
                 if mprm.get("side") != side:
                     mprm["side"] = side
@@ -958,7 +1000,7 @@ def _store_arrow_safe(doc, m):
         f = Footprint(doc, m)
         stored = meta.params(m).get("side")
         f.side = auto_side(doc, f, [f], stored)
-        if meta.params(m).get("flip"):
+        if meta.params(m).get("flip") and not f.perimeter:
             f.side = other(f.side)
         _store_arrow(doc, f)
     except Exception:
@@ -979,7 +1021,7 @@ def after_params(doc, wall_id, old, new, lib=None, force=False):
     if not force and all(old.get(k) == new.get(k) for k in PLAN_KEYS):
         return None
     mprm = meta.params(m)
-    if bool(mprm.get("flip")) != bool(new.get("flip")):
+    if bool(mprm.get("flip")) != bool(new.get("flip")) and not is_perimeter(doc, m):
         mprm["flip"] = bool(new.get("flip"))
         m = write_params(doc, m, mprm)
     if meta.get(m, meta.ASSEMBLY) != meta.get(w, meta.ASSEMBLY):
@@ -1044,9 +1086,15 @@ def release(doc, oid, lib=None):
 
 # -- creating --------------------------------------------------------------------------------------
 def write(doc, solid_obj, assembly, params=None):
-    """Tag a solid as a wall mass (not synced)."""
+    """Tag a solid as a wall mass (not synced). params: flip, mode (auto | strip | perimeter), and
+    params for the wall it creates (lod, reference, ...)."""
     prm = {"flip": bool((params or {}).get("flip", False))}
-    wall = dict((k, v) for k, v in (params or {}).items() if k not in ("flip", "side"))
+    mode = str((params or {}).get("mode") or "auto").lower()
+    if mode != "auto":
+        if mode not in MODES:
+            raise ValueError("Unknown wall mass mode '{}'.".format(mode))
+        prm["mode"] = mode
+    wall = dict((k, v) for k, v in (params or {}).items() if k not in ("flip", "side", "mode"))
     if wall:
         prm["wall"] = wall
     return _masses().write(doc, solid_obj, assembly, prm, kind="wall")
@@ -1120,12 +1168,43 @@ def convert(doc, walls, lib=None):
     return [doc.Objects.FindId(m.Id) for m in out], sr, skipped
 
 
+def is_perimeter(doc, mass_obj):
+    try:
+        return Footprint(doc, mass_obj).perimeter
+    except Exception:
+        return False
+
+
 def flip(doc, mass_objs, lib=None):
-    """Put the exterior on the other face of each mass. Returns the SyncResult."""
+    """Put the exterior on the other face of each mass (perimeter masses keep it outside).
+    Returns the SyncResult."""
+    objs, skipped = [], 0
+    for m in mass_objs:
+        if is_perimeter(doc, m):
+            skipped += 1
+            continue
+        prm = meta.params(m)
+        prm["flip"] = not bool(prm.get("flip"))
+        objs.append(write_params(doc, m, prm))
+    sr = sync_many(doc, objs, lib)
+    if skipped:
+        sr.warnings.append("{} perimeter mass(es) keep the exterior outside (not flipped).".format(skipped))
+    return sr
+
+
+def set_mode(doc, mass_objs, mode, lib=None):
+    """Read masses as strips / perimeters / automatically from now on. Returns the SyncResult."""
+    mode = str(mode).lower()
+    if mode not in MODES:
+        raise ValueError("Unknown wall mass mode '{}'.".format(mode))
     objs = []
     for m in mass_objs:
         prm = meta.params(m)
-        prm["flip"] = not bool(prm.get("flip"))
+        if mode == "auto":
+            prm.pop("mode", None)
+        else:
+            prm["mode"] = mode
+        prm.pop("side", None)       # the old reading's side means nothing now
         objs.append(write_params(doc, m, prm))
     return sync_many(doc, objs, lib)
 

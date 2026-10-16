@@ -324,7 +324,12 @@ driver start / mid point, cap midpoints `ci` / `cj`, end extensions `ext`, which
 written at every sync).
 
 - **Footprint** (`Footprint(doc, mass)`, model units): the flat downward bottom face (else an
-  error). Outer loop + one hole = a ring (chains A = outer, B = hole; a closed wall). Otherwise the
+  error). Mass param `mode` (`MODES`): `perimeter` = the outer loop alone is chain A (a closed
+  wall, exterior outside, `B` = None, holes ignored, `f.perimeter` and `f.ring` set, flip ignored,
+  `t` = half the smaller bbox side); `strip` = never a perimeter (holes are an error); `auto` = a
+  ring with one hole, a strip when its thickness <= `STRIP_RATIO` (1/3) x its shorter long face,
+  otherwise (a cube, a non-strip outline, more holes) a perimeter. `set_mode` changes it (and drops
+  the stored side). Outer loop + one hole = a ring (chains A = outer, B = hole; a closed wall). Otherwise the
   loop's segments (split at kinks, collinear lines merged) are searched for two non-adjacent CAP
   segments whose remaining chains stay a constant distance apart (edge midpoints within 15 %; caps
   <= 3 x that thickness; shortest caps win): chains A and B run from cap i to cap j. No such pair:
@@ -369,7 +374,10 @@ written at every sync).
 - **Panel / selection**: `eto.editor.selected_drivers` maps a selected wall mass to its wall.
 - **Testing**: `tests/test_phase10.py` (same live pattern as Phase 9). Note `SetCameraLocations`
   takes (target, camera). Run drawing tests one `run_python` call each.
-- **Not yet**: a mass running past a corner by more than the gap makes a T; collinear masses are
+- **Perimeters as T hosts**: a strip whose end touches a perimeter's outline (a partition inside a
+  block) always T's: to the interior face from inside, to the exterior face from outside.
+- **Not yet**: a mass running past a corner by more than the gap makes a T; two touching perimeter
+  blocks make two closed walls; courtyards (holes) of a perimeter get no walls; collinear masses are
   separate walls; corners with plain (mass-less) walls are not adjusted; sloped tops use the highest
   point; masses with two or more holes; moving a wall mass together with its opening mass moves the
   opening mass twice.

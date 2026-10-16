@@ -17,7 +17,8 @@ retract / rejoin); openings keep their place, an opening mass follows its wall; 
 base offset edits resize the mass, Flip (MCEdit and wallmasses.flip); a single strip mass (L
 polyline), a curved strip and a ring mass; a lone box faces the camera and keeps its side when
 turned; Convert keeps a wall where it is; deleting a mass deletes its wall + openings, deleting a
-wall deletes its mass; masses never reach a drawing; the command module + panel button; timings.
+wall deletes its mass; perimeter masses (a cube with a partition, an L-shaped block, a cylinder:
+one closed wall around the outline), Mode strip / perimeter; masses never reach a drawing; the command module + panel button; timings.
 """
 
 import math
@@ -337,6 +338,78 @@ def shapes(doc, lib):
     return Lm, Cm, Rm, Bm
 
 
+def perimeter(doc, lib):
+    """Blocks -> one closed wall around the whole outline (exterior outside): a cube with a
+    partition (T at the interior faces), an L-shaped block, a cylinder; Mode strip / perimeter;
+    a live face drag; an opening mass through a perimeter wall; Flip is ignored."""
+    f = lambda v: _ft(doc, v)
+    tol = doc.ModelAbsoluteTolerance
+    cube = _box(doc, 200, 212, 0, 12, 0, 9)
+    part = _box(doc, 205.5, 206.5, 0, 12, 0, 9)
+    t0 = time.time()
+    (C, Pm), sr = wallmasses.make_many(doc, [cube, part], WOOD, {}, lib)
+    TIMINGS["perimeter cube + partition, make"] = time.time() - t0
+    assert not sr.warnings, sr.warnings
+    wc = _wall(doc, C)
+    c = wc.Geometry
+    ok, pl = c.TryGetPolyline()
+    assert c.IsClosed and ok and pl.Count == 5 and _near(c.GetLength() / f(1), 48, 1e-3), c.GetLength() / f(1)
+    for (px, py), n in [_exterior(doc, lib, wc)]:
+        assert _dot2((px - 206, py - 6), n) > 0, (px, py, n)      # outward
+    T = _thick(doc, lib, wc)
+    jp = _joins(doc, lib, _wall(doc, Pm))
+    assert jp.count("T join") == 2, jp
+    ys = sorted(e[1] for e in _ends(doc, _wall(doc, Pm)))
+    assert _near(ys[0], T, 1e-3) and _near(ys[1], 12 - T, 1e-3), (ys, T)
+    # an L-shaped block and a cylinder
+    Lb, sr = wallmasses.make(doc, _prism(doc, [(230, 0), (250, 0), (250, 10), (240, 10), (240, 20), (230, 20)], 0, 9), WOOD, {}, lib)
+    assert not sr.warnings, sr.warnings
+    lc = _wall(doc, Lb).Geometry
+    ok, pl = lc.TryGetPolyline()
+    assert lc.IsClosed and ok and pl.Count == 7 and _near(lc.GetLength() / f(1), 80, 1e-3), lc.GetLength() / f(1)
+    cyl = G.Cylinder(G.Circle(G.Plane(G.Point3d(f(275), f(10), 0), G.Vector3d.ZAxis), f(8)), f(9)).ToBrep(True, True)
+    Cy, sr = wallmasses.make(doc, doc.Objects.FindId(doc.Objects.AddBrep(cyl)), WOOD, {}, lib)
+    assert not sr.warnings, sr.warnings
+    cc = _wall(doc, Cy).Geometry
+    assert cc.IsClosed and _near(cc.GetLength() / f(1), 2 * math.pi * 8, 1e-2), cc.GetLength() / f(1)
+    assert _joins(doc, lib, _wall(doc, Cy)) == ""
+    # Mode: a cube read as a strip (one wall), then as a perimeter again
+    Sq, sr = wallmasses.make(doc, _box(doc, 300, 310, 0, 10, 0, 9), WOOD, {"mode": "strip"}, lib)
+    assert not _wall(doc, Sq).Geometry.IsClosed
+    wallmasses.set_mode(doc, [doc.Objects.FindId(Sq.Id)], "perimeter", lib)
+    assert _wall(doc, Sq).Geometry.IsClosed and _near(_wall(doc, Sq).Geometry.GetLength() / f(1), 40, 1e-3)
+    # live: drag the cube's east face 2' out -> 52' around, the partition still T's both sides
+    b = masses.to_brep(doc.Objects.FindId(C.Id).Geometry)
+    face = max(range(b.Faces.Count), key=lambda i: b.Faces[i].GetBoundingBox(True).Min.X)
+    assert b.TransformComponent([G.ComponentIndex(G.ComponentIndexType.BrepFace, face)],
+                                G.Transform.Translation(f(2), 0, 0), tol, 0, True)
+    t = time.time()
+    doc.Objects.Replace(C.Id, b)
+    _idle()
+    TIMINGS["live: face drag of a perimeter cube"] = time.time() - t
+    assert _near(_wall(doc, C).Geometry.GetLength() / f(1), 52, 1e-3)
+    assert _joins(doc, lib, _wall(doc, Pm)).count("T join") == 2
+    # an opening mass through the south side
+    om, osr = masses.make(doc, _box(doc, 201.5, 204.5, -1, 1.5, 3, 7), WINDOW, {}, lib)
+    assert len(osr.openings) == 1 and meta.get(_ops_one(doc, om), core.HOST) == str(wc.Id), osr.warnings
+    # Flip leaves a perimeter alone
+    sr = wallmasses.flip(doc, [doc.Objects.FindId(C.Id)], lib)
+    assert any("perimeter" in w for w in sr.warnings) and not meta.params(doc.Objects.FindId(C.Id))["flip"]
+    say("  perimeter: cube 48' closed (+ partition T, face drag -> 52'), L block 80', cylinder, Mode strip <-> perimeter, "
+        "opening mass, flip ignored")
+    return C
+
+
+def _dot2(a, b):
+    return a[0] * b[0] + a[1] * b[1]
+
+
+def _ops_one(doc, m):
+    ops = masses.openings_of(doc, m.Id)
+    assert len(ops) == 1, ops
+    return ops[0]
+
+
 def convert(doc, lib):
     """An existing wall (reference center, with a window) gets a mass; it stays where it is."""
     f = lambda v: _ft(doc, v)
@@ -449,6 +522,8 @@ def run(doc, clear=True, drawing_on=True, captures=True, log=None):
         two_way(doc, lib, S, N)
         say("-- shapes")
         shapes(doc, lib)
+        say("-- perimeter")
+        perimeter(doc, lib)
         say("-- convert")
         conv = convert(doc, lib)
         say("-- brick timing")
@@ -464,6 +539,8 @@ def run(doc, clear=True, drawing_on=True, captures=True, log=None):
                 masses.set_visible(doc, False)
                 try:
                     say(cap(doc, "phase10_wall_masses_walls", mode="Shaded", zoom_extents=False, width=1200, height=700))
+                    vp.SetCameraLocations(G.Point3d(f(242), f(10), f(2)), G.Point3d(f(242), f(-62), f(48)))
+                    say(cap(doc, "phase10_perimeter_walls", mode="Shaded", zoom_extents=False, width=1200, height=700))
                 finally:
                     masses.set_visible(doc, True)
             except Exception as ex:

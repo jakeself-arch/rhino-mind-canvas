@@ -62,7 +62,7 @@ mindcanvas/            Python package (the engine)
   live.py              watches driver edits and rebuilds (toggle)
   masses.py            phase 9: mass drivers: solids pushed / pulled with the gumball that write the
                        params of existing drivers (opening masses: box cut = rough opening)
-  wallmasses.py        phase 10: wall masses: a strip / ring solid -> a wall driver on its exterior face
+  wallmasses.py        phase 10: wall masses: a strip / ring / block solid -> a wall driver on its exterior face
   schedule.py          quantity takeoff -> CSV
   drawing/             phase 3: display mode, MCDrawing, tone hatch, stipple, line weights
   dev.py               reload helper for development
@@ -133,7 +133,12 @@ _Updated at every milestone. A new session should read this section, `docs/DEVEL
   center; a lone box faces the camera at creation and keeps that side.
 - `mindcanvas/wallmasses.py`: a solid tagged `mc.type = wall` (`mc.wall` = its wall, the wall
   `mc.mass` + `mc.mass.line`). Its flat bottom face is read as a STRIP (box, L / polyline strip,
-  curved strip: two long faces between two caps) or a RING (one hole -> a closed wall). The
+  curved strip: two long faces between two caps), a RING (one hole -> a closed wall) or a PERIMETER
+  (user request 2026-10-16: any solid block, a cube, an L-shaped / polygonal / round building ->
+  ONE closed wall around its whole outline, exterior outside, growing inward; partition masses
+  inside it T into its interior face). Mode (mass param `mode`, MCWallMass Mode / SetMode): Auto
+  = a strip when its thickness is at most 1/3 of its length, a ring with one hole, else a
+  perimeter; Strip / Perimeter force either reading. The
   exterior face line is extended / trimmed so the drivers meet at corners (L: both to the crossing
   of the exterior faces; T: to the other wall's near face), so Phase 7 joins work unchanged.
   Driver = exterior face line offset by the reference (new walls: `exterior_face`), at the mass
@@ -145,18 +150,21 @@ _Updated at every milestone. A new session should read this section, `docs/DEVEL
   neighbors re-derived). Openings keep their place along the wall; opening masses ride along with
   a moved wall (`masses._fit` now moves a box with its opening's frame even when it still fits).
 - `MCWallMass` (`cmd/wallmass.py`): select solids -> wall masses of the chosen assembly; options
-  Assembly / Flip / Convert (existing walls get a mass, keeping their place) / Show. Panel Build
+  Assembly / Mode / SetMode / Flip (perimeters keep the exterior outside) / Convert (existing walls
+  get a mass, keeping their place) / Show. Panel Build
   tab: "Wall mass". A blue arrow (display only) shows each mass's exterior side.
 - `tests/test_phase10.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`, ~9 s) passes, and
   so do `test_phase0`..`test_phase9` + `test_layers` (run the drawing tests one `run_python` call
   each: several in one call leave the section cuts empty). Live rebuilds: wood ring wall height
   scale 0.34 s, face drag of a corner mass (3 walls) 0.49 s, brick veneer 24' wall at detail moved
   0.46 s. Captures: `docs/captures/phase10_wall_masses.png` (masses + arrows),
-  `phase10_wall_masses_walls.png` (masses hidden).
+  `phase10_wall_masses_walls.png` (masses hidden), `phase10_perimeter_walls.png` (a cube with a
+  partition and a window, an L-shaped block, a cylinder).
 - Limits: a mass that runs past a corner by more than 1" (its end does not touch the other mass)
   makes a T, not an L; collinear masses are not merged; corners between a mass wall and a plain
   wall are not adjusted; a sloped top uses the highest point; masses with more than one hole are
-  rejected; selecting a wall mass AND its opening mass and moving both moves the opening mass
+  rejected (a perimeter ignores holes: no courtyard walls); two touching perimeter blocks make two
+  closed walls (draw one block per building); selecting a wall mass AND its opening mass and moving both moves the opening mass
   twice; a wall moved into a free opening mass still does not open.
 
 **Phase 9** (mass drivers + opening masses) is merged into main from branch
