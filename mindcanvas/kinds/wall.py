@@ -138,8 +138,9 @@ def stack_offsets(lib, assembly, params, s_scale):
 def place_opening(ctx, station, half):
     """(plane, s) of an opening centered `station` (model units along the driver as drawn):
     plane at the point on the oriented curve (z = 0, X tangent, Y exterior), s = distance along
-    ctx.curve. The opening (half-width `half` incl. framing) is kept inside its run between
-    corners, clear of the corner by the wall thickness."""
+    ctx.curve. The opening (half-width `half`: rough opening + jamb framing) is kept inside its
+    run, as close to a corner as the wall's layers allow (corner_clearance) and right up to a free
+    wall end."""
     raw = ctx.raw_curve
     L = raw.GetLength()
     ok, t_raw = raw.LengthParameter(min(max(station, 0.0), L))
@@ -151,21 +152,24 @@ def place_opening(ctx, station, half):
     Lc = crv.GetLength()
     s = crv.GetLength(G.Interval(t0, t)) if t - t0 > 1e-12 else 0.0
     kinks = sorted(crv.GetLength(G.Interval(t0, k)) for k in geo.kink_parameters(crv))
-    thick = max(b.d_ext for b in ctx.bands) - min(b.d_int for b in ctx.bands)
     seam_corner = crv.IsClosed and G.Vector3d.VectorAngle(crv.TangentAtStart, crv.TangentAtEnd) > 0.02
     if crv.IsClosed and not kinks and not seam_corner:
         lo, hi = None, None
     else:
-        bounds = [(0.0, crv.IsClosed and seam_corner)] + [(k, True) for k in kinks] + [(Lc, crv.IsClosed and seam_corner)]
+        seam = crv.IsClosed and seam_corner
+        bounds = ([(0.0, corner_clearance(ctx, crv, 0.0, True) if seam else 0.0)]
+                  + [(k, (corner_clearance(ctx, crv, k, False), corner_clearance(ctx, crv, k, True)))
+                     for k in kinks]
+                  + [(Lc, corner_clearance(ctx, crv, Lc, False) if seam else 0.0)])
         lo, hi = bounds[0], bounds[-1]
         for a, b in zip(bounds, bounds[1:]):
             if a[0] - 1e-9 <= s <= b[0] + 1e-9:
                 lo, hi = a, b
                 break
     if lo is not None:
-        clear = lambda corner: (thick + ctx.u(2)) if corner else ctx.u(2)
-        a = lo[0] + clear(lo[1]) + half
-        b = hi[0] - clear(hi[1]) - half
+        clear = lambda bound, run_after: bound[1][run_after] if isinstance(bound[1], tuple) else bound[1]
+        a = lo[0] + clear(lo, 1) + half
+        b = hi[0] - clear(hi, 0) - half
         if a > b:
             ctx.warn("A wall run is too short for its opening.")
             s_new = 0.5 * (lo[0] + hi[0])
@@ -178,6 +182,44 @@ def place_opening(ctx, station, half):
     ok, t = crv.LengthParameter(min(max(s, 0.0), Lc))
     plane = geo.frame_at(crv, t, 0.0)
     return plane, s
+
+
+def corner_clearance(ctx, crv, k, run_after):
+    """How far (model units along the run) the wall's layers stop short of a corner at length k:
+    every layer face ends on the corner's miter (bisector) line, so an opening cutting through the
+    whole stack must stay behind the point where the miter crosses the outermost or innermost face.
+    run_after: the run starts at the corner (True) or ends there (False)."""
+    G = geo.G
+    Lc = crv.GetLength()
+    d = min(ctx.u(1), 0.25 * Lc)
+
+    def tangent(at):
+        if crv.IsClosed:
+            at %= Lc
+        ok, t = crv.LengthParameter(min(max(at, 0.0), Lc))
+        v = crv.TangentAt(t)
+        v = G.Vector3d(v.X, v.Y, 0)
+        v.Unitize()
+        return v
+
+    before, after = tangent(k - d), tangent(k + d)
+    if run_after:
+        run, other = after, G.Vector3d(-before.X, -before.Y, 0)   # the other leg leaves backwards
+        into = run
+    else:
+        run, other = before, after
+        into = G.Vector3d(-run.X, -run.Y, 0)
+    bis = into + other
+    if bis.Length < 1e-9:
+        return 0.0
+    bis.Unitize()
+    y_axis = G.Vector3d.CrossProduct(G.Vector3d.ZAxis, run)
+    mx, my = bis * into, bis * y_axis
+    if abs(my) < 1e-9:
+        return 0.0
+    y_ext = max(b.d_ext for b in ctx.bands)
+    y_int = min(b.d_int for b in ctx.bands)
+    return max(0.0, y_ext * mx / my, y_int * mx / my)
 
 
 def build(ctx):

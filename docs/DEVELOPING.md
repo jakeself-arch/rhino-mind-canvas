@@ -86,7 +86,8 @@ after every host build `engine` moves each opening line to where the host put it
 
 - **Hosts** resolve openings while making their context: `ctx.openings = openings.resolve(ctx,
   driver_obj, place)` where `place(ctx, station, half_width) -> (plane, s)` is host specific
-  (`kinds/wall.place_opening` keeps openings clear of ends and corners). A future host
+  (`kinds/wall.place_opening` keeps openings inside their run: right up to a free end, and at a
+  corner only as far back as the layers' miter (`corner_clearance`) + 4" of jamb framing). A future host
   (curtain wall, floor, roof) only needs its own `place` and to build `openings.units` — or
   its own unit builder — for each record.
 - **`Opening` record** (model units): `plane` (origin on the oriented driver at z = 0, X along
