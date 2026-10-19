@@ -12,7 +12,7 @@ from . import ui
 
 RI = Rhino.Input
 STICKY = "mindcanvas.sectioncut.settings"
-CUTTABLE = ("wall", "curtain_wall", "floor", "roof", "stair")
+CUTTABLE = ("wall", "curtain_wall", "floor", "roof")
 
 
 def run():
@@ -38,7 +38,7 @@ def run():
 
     go.SetCustomGeometryFilter(RI.Custom.GetObjectGeometryFilter(_ok))
     while True:
-        go.SetCommandPrompt("Pick a wall, curtain wall, floor, roof or stair where to cut")
+        go.SetCommandPrompt("Pick a wall, curtain wall, floor or roof where to cut")
         go.ClearCommandOptions()
         i_scale = ui.add_option_list(go, "Scale", options, scale_i)
         ui.add_option_toggle(go, "Perspective", o_persp)
