@@ -18,6 +18,12 @@ z = height above the base (0 = sill line, H = head line).
              transom) filling the bay's clear width; the bay's lines below the head are hidden
              (the builder drops them), the cells above keep their rows.
 
+Curved walls: the elevation is UNFOLDED along the curve (u = arc length) but every bay is a flat
+panel on the chord between its grid lines. With `curve_pt` (u -> plan point, set by gridio for
+any wall) the model knows each panel's width (`chord`), how far it strays from the curve
+(`deviation`), the angle at each grid line (`turn`); bays straying more than `max_dev` are
+flagged and `fit_curves` divides them.
+
 GridController: the screen side. Pixels, y down. The elevation is seen from the EXTERIOR by
 default (u runs right -> left: the exterior is on the left of the drawing direction) or from the
 interior. Tools:
@@ -37,6 +43,7 @@ door heads within MAGNET_PX; Alt = no snapping.
 """
 
 import copy
+import math
 
 from .. import units
 
@@ -50,6 +57,9 @@ DRAG_PX = 3.0
 MAGNET_PX = 6.0
 EPS = 1.0 / 64
 MARGINS = (58.0, 92.0, 30.0, 70.0)      # left, right, top, bottom (px)
+MAX_DEV = 3.0           # curved walls: how far a flat panel may stray from the curve (inches)
+CURVED_DEV = 1.0 / 16   # a bay this far from its chord counts as curved
+DEV_SAMPLES = 8
 
 
 def fmt(inches):
@@ -108,6 +118,9 @@ class GridModel(object):
         self.row_types = list(row_types or [VISION])
         self.has_stack = False
         self.message = ""
+        self.curve_pt = None        # u -> (x, y) inches in plan: set for walls that are not straight
+        self.max_dev = MAX_DEV
+        self._dev_cache = {}
 
     # -- geometry ------------------------------------------------------------------------------
     @property
@@ -177,8 +190,87 @@ class GridModel(object):
         return out
 
     def clear_width(self, bay):
+        return self.chord(bay) - self.wv
+
+    # -- curved walls: every bay is a flat panel on the chord between its grid lines --------------
+    def _pt(self, u):
+        return self.curve_pt(u) if self.curve_pt else (u, 0.0)
+
+    def chord(self, bay):
+        """Panel width: the straight distance between the bay's grid lines (inches)."""
         a, b = self.span(bay)
-        return (b - a) - self.wv
+        if not self.curve_pt:
+            return b - a
+        (x0, y0), (x1, y1) = self._pt(a), self._pt(b)
+        return ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+
+    def deviation_between(self, a, b):
+        """Largest distance from the curve between u = a..b to the chord a-b (inches)."""
+        if not self.curve_pt or b - a < 1e-9:
+            return 0.0
+        key = (round(a, 4), round(b, 4))
+        hit = self._dev_cache.get(key)
+        if hit is not None:
+            return hit
+        (x0, y0), (x1, y1) = self._pt(a), self._pt(b)
+        dx, dy = x1 - x0, y1 - y0
+        L = (dx * dx + dy * dy) ** 0.5
+        out = 0.0
+        if L > 1e-9:
+            for i in range(1, DEV_SAMPLES):
+                x, y = self._pt(a + (b - a) * i / float(DEV_SAMPLES))
+                out = max(out, abs((x - x0) * dy - (y - y0) * dx) / L)
+        if len(self._dev_cache) > 5000:
+            self._dev_cache.clear()
+        self._dev_cache[key] = out
+        return out
+
+    def deviation(self, bay):
+        return self.deviation_between(*self.span(bay))
+
+    @property
+    def curved(self):
+        return bool(self.curve_pt) and any(self.deviation(b) > CURVED_DEV for b in range(self.nbays))
+
+    def over_limit(self):
+        """Bays whose flat panel strays from the curve by more than max_dev."""
+        return [b for b in range(self.nbays) if self.deviation(b) > self.max_dev + 1e-6]
+
+    def turn(self, k):
+        """Angle (degrees) between the panels either side of grid line k (0 at wall ends)."""
+        if not self.curve_pt or k <= 0 or k >= len(self.verts) - 1:
+            return 0.0
+        p0, p1, p2 = (self._pt(self.verts[i].u) for i in (k - 1, k, k + 1))
+        a1 = math.atan2(p1[1] - p0[1], p1[0] - p0[0])
+        a2 = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+        d = math.degrees(a2 - a1)
+        return (d + 180.0) % 360.0 - 180.0
+
+    def fit_curves(self, bays=None):
+        """Divide every bay (of `bays`, default all) that strays more than max_dev from the curve
+        into the fewest equal parts that do not. Returns the number of grid lines added."""
+        todo = sorted(self.over_limit() if bays is None else [b for b in bays if b in self.over_limit()],
+                      reverse=True)
+        if not todo:
+            self.refuse("Every panel is within {} of the curve.".format(fmt(self.max_dev)))
+        added = 0
+        for b in todo:                        # from the end: earlier bay indices stay valid
+            a, c = self.span(b)
+            n = 2
+            while True:
+                if (c - a) / n < self.gap_v:
+                    n -= 1
+                    break
+                if all(self.deviation_between(a + (c - a) * i / n, a + (c - a) * (i + 1) / n)
+                       <= self.max_dev + 1e-6 for i in range(n)):
+                    break
+                n += 1
+            for i in range(1, n):
+                self.add_vertical(a + (c - a) * i / n)
+                added += 1
+        if not added:
+            self.refuse("The panels are too narrow to divide further.")
+        return added
 
     # -- state ----------------------------------------------------------------------------------
     def state(self):
@@ -612,7 +704,7 @@ class GridController(object):
 
     def _edited(self, msg=""):
         self.version += 1
-        self.status = msg or self.m.message
+        self.status = " ".join(x for x in (msg or self.m.message, self.curve_status()) if x)
         self.m.message = ""
 
     def edit(self, fn, msg=""):
@@ -762,9 +854,14 @@ class GridController(object):
             dr["moved"] = True
         w = dr["what"]
         if w == "vertical":
-            u = m.move_vertical(dr["k"], self.snap_len(self.u_at(px), alt))
-            self.status = "Grid line at {} ({} | {})".format(fmt(u), fmt(u - m.verts[dr["k"] - 1].u),
-                                                             fmt(m.verts[dr["k"] + 1].u - u))
+            k = dr["k"]
+            u = m.move_vertical(k, self.snap_len(self.u_at(px), alt))
+            if m.curved:        # panel widths (chords) and how far they stray from the curve
+                self.status = "Grid line at {} along the curve: panels {} | {} (off the curve {} | {})".format(
+                    fmt(u), fmt(m.chord(k - 1)), fmt(m.chord(k)), fmt(m.deviation(k - 1)), fmt(m.deviation(k)))
+            else:
+                self.status = "Grid line at {} ({} | {})".format(fmt(u), fmt(u - m.verts[k - 1].u),
+                                                                 fmt(m.verts[k + 1].u - u))
             self.version += 1
         elif w == "hline":
             if dr["split"]:
@@ -844,9 +941,12 @@ class GridController(object):
             v = m.verts[k]
             if v.locked:
                 return "Fixed grid line ({})".format(v.kind), [("u", "Position", v.u, False)]
-            return "Grid line", [("u", "Position", v.u, True),
-                                 ("prev", "From previous", v.u - m.verts[k - 1].u, True),
-                                 ("next", "To next", m.verts[k + 1].u - v.u, True)]
+            out = [("u", "Position", v.u, True),
+                   ("prev", "From previous", v.u - m.verts[k - 1].u, True),
+                   ("next", "To next", m.verts[k + 1].u - v.u, True)]
+            if abs(m.turn(k)) >= 0.05:
+                out.append(("turn", "Panel angle", "{:.1f} deg".format(m.turn(k)), False))
+            return ("Grid line (along the curve)" if m.curved else "Grid line"), out
         if s[0] == "hline":
             li, bay = s[1], s[2]
             if li is None or li >= len(m.hlines):
@@ -875,8 +975,9 @@ class GridController(object):
             z0, z1 = rows[row]
             return "Panel (bay {}, row {})".format(bay + 1, row + 1), [
                 ("infill", "Infill", m.cell_type(bay, row), False),
-                ("width", "Width (c/c)", m.span(bay)[1] - m.span(bay)[0], False),
-                ("cell_h", "Height (c/c)", z1 - z0, False)]
+                ("width", "Width (c/c)", m.chord(bay), False),
+                ("cell_h", "Height (c/c)", z1 - z0, False)] + (
+                [("dev", "Off the curve", m.deviation(bay), False)] if m.deviation(bay) > CURVED_DEV else [])
         return "Curtain wall", []
 
     def set_value(self, field, inches):
@@ -938,13 +1039,25 @@ class GridController(object):
 
     # -- dimensions (painted by the view) ----------------------------------------------------------------
     def bay_dims(self):
-        """[(x_mid, text)] of the bay widths, centre to centre."""
+        """[(x_mid, width text, deviation text or "", over the limit)] per bay: the panel width
+        centre to centre of its grid lines (the chord on curves) and, on curves, how far the
+        panel strays from the curve."""
         m = self.m
         out = []
         for b in range(m.nbays):
             a, c = m.span(b)
-            out.append((0.5 * (self.x(a) + self.x(c)), fmt(c - a)))
+            dev = m.deviation(b)
+            dtxt = "dev {}".format(fmt(dev)) if dev > CURVED_DEV else ""
+            out.append((0.5 * (self.x(a) + self.x(c)), fmt(m.chord(b)), dtxt, dev > m.max_dev + 1e-6))
         return out
+
+    def curve_status(self):
+        """A warning about panels straying from a curved wall, or ""."""
+        bad = self.m.over_limit()
+        if not bad:
+            return ""
+        return "{} panel{} more than {} off the curve (bay {}): Fit curve divides them.".format(
+            len(bad), "" if len(bad) == 1 else "s", fmt(self.m.max_dev), ", ".join(str(b + 1) for b in bad[:6]))
 
     def row_dims(self, bay):
         m = self.m

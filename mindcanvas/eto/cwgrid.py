@@ -4,7 +4,9 @@ Top: the tools (Select / Grid line / Transom / Delete / Paint / Door), the paint
 type + swing + hinge, snapping, "whole width" for new transoms, exterior / interior view.
 Middle: the drawn elevation (eto/cwgridview.py over curtainwall/gridedit.py); right: the
 selection (typed positions: a grid line from the previous / to the next, a transom's height,
-a door's height), Divide bay, Equalize run, Delete.
+a door's height), Divide bay, Equalize run, Delete; curved walls: Max off the curve (how far a
+flat panel may stray from the curve; panels beyond it are flagged red) and Fit curve (divide
+them).
 Bottom: Undo / Redo, Revert, Apply (rebuild the curtain wall), Auto apply (on: rebuild after
 every finished edit, ~0.1 s for a 30' wall at detail), 3D preview (the edited grid drawn on the wall in the Rhino viewports, orange; the
 selection in blue), Reload, Close.
@@ -78,10 +80,14 @@ class CurtainGridEditor(object):
         self.lb_title = w.label("", bold=True)
         self.info_box = forms.Panel()
         self.tb_div = w.textbox("2", None, 40)
+        self.tb_dev = w.textbox(units.format_inches(c.m.max_dev, 16), self.on_max_dev, 70)
         side = w.rows(self.lb_title, self.info_box,
                       w.label("Grid", bold=True),
                       (w.button("Divide bay into", self.on_divide), self.tb_div),
                       w.button("Equalize run", self.on_equalize),
+                      w.label("Curved walls", bold=True),
+                      (w.label("Max off the curve"), self.tb_dev),
+                      w.button("Fit curve", self.on_fit),
                       w.button("Delete selected", self.on_delete),
                       w.label("Keys: S select, V grid line, H transom, X delete, P paint, D door, "
                               "Del delete, Ctrl+Z / Ctrl+Y. Ctrl-drag a transom: only its bay. "
@@ -259,6 +265,32 @@ class CurtainGridEditor(object):
         else:
             self.refresh()
 
+    def on_max_dev(self):
+        try:
+            v = units.parse_length(self.tb_dev.Text)
+        except Exception:
+            v = -1
+        if v <= 0:
+            self.ctl.status = "Max off the curve: a length above 0."
+        else:
+            self.ctl.m.max_dev = v
+            self.ctl.status = self.ctl.curve_status() or "Every panel is within {} of the curve.".format(
+                units.format_inches(v, 16))
+        self.refresh()
+
+    def on_fit(self):
+        self.on_max_dev()
+        m = self.ctl.m
+        n = self.ctl.edit(lambda: m.fit_curves())
+        if n:
+            self.ctl.sel = None
+            self.ctl.status = "{} grid line{} added: every panel within {} of the curve.".format(
+                n, "" if n == 1 else "s", units.format_inches(m.max_dev, 16)) + (
+                " " + self.ctl.curve_status() if self.ctl.curve_status() else "")
+            self.on_change(True)
+        else:
+            self.refresh()
+
     def on_delete(self):
         v0 = self.ctl.version
         self.ctl.delete()
@@ -322,6 +354,7 @@ class CurtainGridEditor(object):
     def _adopt(self, model):
         """The rebuilt wall's model replaces the edited one (same grid; ids of new doors)."""
         c = self.ctl
+        model.max_dev = c.m.max_dev
         c.m = model
         c.layout()
         c.version += 1

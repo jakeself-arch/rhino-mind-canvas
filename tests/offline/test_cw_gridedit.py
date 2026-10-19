@@ -169,3 +169,28 @@ c.edit(lambda: m2.equalize(0))
 ws = [m2.span(i)[1] - m2.span(i)[0] for i in range(m2.nbays)]
 assert max(ws) - min(ws) < 1e-6, ws
 print("test_cw_gridedit: OK ({} bays, {} lines)".format(m2.nbays, len(m2.hlines)))
+
+# -- curved walls: a 12' radius circle unfolded (u = arc length) -------------------------------
+import math as _m
+R = 144.0
+mc = ge.GridModel(2 * _m.pi * R, 144, 2.5, 2.5, closed=True)
+mc.curve_pt = lambda u: (R * _m.cos(u / R), R * _m.sin(u / R))
+mc.verts = [ge.Vert(0, True, "inline")] + [ge.Vert(i * mc.L / 16) for i in range(1, 16)] + [ge.Vert(mc.L, True, "seam")]
+mc.materialize(lambda b, r: "vision")
+th = 2 * _m.pi / 16
+assert close(mc.chord(0), 2 * R * _m.sin(th / 2), 1e-6) and mc.chord(0) < mc.span(0)[1] - mc.span(0)[0]
+assert close(mc.deviation(0), R * (1 - _m.cos(th / 2)), 0.02), mc.deviation(0)      # ~2.7"
+assert mc.curved and not mc.over_limit() and close(abs(mc.turn(3)), 360.0 / 16, 1e-6)
+mc.remove_vertical(8)                                   # a double-width bay: ~11" off the curve
+assert mc.over_limit() == [7], mc.over_limit()
+cc = ge.GridController(mc)
+cc._edited()
+assert "Fit curve" in cc.status, cc.status
+assert cc.bay_dims()[7][3] and cc.bay_dims()[0][2].startswith("dev")
+n = mc.fit_curves()
+assert n == 1 and not mc.over_limit() and mc.nbays == 16, (n, mc.nbays)
+mc.max_dev = 1.0                                        # tighter: every bay gets divided
+n = mc.fit_curves()
+assert n == 16 and not mc.over_limit(), (n, mc.over_limit())
+assert close(mc.clear_width(0), mc.chord(0) - 2.5)
+print("test_cw_gridedit curved: OK")

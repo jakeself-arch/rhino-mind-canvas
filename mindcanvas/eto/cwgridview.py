@@ -116,6 +116,16 @@ def paint(g, ctl):
         p.rect(LOCKED if v.locked else FRAME, x0, ctl.y(m.H), wv, m.H * sc)
         if v.kind in ("corner", "kink", "seam"):
             p.text(v.kind, x, ctl.y(m.H) - 13, DIM, "center")
+    # curved walls: panels straying too far from the curve, the angle at each grid line
+    for b in m.over_limit():
+        x, y, w, h = ctl.rect(b, 0.0, m.H)
+        p.frame(_pen(BAD, 2.0, True), x + 3, y + 3, w - 6, h - 6)
+        p.text("!", x + 0.5 * w, y + 6, BAD, "center", bold=True)
+    if m.curved:
+        for k, v in enumerate(m.verts):
+            t = m.turn(k)
+            if abs(t) >= 0.05 and not v.locked or (v.kind == "kink" and abs(t) >= 0.05):
+                p.text("{:.1f}°".format(abs(t)), ctl.x(v.u), ctl.y(m.H) - 13, DIM, "center")
     # outline
     xa, xb = sorted((ctl.x(0), ctl.x(m.L)))
     p.frame(_pen(INK, 1.0), xa, ctl.y(m.H), xb - xa, m.H * sc)
@@ -218,11 +228,14 @@ def _dims(p, ctl):
     for k, v in enumerate(m.verts):
         x = ctl.x(v.u)
         p.line(pen, x, yb, x, yb + 10)
-    for x, t in ctl.bay_dims():
+    for x, t, dev, bad in ctl.bay_dims():
         p.text(t, x, yb + 1, DIM, "center")
+        if dev:
+            p.text(dev, x, yb + 13, BAD if bad else DIM, "center", bold=bad)
     xa, xb = sorted((ctl.x(0), ctl.x(m.L)))
-    p.line(pen, xa, yb + 26, xb, yb + 26)
-    p.text("{} overall".format(ge.fmt(m.L)), 0.5 * (xa + xb), yb + 28, DIM, "center")
+    p.line(pen, xa, yb + 30, xb, yb + 30)
+    p.text("{} overall{}".format(ge.fmt(m.L), " along the curve" if m.curved else ""), 0.5 * (xa + xb),
+           yb + 32, DIM, "center")
     # rows of the selected (else the first) bay at the right
     bay = ctl.selected_bay()
     bay = 0 if bay is None else bay
@@ -235,8 +248,10 @@ def _dims(p, ctl):
     p.text("rows: bay {}".format(bay + 1), xr, ctl.y(m.H) - 26, DIM)
     # orientation
     left = "EXTERIOR VIEW" if ctl.view == "exterior" else "INTERIOR VIEW"
+    if m.curved:
+        left += " (unfolded: every panel is flat)"
     p.text(left, xa, ctl.y(m.H) - 26, INK, bold=True)
-    p.text("start", ctl.x(0) + (-4 if ctl.view == "exterior" else 4), ctl.y(0) + 40, DIM,
+    p.text("start", ctl.x(0) + (-4 if ctl.view == "exterior" else 4), ctl.y(0) + 46, DIM,
            "right" if ctl.view == "exterior" else "left")
 
 

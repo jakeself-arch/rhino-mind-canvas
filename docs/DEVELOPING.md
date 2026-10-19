@@ -135,7 +135,11 @@ stack and no components; the kind builds everything itself.
   (bay, row), `doors` = `Door(type, head, swing, hinge, leaves, shim, id)`; edits raise
   `EditRefused`; topology edits re-map cells by their centres; `export(station_of_u)` = driver
   params) and `GridController` (layout, `hit`, tools, mouse / keys, snapping + magnet, undo,
-  `info` / `set_value` for typed values). `curtainwall/gridio.py`: `Session` reads a BUILT grid
+  `info` / `set_value` for typed values). Curved walls: `model.curve_pt(u) -> (x, y)` (inches, set by
+  `gridio.read` for every wall) gives `chord(bay)` (the flat panel's width; door clear widths use
+  it), `deviation(bay)` (largest curve-to-chord distance, sampled, cached), `turn(k)`,
+  `over_limit()` (beyond `max_dev`, default 3") and `fit_curves()`; without it the model is
+  straight (offline tests). `curtainwall/gridio.py`: `Session` reads a BUILT grid
   (`read(ctx)`) and `apply` writes the params + door opening drivers (created / updated /
   deleted in `live.quiet()`), then one `engine.update_params` rebuild. `eto/cwgridview.py`
   paints a controller (`render_png` for tests) and forwards events; `eto/cwgrid.py` is the

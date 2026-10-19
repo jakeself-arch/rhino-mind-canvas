@@ -134,10 +134,15 @@ README.
   Grid line / Transom / Delete / Paint / Door tools, Ctrl-drag a transom segment, typed values,
   Divide bay, Equalize run, undo, snap + magnet, exterior / interior view, auto apply (on; ~0.1 s
   rebuild of a 30' wall at detail), 3D preview lines in the viewports.
+- Curved walls (user request 2026-10-18, same day): verified on arcs, circles, splines and
+  line + arc; the editor shows chord (panel) widths, each panel's deviation from the curve and
+  the facet angles, flags panels beyond `Max off the curve` (3") and `Fit curve` divides them;
+  doors in curved bays sit flat in their panel. Captures `cwgrid_curved_editor.png`,
+  `cwgrid_curved_plan.png`.
 - Doors: `leaf.leaves = 2` = a pair (hinged at both jambs, two swings); new types `Door -
   Aluminum Entrance, Full Lite Pair`, `Narrow Stile`, `Narrow Stile Pair`.
 - Tests: `tests/test_cwgrid.py` (`run(doc, captures=True, log=None)`, ~2 s) and
-  `tests/offline/test_cw_gridedit.py` pass; `test_phase4`, `test_phase5`, `test_phase8` pass.
+  `tests/offline/test_cw_gridedit.py` pass (both cover curved walls); `test_phase4`, `test_phase5`, `test_phase8` pass.
   Captures: `docs/captures/cwgrid_editor.png`, `cwgrid_wall.png`.
 - Not yet: merging panels across a grid line (a vertical that stops at a transom), windows /
   vents placed by the editor, a door spanning two bays (widen its bay instead); the window's layout was only checked through its handlers

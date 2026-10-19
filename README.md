@@ -181,6 +181,13 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
   - **Auto apply** (on) rebuilds the wall after every edit (about 0.1 s for a 30' wall at
     detail); **3D preview** draws the edited grid in orange on the wall in the viewports, the
     selection in blue. The window stays open while you work in Rhino.
+  - **Curved walls** (arcs, circles, splines, lines + arcs): the elevation is unfolded along the
+    curve, but every bay is a **flat panel** on the chord between its grid lines. The widths
+    under the bays are the panel widths, with how far each panel strays from the curve
+    (`dev`); the angle between neighbouring panels shows over each grid line on a curve. Panels
+    more than `Max off the curve` (3" by default) away are outlined in red; **Fit curve** adds
+    the fewest grid lines that bring them back (`Equalize run` spreads the lines evenly).
+    Doors in curved bays sit flat in their panel.
   The editor saves the wall with `Grid = Custom`: grid lines at stations along the curve (a flipped
   or reshaped curve keeps them where they are), transoms that cross only some bays as
   `{"z": height, "at": [stations]}`. `MCEditCurtainWall` → `Grid=Equal` returns to a module.

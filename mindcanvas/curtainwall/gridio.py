@@ -72,6 +72,11 @@ def _dist_u(g, i, u):
 def read(ctx):
     g, S, s = ctx.grid, ctx.dims, ctx.s
     m = ge.GridModel(g.length / s, ctx.height / s, S.mp["w"], S.tp["w"], g.closed, g.row_types)
+
+    def curve_pt(u):        # plan point (inches) at u inches along the grid curve
+        P = g.point_at_u(u * s)
+        return P.X / s, P.Y / s
+    m.curve_pt = curve_pt
     verts = []
     for v in g.vertices:
         locked = v.kind in ("start", "end", "corner") or v.kink or (g.closed and v.index == 0)

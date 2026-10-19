@@ -186,6 +186,8 @@ def run(doc, captures=True, log=None):
     assert sA.model.nbays == n0 + 1
     say("arc: {} -> {} bays".format(n0, sA.model.nbays))
 
+    _curved(doc, lib, captures)
+
     # -- closed rectangle: the seam is a locked line at both ends ------------------------------------------
     rect = G.PolylineCurve([G.Point3d(0, -_ft(doc, 40), 0), G.Point3d(_ft(doc, 16), -_ft(doc, 40), 0),
                             G.Point3d(_ft(doc, 16), -_ft(doc, 30), 0), G.Point3d(0, -_ft(doc, 30), 0),
@@ -253,6 +255,102 @@ def run(doc, captures=True, log=None):
     assert not cwgrid._OPEN
     say("test_cwgrid: OK in {:.1f} s".format(time.time() - t_all))
     return True
+
+
+def _built_sag(ses):
+    """Largest distance (inches) from the driver curve to a built bay chord, at mid-bay."""
+    g, s = ses.ctx.grid, ses.ctx.s
+    out = 0.0
+    for b in g.bays:
+        u0 = g.vertices[b.index].u
+        u1 = g.vertices[b.index + 1].u if b.index + 1 < len(g.vertices) else g.length
+        out = max(out, abs(b.local(g.point_at_u(0.5 * (u0 + u1)))[1]) / s)
+    return out
+
+
+def _curved(doc, lib, captures):
+    """Curved walls: the editor's panel widths / deviation match the built facets; a removed line
+    is flagged, Fit curve brings every panel back within the limit; doors in curved bays."""
+    single = "Door - Aluminum Entrance, Full Lite"
+    ft = lambda v: _ft(doc, v)
+    pc = G.PolyCurve()
+    pc.Append(G.LineCurve(G.Point3d(ft(70), 0, 0), G.Point3d(ft(80), 0, 0)))
+    pc.Append(G.ArcCurve(G.Arc(G.Point3d(ft(80), 0, 0), G.Vector3d(1, 0, 0), G.Point3d(ft(90), ft(10), 0))))
+    curves = [
+        ("arc", G.ArcCurve(G.Arc(G.Point3d(0, ft(70), 0), G.Point3d(ft(15), ft(78), 0), G.Point3d(ft(30), ft(70), 0)))),
+        ("circle", G.ArcCurve(G.Circle(G.Point3d(ft(50), ft(80), 0), ft(12)))),
+        ("spline", G.Curve.CreateInterpolatedCurve([G.Point3d(0, ft(100), 0), G.Point3d(ft(10), ft(106), 0),
+                                                    G.Point3d(ft(20), ft(98), 0), G.Point3d(ft(30), ft(104), 0)], 3)),
+        ("line+arc", pc),
+    ]
+    for name, crv in curves:
+        drv = _wall(doc, crv, transoms=[30])
+        ses = gridio.Session(doc, drv, lib)
+        m = ses.model
+        assert m.curved, name
+        # the model's panels are the built facets
+        g = ses.ctx.grid
+        for b in g.bays:
+            assert abs(m.chord(b.index) - b.c / ses.ctx.s) < 1e-3, (name, b.index, m.chord(b.index), b.c)
+        assert abs(max(m.deviation(b) for b in range(m.nbays)) - _built_sag(ses)) < 0.05, name
+        c = ge.GridController(m, 1100, 480, ses.door_info)
+        free = [i for i, v in enumerate(m.verts) if not v.locked]
+        c.edit(lambda: m.remove_vertical(free[len(free) // 2]))
+        c.edit(lambda: m.remove_vertical(free[len(free) // 2]))
+        bad = m.over_limit()
+        assert bad and "Fit curve" in c.status, (name, bad, c.status)
+        if captures and name == "circle":
+            say("capture", cwgridview_png(c, "cwgrid_curved_editor.png"))
+        d = bad[0]
+        c.edit(lambda: m.add_door(d, 0, single, ses.door_info(single)["head"]))
+        n = c.edit(lambda: m.fit_curves())
+        assert n and not m.over_limit(), (name, n, m.over_limit())
+        r = ses.apply(m)
+        assert not _bad(r), (name, r.warnings)
+        built = _built_sag(ses)
+        assert built <= m.max_dev + 0.05, (name, built)
+        assert len(ses.model.doors) == 1 and _roles(doc, drv.Id)["leaf"] == 1, name
+        # the door's frame sits on its bay's chord (flat), within the bay
+        op = [o for o in ses.ctx.openings if o.door][0]
+        bay = g_bay = ses.ctx.grid.bays[ses.ctx.grid.cell_at(op.plane.Origin)[0]]
+        u, y = g_bay.local(op.plane.Origin)
+        assert 0 < u < bay.c and abs(op.plane.XAxis * bay.X - 1.0) < 1e-6, (name, u, bay.c)
+        say("curved {}: {} bays, panels within {} of the curve (built {:.2f}\"), door in bay {}".format(
+            name, ses.model.nbays, ge.fmt(m.max_dev), built, list(ses.model.doors)[0] + 1))
+    # a flipped arc keeps its grid lines (stations along the curve as drawn)
+    arc = [d for d in meta.all_drivers(doc, "curtain_wall") if isinstance(d.Geometry, G.ArcCurve)
+           and not d.Geometry.IsClosed][0]
+    ses = gridio.Session(doc, arc, lib)
+    before = sorted((round(v.P.X, 3), round(v.P.Y, 3)) for v in ses.ctx.grid.vertices)
+    engine.update_params(doc, doc.Objects.FindId(arc.Id), {"flip": True}, lib)
+    ses.reload()
+    after = sorted((round(v.P.X, 3), round(v.P.Y, 3)) for v in ses.ctx.grid.vertices)
+    assert before == after, (before, after)
+    assert len(ses.model.doors) == 1
+    engine.update_params(doc, doc.Objects.FindId(arc.Id), {"flip": False}, lib)
+    if captures:
+        _capture_top(doc, [d for d in meta.all_drivers(doc, "curtain_wall") if d.Geometry.IsClosed
+                           and isinstance(d.Geometry, G.ArcCurve)][0], "cwgrid_curved_plan.png")
+
+
+def cwgridview_png(ctl, name):
+    from mindcanvas.eto import cwgridview
+    os.makedirs(CAPTURES, exist_ok=True)
+    return cwgridview.render_png(ctl, os.path.join(CAPTURES, name))
+
+
+def _capture_top(doc, drv, name):
+    import System
+    v = doc.Views.Find("Top", False) or doc.Views.ActiveView
+    vp = v.ActiveViewport
+    vp.DisplayMode = Rhino.Display.DisplayModeDescription.FindByName("Shaded")
+    bb = drv.Geometry.GetBoundingBox(True)
+    bb.Inflate(_ft(doc, 1.5))
+    vp.ZoomBoundingBox(bb)
+    v.Redraw()
+    path = os.path.join(CAPTURES, name)
+    v.CaptureToBitmap(System.Drawing.Size(700, 700)).Save(path, System.Drawing.Imaging.ImageFormat.Png)
+    say("capture", path)
 
 
 def _capture_wall(doc, drv):
