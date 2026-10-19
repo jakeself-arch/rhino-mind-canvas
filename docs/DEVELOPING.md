@@ -121,9 +121,26 @@ stack and no components; the kind builds everything itself.
   `ctx.grid`, one pseudo band "Curtain Wall" (`d_ext` = front of caps, `d_int` = back of
   mullions; used by section cuts and openings) and `ctx.openings`.
 - **Grid** (`grid.py`, model units): `vertices` (kind `start` / `end` / `inline` / `corner`,
-  `X` = mullion axis on the bisector, `turn` in degrees, + = concave), `bays` (straight chords:
-  `frame(u, z)`, `local(p)`, `world(u, y, z)`), `horizontals` (sill / transom / stack / head),
-  `rows`, `infill(bay, row)`, `cell_at(point)`.
+  `X` = mullion axis on the bisector, `turn` in degrees, + = concave, `u` = length along the grid
+  curve; grid mode `custom` puts them at `verticals` = stations in inches along the driver AS
+  DRAWN, plus run ends and kinks), `bays` (straight chords:
+  `frame(u, z)`, `local(p)`, `world(u, y, z)`), `horizontals` (sill / transom / stack / head:
+  the ones every bay shares), `bay_hs[bay]` (each bay's own list: a transom
+  `{"z", "at": [stations]}` only goes into the bays holding those stations), `bay_rows(bay)`,
+  `infill(bay, row)` (rows count per bay), `cell_at(point)`; stations: `point_at_station`,
+  `station_of`, `u_of`, `point_at_u`, `bay_at_station`.
+- **Visual grid editor** (`MCCurtainGrid`): `curtainwall/gridedit.py` is plain Python (no Rhino;
+  `tests/offline/test_cw_gridedit.py`): `GridModel` (the elevation in inches: `verts` with
+  `locked` ends / corners / kinks, `hlines` = `HLine(z, bays, kind)`, `cells` for every
+  (bay, row), `doors` = `Door(type, head, swing, hinge, leaves, shim, id)`; edits raise
+  `EditRefused`; topology edits re-map cells by their centres; `export(station_of_u)` = driver
+  params) and `GridController` (layout, `hit`, tools, mouse / keys, snapping + magnet, undo,
+  `info` / `set_value` for typed values). `curtainwall/gridio.py`: `Session` reads a BUILT grid
+  (`read(ctx)`) and `apply` writes the params + door opening drivers (created / updated /
+  deleted in `live.quiet()`), then one `engine.update_params` rebuild. `eto/cwgridview.py`
+  paints a controller (`render_png` for tests) and forwards events; `eto/cwgrid.py` is the
+  window (auto apply on a 0.35 s UITimer after a finished edit; the 3D preview is a
+  `DisplayPipeline.DrawForeground` handler removed when the window closes).
 - **Sections** (`sections.py`): 2D member sections in (a, q) inches — a across the member, q depth
   behind the glass face. `vertical(dims, kind, lod)` / `horizontal(dims, kind, lod)` return a
   `Section` with `members` (role, material, loops, `cover`, `detail`), the glass edges
@@ -139,7 +156,10 @@ stack and no components; the kind builds everything itself.
   `mc.x.area` + `mc.x.panel` + `mc.x.cell` on the first lite of each panel.
 - **Openings** in a curtain wall: `kinds.curtainwall.place_opening` snaps an opening to the bay
   nearest its station; `Builder._openings` sizes it to the bay's clear width, adds a head transom
-  and drops the infill (and, for doors, the sill) below it; the unit comes from `openings.units`.
+  and drops the infill (and, for doors, the sill) and the bay's horizontals below it; the unit
+  comes from `openings.units` (`leaf.leaves = 2`: a pair). The grid editor writes a door's
+  `width` a little under the bay's clear width so neighbouring door bays do not count as
+  overlapping in `openings.resolve`.
 - **Schedule**: `kinds.curtainwall.summary(ctx)` (panels per infill type with nominal areas,
   bays, rows) feeds `schedule.curtain_walls`.
 - Drawing: `drawing.sectioncut.wall_frame` works for any kind with bands (a curtain wall uses the

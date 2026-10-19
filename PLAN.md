@@ -118,9 +118,30 @@ docs/                  findings, user guide
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
 | 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
+| CW | Visual curtain-grid editor (user request 2026-10-18, ArchiCAD-style): the elevation in a window, drag / add / delete grid lines and transoms (transoms in some bays only), paint panels, doors (single + pair) in bays with a draggable head, 3D preview, auto apply | Done (`MCCurtainGrid`; `curtainwall/gridedit.py`, `gridio.py`, `eto/cwgrid*.py`; branch `cw-grid-editor`, built on `phase10-wall-masses`) |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
+
+**2026-10-18: visual curtain-grid editor** (user request, outside the numbered phases) done on
+branch `cw-grid-editor` (branched from `phase10-wall-masses`, so it includes PR #7's commits until
+that merges). Details in `docs/DEVELOPING.md` ("Curtain walls" -> Visual grid editor) and the
+README.
+- Grid mode `custom` (`verticals` = stations along the driver as drawn; a flip keeps them),
+  transoms `{"z", "at": [stations]}` crossing only some bays (`grid.bay_hs`), cells counted per
+  bay. Numeric grids still work and keep partial transoms.
+- `MCCurtainGrid` (also `MCEditCurtainWall` -> `Editor`, panel "Curtain grid editor"): Select /
+  Grid line / Transom / Delete / Paint / Door tools, Ctrl-drag a transom segment, typed values,
+  Divide bay, Equalize run, undo, snap + magnet, exterior / interior view, auto apply (on; ~0.1 s
+  rebuild of a 30' wall at detail), 3D preview lines in the viewports.
+- Doors: `leaf.leaves = 2` = a pair (hinged at both jambs, two swings); new types `Door -
+  Aluminum Entrance, Full Lite Pair`, `Narrow Stile`, `Narrow Stile Pair`.
+- Tests: `tests/test_cwgrid.py` (`run(doc, captures=True, log=None)`, ~2 s) and
+  `tests/offline/test_cw_gridedit.py` pass; `test_phase4`, `test_phase5`, `test_phase8` pass.
+  Captures: `docs/captures/cwgrid_editor.png`, `cwgrid_wall.png`.
+- Not yet: merging panels across a grid line (a vertical that stops at a transom), windows /
+  vents placed by the editor, a door spanning two bays (widen its bay instead); the window's layout was only checked through its handlers
+  (not looked at on screen by the agent).
 
 **Current state (2026-10-16): second roadmap, Phase 10 (wall masses) done on branch
 `phase10-wall-masses` (PR jakeself-arch/rhino-mind-canvas#7), not merged** (the user decides when to merge). Next is Phase 11

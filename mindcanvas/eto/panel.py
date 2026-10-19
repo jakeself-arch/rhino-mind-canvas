@@ -31,7 +31,7 @@ BUILD = [("Wall", "MCWall"), ("Curtain wall", "MCCurtainWall"), ("Floor", "MCFlo
          ("Edit walls", "MCEdit"),
          ("Layers", "MCLayers"), ("Framing", "MCFraming"), ("Joins", "MCJoin"), ("Trim", "MCTrim"),
          ("Edit opening", "MCEditOpening"),
-         ("Edit curtain wall", "MCEditCurtainWall"), ("Edit floor", "MCEditFloor"), ("Edit roof", "MCEditRoof"),
+         ("Edit curtain wall", "MCEditCurtainWall"), ("Curtain grid editor", "MCCurtainGrid"), ("Edit floor", "MCEditFloor"), ("Edit roof", "MCEditRoof"),
          ("Setup model", "MCSetup"), ("Update", "MCUpdate"), ("Live on / off", "MCLive"),
          ("Schedule", "MCSchedule"), ("Purge", "MCPurge")]
 _OPEN = []

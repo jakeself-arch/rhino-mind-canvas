@@ -7,10 +7,13 @@ Every length is inches (numbers or imperial strings). Keys:
                    glass_center | exterior_face (face of caps / lips) | mullion_back
     grid           equal (each run divided into equal bays <= spacing) | fixed (spacing from
                    the start of each run, the remainder in the last bay) | list (bays widths,
-                   repeated)
+                   repeated) | custom (grid lines at `verticals`: the visual grid editor)
     spacing, bays  module and the list for grid = list
+    verticals      grid = custom: the interior grid lines, stations along the driver as drawn
+                   (run ends and kinks are always grid lines)
     transoms       heights of horizontal mullions above the base (the sill and head are always
-                   there)
+                   there); an entry {"z": height, "at": [stations]} crosses only the bays at
+                   those stations (the visual grid editor writes these)
     stack          unitized: heights of stack joints (split horizontals) above the base
     slabs          heights of slab tops above the base: slab-edge anchors at every mullion,
                    fire safing + smoke seal (detail)
@@ -30,7 +33,7 @@ from .. import units
 
 STYLES = ("captured", "ssg4", "ssg2", "butt", "unitized")
 REFERENCES = ("glass", "glass_center", "exterior_face", "mullion_back")
-GRIDS = ("equal", "fixed", "list")
+GRIDS = ("equal", "fixed", "list", "custom")
 INFILLS = ("vision", "spandrel", "shadow_box")
 LODS = ("schematic", "design", "detail")
 
@@ -40,6 +43,7 @@ DEFAULTS = {
     "grid": "equal",
     "spacing": 60,
     "bays": [],
+    "verticals": [],
     "transoms": [],
     "stack": [],
     "slabs": [],

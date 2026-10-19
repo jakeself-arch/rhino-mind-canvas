@@ -3,7 +3,8 @@
 Window: mitered frame (glazing pocket when fixed, exterior stop when operable), optional
 mullions / transoms, sashes (casement, awning, double hung, sliding), insulated glass
 (two lites + spacer at detail). Door: three-sided mitered frame with a stop, leaf (optional
-glass lite), threshold, and the swing (arc + open leaf line at the floor, for plans).
+glass lite; leaf.leaves = 2 makes a pair hinged at both jambs), threshold, and the swing (arc +
+open leaf line at the floor, for plans).
 Both: interior jamb liners + stool (windows), sill pan and, on walls without brick, a head
 drip cap (detail).
 
@@ -235,12 +236,50 @@ def _door(b, detail, design):
     else:
         prof = [(0, 0), (F, 0), (F, Df), (0, Df)]
     b.ring(x0, x1, z0, z1, prof, yF, mat, "frame", sides)
-    # leaf
+    # leaves: one (hinged per op.hinge) or a pair (hinged at both jambs, meeting at the middle)
     lx0, lx1 = x0 + F + clr, x1 - F - clr
     lz0, lz1 = z0 + u(lf.get("undercut", "3/4")), z1 - F - clr
     ly1, ly0 = yF - lq0, yF - lq1
     lmat = lf.get("material", "Hollow Metal Door")
     lite = lf.get("lite") if design else None
+    pair = int(lf.get("leaves", 1) or 1) >= 2
+    if pair:
+        xm, gap = 0.5 * (lx0 + lx1), 0.5 * u(lf.get("meeting", "1/8"))
+        leaves = [(lx0, xm - gap, lx0), (xm + gap, lx1, lx1)]       # (x0, x1, hinge x)
+    else:
+        leaves = [(lx0, lx1, lx1 if op.hinge == "left" else lx0)]
+    for ax0, ax1, hx in leaves:
+        _leaf(b, op, t, ax0, ax1, lz0, lz1, ly0, ly1, lmat, lite, T, detail)
+    # threshold
+    th = t.get("threshold")
+    if design and th:
+        tw, tht = u(th.get("width", 5)), u(th.get("height", "1/2"))
+        yc = 0.5 * (ly0 + ly1)
+        tw = min(tw, Df + u(1))
+        poly = [(yc + 0.5 * tw, z0), (yc + 0.5 * tw - 0.35 * tw, z0 + tht), (yc - 0.5 * tw + 0.35 * tw, z0 + tht),
+                (yc - 0.5 * tw, z0)]
+        b.add(geom.prism_x(op, poly, x0 + F, x1 - F, b.tol), th.get("material", "Aluminum"), "threshold")
+    # swing (plan symbol at the floor). Hinge "left" = left as seen from the exterior (+X here).
+    side = -1.0 if inswing else 1.0
+    yh = ly0 if inswing else ly1
+    zf = op.z0
+    for ax0, ax1, hx in leaves:
+        W_leaf = ax1 - ax0
+        lx = ax0 if hx == ax1 else ax1
+        P = op.pt(hx, yh, zf)
+        closed = op.pt(lx, yh, zf)
+        opened = op.pt(hx, yh + side * W_leaf, zf)
+        try:
+            arc = G.Arc(G.Plane(P, closed - P, opened - P), W_leaf, math.pi / 2)
+            b.add(G.ArcCurve(arc), "Door Swing", "swing")
+        except Exception:
+            pass
+        b.add(G.LineCurve(P, opened), "Door Swing", "swing")
+
+
+def _leaf(b, op, t, lx0, lx1, lz0, lz1, ly0, ly1, lmat, lite, T, detail):
+    """One door leaf with its optional glass lite."""
+    ctx, u = b.ctx, b.u
     leaf = op.box(lx0, lx1, ly0, ly1, lz0, lz1)
     if lite:
         if lite.get("width"):
@@ -269,31 +308,6 @@ def _door(b, detail, design):
                 b.ring(gx0 - st, gx1 + st, gz0 - st, gz1 + st, sp, ly1 + st, lmat, "glazing_stop")
                 b.ring(gx0 - st, gx1 + st, gz0 - st, gz1 + st, sp, ly0, lmat, "glazing_stop")
     b.add(leaf, lmat, "leaf")
-    # threshold
-    th = t.get("threshold")
-    if design and th:
-        tw, tht = u(th.get("width", 5)), u(th.get("height", "1/2"))
-        yc = 0.5 * (ly0 + ly1)
-        tw = min(tw, Df + u(1))
-        poly = [(yc + 0.5 * tw, z0), (yc + 0.5 * tw - 0.35 * tw, z0 + tht), (yc - 0.5 * tw + 0.35 * tw, z0 + tht),
-                (yc - 0.5 * tw, z0)]
-        b.add(geom.prism_x(op, poly, x0 + F, x1 - F, b.tol), th.get("material", "Aluminum"), "threshold")
-    # swing (plan symbol at the floor). Hinge "left" = left as seen from the exterior (+X here).
-    W_leaf = lx1 - lx0
-    hx = lx1 if op.hinge == "left" else lx0
-    lx = lx0 if op.hinge == "left" else lx1
-    side = -1.0 if inswing else 1.0
-    yh = ly0 if inswing else ly1
-    zf = op.z0
-    P = op.pt(hx, yh, zf)
-    closed = op.pt(lx, yh, zf)
-    opened = op.pt(hx, yh + side * W_leaf, zf)
-    try:
-        arc = G.Arc(G.Plane(P, closed - P, opened - P), W_leaf, math.pi / 2)
-        b.add(G.ArcCurve(arc), "Door Swing", "swing")
-    except Exception:
-        pass
-    b.add(G.LineCurve(P, opened), "Door Swing", "swing")
 
 
 # -- trim, sill pan, head drip ------------------------------------------------------------------

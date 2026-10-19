@@ -536,7 +536,7 @@ class Builder(object):
 
     def bay_horizontals(self, b):
         hs = self.op_h.get(b.index)
-        return hs if hs is not None else self.grid.horizontals
+        return hs if hs is not None else self.grid.bay_hs[b.index]
 
     def build_bay(self, b):
         S, s = self.S, self.s
@@ -554,7 +554,7 @@ class Builder(object):
         for r, (h0, h1) in enumerate(zip(hs, hs[1:])):
             if getattr(h0, "door", False):
                 continue
-            row = self.grid_row(h0, h1)
+            row = self.grid_row(b, h0, h1)
             kind = self.grid.infill(b.index, row)
             if kind not in INFILLS:
                 self.warn("Unknown infill '{}'; vision used.".format(kind))
@@ -563,9 +563,10 @@ class Builder(object):
             z1 = self.zc(h1) + self.hsec[h1.kind].edge_neg * s
             self.cell(b, row, kind, eL, eR, h0, h1, z0, z1)
 
-    def grid_row(self, h0, h1):
+    def grid_row(self, b, h0, h1):
+        """Row (in the bay's own grid rows) of a space between two of its horizontals."""
         zm = 0.5 * (h0.z + h1.z)
-        for r, (a, c) in enumerate(self.grid.rows):
+        for r, (a, c) in enumerate(self.grid.bay_rows(b)):
             if a.z - 1e-9 <= zm <= c.z + 1e-9:
                 return r
         return 0
@@ -768,7 +769,7 @@ class Builder(object):
             sill.door = True                # the row below the head transom is the opening
             sill.skip = op.door             # doors run to the floor
             hs = [sill, Horizontal("transom", head)]
-            hs += [h for h in g.horizontals[1:] if h.kind == "head" or h.z >= head + 1.5 * self.wh]
+            hs += [h for h in g.bay_hs[b.index][1:] if h.kind == "head" or h.z >= head + 1.5 * self.wh]
             self.op_h[b.index] = hs
             eL, eR = self.ends[(b.index, 0)], self.ends[(b.index, 1)]
             ym = 0.5 * (op.y_ext + op.y_int)
