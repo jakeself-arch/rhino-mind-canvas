@@ -699,6 +699,15 @@ class Derived(object):
         self.start = "i"        # the driver starts at cap i / j
 
 
+def top_cut(mass_obj):
+    """Inches the wall stops below the mass's top (a dressed story under a floor: the floor's
+    depth down to its framing bottom, mindcanvas/dress.py); 0 otherwise."""
+    try:
+        return max(0.0, float(meta.params(mass_obj).get("top_cut", 0) or 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _wall_params(doc, f):
     """(assembly, params) of the wall a mass drives (its wall's, else the mass's create params)."""
     from .kinds import wall as wallkind
@@ -762,7 +771,7 @@ def derive(doc, f, group, gap):
     D.Translate(G.Vector3d(0, 0, f.z0 - base - D.PointAtStart.Z))
     out.curve = D
     prm = dict(f.prm)
-    prm["height"] = round((f.z1 - f.z0) / s_in, 4)
+    prm["height"] = round((f.z1 - f.z0) / s_in - top_cut(f.obj), 4)
     prm["flip"] = flip
     out.params = prm
     out.assembly = f.asm
@@ -961,8 +970,9 @@ def follow(doc, ctx, obj):
     z0, z1 = bb.Min.Z, bb.Max.Z
     xf = G.Transform.Identity
     moved = False
-    if abs(z0 - ctx.base_z) > tol or abs((z1 - z0) - ctx.height) > tol:
-        sz = ctx.height / (z1 - z0) if z1 - z0 > ctx.tol else 1.0
+    H = ctx.height + ctx.u(top_cut(m))       # the mass reaches past the wall by its top cut
+    if abs(z0 - ctx.base_z) > tol or abs((z1 - z0) - H) > tol:
+        sz = H / (z1 - z0) if z1 - z0 > ctx.tol else 1.0
         xf = (G.Transform.Translation(0, 0, ctx.base_z - z0)
               * G.Transform.Scale(G.Plane(G.Point3d(0, 0, z0), G.Vector3d.ZAxis), 1.0, 1.0, sz))
         moved = True

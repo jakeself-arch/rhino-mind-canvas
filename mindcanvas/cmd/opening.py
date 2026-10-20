@@ -1,12 +1,13 @@
 """MCOpening: place windows and doors in walls (and doors in curtain-wall bays: the unit fills the
-bay clicked and gets a head transom). Click where the opening's center goes (in plan or 3D);
-repeat, Enter to finish."""
+bay clicked and gets a head transom). A ghost of the opening follows the mouse along the wall under
+it (viewport/ghost.py); click where its center goes (in plan or 3D); repeat, Enter to finish."""
 
 import scriptcontext
 import Rhino
 
 from .. import engine, library, meta, units
 from ..openings import core
+from ..viewport import ghost
 from . import ui
 
 RI = Rhino.Input
@@ -106,34 +107,35 @@ def run():
     if not tname:
         return ui.Result.Cancel
     s = Settings(doc, lib, tname, st.get("params"), st.get("snap", True))
+    preview = ghost.OpeningPreview(doc, lib, s)     # the opening follows the mouse along the wall
     placed = 0
+    doc.Objects.UnselectAll()
     while True:
-        go = RI.Custom.GetObject()
-        go.SubObjectSelect = False
-        go.GroupSelect = False
-        go.EnablePreSelect(False, True)
-        go.AcceptNothing(True)
-        go.SetCustomGeometryFilter(wall_filter(doc))
-        go.SetCommandPrompt("Click a wall where the {} goes [{}] (Enter to finish)".format(
+        gp = RI.Custom.GetPoint()
+        gp.AcceptNothing(True)
+        gp.SetCommandPrompt("Click a wall where the {} goes [{}] (Enter to finish)".format(
             "door" if s.door else "window", s.type_name))
-        handlers = s.add_options(go)
-        res = go.Get()
+        handlers = s.add_options(gp)
+        gp.MouseMove += preview.on_mouse_move
+        gp.DynamicDraw += preview.on_draw
+        res = gp.Get()
         if res == RI.GetResult.Option:
-            s.handle(go, handlers)
+            s.handle(gp, handlers)
             continue
-        if res != RI.GetResult.Object:
+        if res != RI.GetResult.Point:
             break
-        ref = go.Object(0)
-        obj = ref.Object()
-        pt = ref.SelectionPoint()
-        if not pt.IsValid:
-            pt = obj.Geometry.GetBoundingBox(True).Center
-        drv = meta.driver_of(doc, obj)
-        doc.Objects.UnselectAll()
+        w = gp.Point2d()
+        found = preview.pick(gp.View(), (w.X, w.Y)) or preview.current
+        if found is None:
+            ui.say("Click on a wall (the preview shows where the {} goes).".format("door" if s.door else "window"))
+            continue
+        tg, pt = found
+        drv = doc.Objects.FindId(tg.driver.Id)
         op, r = engine.add_opening(doc, drv, s.type_name, s.snapped(drv, s.params()), pt, lib)
         placed += 1
         ui.report(r, "{}:".format(s.type_name))
         scriptcontext.sticky[STICKY] = {"type": s.type_name, "params": s.params(), "snap": s.snap.CurrentValue}
+        preview.refresh_targets()
         doc.Views.Redraw()
     ui.say("Placed {} opening(s).".format(placed))
     return ui.Result.Success if placed else ui.Result.Cancel

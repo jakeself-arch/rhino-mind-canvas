@@ -328,6 +328,7 @@ class Inspector(object):
         lay.AddRow(grid)
         lay.AddRow(_buttons(("Window / door", lambda: self.action("MCOpening", [])),
                             ("Match...", lambda: self.action("MCMatch", []))))
+        lay.AddRow(_buttons(("Palette (pick by sight)...", self.open_palette)))
         lay.AddRow(None)
 
     # -- actions ----------------------------------------------------------------------------
@@ -368,16 +369,20 @@ class Inspector(object):
             self.reselect(ids)
 
     def edit_assembly(self, ids):
-        from . import editor
+        from . import visual
         ds = self.objects(ids)
         if not ds:
             return
         try:
-            ed = editor.AssemblyEditor(self.doc, self.lib, name=meta.get(ds[0], meta.ASSEMBLY), drivers=ds)
+            ed = visual.VisualAssemblyEditor(self.doc, self.lib, name=meta.get(ds[0], meta.ASSEMBLY), drivers=ds)
         except Exception as ex:
             self.say(str(ex))
             return
         ed.show()
+
+    def open_palette(self):
+        from . import palette
+        palette.open_palette()
 
     def show(self):
         self.form.Owner = w.owner()

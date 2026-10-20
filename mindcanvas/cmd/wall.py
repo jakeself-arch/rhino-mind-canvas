@@ -8,18 +8,72 @@ from ..kinds import wall as wallkind
 from . import ui
 
 RI = Rhino.Input
+G = Rhino.Geometry
 REF_OPTIONS = ["ExteriorFace", "InteriorFace", "Center", "CoreExterior", "CoreInterior", "CoreCenter"]
 LOD_OPTIONS = ["Schematic", "Design", "Detail"]
 STICKY = "mindcanvas.wall.settings"
 
 
-def _draw_polyline(doc):
-    before = doc.Objects.MostRecentObject()
-    Rhino.RhinoApp.RunScript("_Polyline", False)
-    after = doc.Objects.MostRecentObject()
-    if after is None or (before is not None and after.Id == before.Id):
-        return []
-    return [after]
+def _draw_polyline(doc, lib, name, params):
+    """Pick the wall's points with its band showing (viewport/ghost.WallBand): Enter finishes,
+    Close closes it, Undo drops the last point, Flip / Location change the band on the fly.
+    Returns ([curve object], params)."""
+    from ..viewport import ghost
+    params = dict(params)
+    band = ghost.WallBand(doc, lib, name, params)
+    closed = False
+    while True:
+        gp = RI.Custom.GetPoint()
+        n = len(band.points)
+        gp.SetCommandPrompt("Start of the wall" if n == 0 else "Next point (Enter to finish)")
+        gp.AcceptNothing(n >= 2)
+        i_undo = gp.AddOption("Undo") if n else -1
+        i_close = gp.AddOption("Close") if n >= 2 else -1
+        opt_flip = RI.Custom.OptionToggle(bool(params.get("flip")), "No", "Yes")
+        ui.add_option_toggle(gp, "Flip", opt_flip)
+        ref_i = wallkind.REFERENCES.index(params.get("reference", "center"))
+        i_ref = ui.add_option_list(gp, "Location", REF_OPTIONS, ref_i)
+        if n:
+            gp.SetBasePoint(band.points[-1], True)
+            z = band.points[0].Z
+            gp.Constrain(G.Plane(G.Point3d(0, 0, z), G.Vector3d.ZAxis), False)
+        gp.MouseMove += band.on_mouse_move
+        gp.DynamicDraw += band.on_draw
+        res = gp.Get()
+        if res == RI.GetResult.Option:
+            oi = gp.OptionIndex()
+            if oi == i_undo and band.points:
+                band.points.pop()
+            elif oi == i_close:
+                closed = True
+                break
+            elif oi == i_ref:
+                params["reference"] = wallkind.REFERENCES[gp.Option().CurrentListOptionIndex]
+            if bool(opt_flip.CurrentValue) != bool(params.get("flip")):
+                params["flip"] = bool(opt_flip.CurrentValue)
+            band = _rebuilt(band, doc, lib, name, params)
+            continue
+        if res == RI.GetResult.Point:
+            p = gp.Point()
+            if band.points:
+                p = G.Point3d(p.X, p.Y, band.points[0].Z)
+            band.points.append(p)
+            continue
+        if res == RI.GetResult.Nothing and n >= 2:
+            break
+        return [], params
+    pts = list(band.points)
+    if closed:
+        pts.append(G.Point3d(pts[0]))
+    oid = doc.Objects.AddCurve(G.PolylineCurve(pts))
+    return [doc.Objects.FindId(oid)], params
+
+
+def _rebuilt(band, doc, lib, name, params):
+    from ..viewport import ghost
+    nb = ghost.WallBand(doc, lib, name, params)
+    nb.points, nb.xy = band.points, band.xy
+    return nb
 
 
 def run():
@@ -69,7 +123,11 @@ def run():
             elif oi == i_lod:
                 lod_i = go.Option().CurrentListOptionIndex
             elif oi == i_draw:
-                curves = _draw_polyline(doc)
+                drawn = {"height": round(units.to_inches(doc, opt_h.CurrentValue), 4),
+                         "reference": wallkind.REFERENCES[ref_i], "flip": bool(opt_flip.CurrentValue)}
+                curves, drawn = _draw_polyline(doc, lib, name, drawn)
+                ref_i = wallkind.REFERENCES.index(drawn["reference"])
+                opt_flip.CurrentValue = bool(drawn["flip"])
                 break
             continue
         if res == RI.GetResult.Object:

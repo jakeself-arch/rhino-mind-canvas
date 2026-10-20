@@ -19,6 +19,19 @@ def run():
     except Exception as ex:
         ui.say("Double-click editing skipped: {}".format(ex))
     try:
+        from ..viewport import overlay
+        if not overlay.is_on():
+            overlay.enable(True, True)
+        ui.say("Drag the arrows on a selected assembly; rest the mouse on one for its label (MCHandles).")
+    except Exception as ex:
+        ui.say("Viewport handles skipped: {}".format(ex))
+    try:
+        from .. import laylink
+        laylink.enable()
+        ui.say("Geometry on the 'MC Assemblies' layers becomes assemblies (MCAssemblyLayers makes them).")
+    except Exception as ex:
+        ui.say("Assembly layers skipped: {}".format(ex))
+    try:
         from ..drawing import displaymode, patterns
         patterns.ensure(doc)
         displaymode.ensure()

@@ -59,6 +59,11 @@ mindcanvas/            Python package (the engine)
   trims.py             phase 8: per-wall trims (sweep extras in params["extras"])
   asmedit.py           phase 8: assembly editor model (no UI)
   eto/                 phase 8: Eto views: widgets.py, editor.py (assembly editor), panel.py (MCPanel)
+  asmview.py           phase 12: the drawn layer section as plain Python (layout, hit tests, click / drag
+                       reorder / drag thickness with snapping); eto/sectionview.py paints it
+  asmfields.py         phase 12: typed fields for component options + assembly settings
+  preview.py           phase 12: live preview sample of an unsaved assembly (MindCanvas::_Preview);
+                       eto/visual.py = the visual assembly editor window
   live.py              watches driver edits and rebuilds (toggle)
   masses.py            phase 9: mass drivers: solids pushed / pulled with the gumball that write the
                        params of existing drivers (opening masses: box cut = rough opening)
@@ -116,12 +121,34 @@ docs/                  findings, user guide
 | — | **Review checkpoint with user**: try the gumball workflow before Phase 10 | Done (user approved Phase 9, asked for Phase 10) |
 | 10 | Wall masses: box / extruded footprint -> wall line, base, height (thickness arbitrary); the finished exterior face on the mass's outer face (user, 2026-10-16), a flip arrow, closed rings orient themselves, open groups: exterior away from the group | Done (`MCWallMass`; `mindcanvas/wallmasses.py`; branch `phase10-wall-masses`, PR jakeself-arch/rhino-mind-canvas#7) |
 | 11 | Roof masses: triangular extrusion = gable (base = plate line, slopes = pitch, extrusion direction = ridge, bottom = plate height), wedge = shed, box = flat; overhang / rake stay settings; auto-join to wall masses | |
-| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | |
+| 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | Done, awaiting review (`MCAssemblyEditor` / panel open it; `mindcanvas/asmview.py`, `asmfields.py`, `preview.py`, `eto/visual.py`, `eto/sectionview.py`; branch `claude/phase12-visual-editor-725423`, PR jakeself-arch/rhino-mind-canvas#8) |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
 | CW | Visual curtain-grid editor (user request 2026-10-18, ArchiCAD-style): the elevation in a window, drag / add / delete grid lines and transoms (transoms in some bays only), paint panels, doors (single + pair) in bays with a draggable head, 3D preview, auto apply | Done (`MCCurtainGrid`; `curtainwall/gridedit.py`, `gridio.py`, `eto/cwgrid*.py`; branch `cw-grid-editor`, built on `phase10-wall-masses`) |
+| UI | Viewport editing + picking by sight (user request 2026-10-20, from a brainstorm): drag handles on the selected assemblies, hover labels, ghost previews in MCOpening / MCWall Draw; the assembly palette (drawn tiles, built on Phase 12); layer = assembly; dress massing solids (one solid = one story, floors where they stack, no roofs) | Done (`MCHandles`, `MCPalette`, `MCPaintAssembly`, `MCAssemblyLayers`, `MCDress`; `mindcanvas/viewport/`, `eto/palette.py`, `eto/tiles.py`, `laylink.py`, `dress.py`; branch `claude/ui-smoothness-visual-design-4af79f`, includes Phase 12) |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
+
+**2026-10-20: viewport editing + picking by sight** on branch `claude/ui-smoothness-visual-design-4af79f`
+(from main 797b2ed, with Phase 12 / PR jakeself-arch/rhino-mind-canvas#8 merged in because the
+palette's tiles use its drawn section). The user asked for a smoother, more visual UI for studio work,
+chose the "edit in the viewport" and "pick assemblies by sight" groups of a brainstorm, and decided:
+build on Phase 12; dressing = one solid per story; no roofs from dressing for now; handles show on
+selection. Details in the README ("Editing in the viewport, picking by sight") and
+`docs/DEVELOPING.md` ("Viewport editing, palette, assembly layers, dressing").
+- Built: drag handles + hover labels (`viewport/shapes.py`, `overlay.py`, `MCHandles`), MCOpening's
+  ghost + MCWall Draw's band (`viewport/ghost.py`), the palette (`eto/palette.py`, `eto/tiles.py`,
+  `MCPalette`, `MCPaintAssembly`), layer = assembly (`laylink.py`, `MCAssemblyLayers`), dressing
+  (`dress.py`, `MCDress`; wall-mass param `top_cut`). `MCSetup` turns on handles, labels and layer
+  watching; `MCInspector` turns on handles / labels; the inspector's "Edit assembly" opens the Phase 12
+  editor; aliases `PA`, `AL`, `DM`, `VH`.
+- Tests (each in its own run_python call, own spawned slot): `tests/test_viewui.py`,
+  `test_palette.py`, `test_laylink.py`, `test_dress.py` pass, and so do `test_phase7`, `test_phase9`,
+  `test_phase10`, `test_phase12`, `test_inspector`, `test_cwgrid` (run with drawings / captures off).
+- Not yet / checked by hand only: real mouse drags in a live Rhino (the tests drive the mouse
+  callback with stand-in events; Undo of a drag cannot run inside run_python), the palette window's
+  look (only its tiles were rendered), roofs from massing (Phase 11), a story larger than the one
+  below gets a floor only over the lower outline.
 
 **2026-10-19: fast UI** (user request: fewer clicks, more Rhino-like) on branch `fast-ui`
 (branched from `cw-grid-editor`). From a brainstorm of six ideas the user picked the inspector,
@@ -213,6 +240,24 @@ README.
 **Phase 9** (mass drivers + opening masses) is merged into main from branch
 `phase9-opening-masses` (PR jakeself-arch/rhino-mind-canvas#6).
 
+**Phase 12 (visual assembly editor, 2026-10-16; built in parallel with Phase 10, not merged yet)**
+(details in `docs/DEVELOPING.md`, "Visual assembly editor"): `MCAssemblyEditor` and the panel's "Edit
+assembly" open `eto/visual.py`: a drawn section of the layer stack (walls exterior -> interior as a
+plan cut, floors / roofs top -> bottom, a roof's attic ceiling as a second stack; curtain walls are
+settings only) at true relative thickness with material tints + simple hatches, framing members at
+true size, core box, location line, labels. Click selects, drag reorders, dragging a boundary changes
+a thickness (1/16", Alt = 1/64"; framing / joist / rafter layers snap to the library member depths
+of their system, a named joist / rafter follows). Typed fields for the layer, each known option of
+its component and the assembly settings (dropdowns, lengths like 3-5/8 or 1'-6", checkboxes),
+advanced JSON for nested keys. Live preview: a 4' sample (floors 4' x 4', roofs 8' x 6', curtain
+walls 10') of the unsaved assembly on `MindCanvas::_Preview`, right of the model, rebuilt 0.6 s after
+a change, removed on close. The Phase 8 list editor stays reachable ("List editor..."). Logic in
+`asmedit.py` (extended), `asmview.py`, `asmfields.py`, `preview.py`. `tests/test_phase12.py`
+(`run(doc, captures=True, log=<path>)`, ~3 s) passes, and so do `test_phase0`..`test_phase9` +
+`test_layers`. Pictures: `docs/captures/phase12_section_*.png`, `phase12_window.png`,
+`phase12_preview.png`. Not yet: undo inside the editor, keyboard nudging, trims / extras in the
+drawing, a curtain-wall drawing (Phase 13 does profiles).
+
 **Phase 9 summary** (details in `docs/DEVELOPING.md`, "Mass drivers"):
 - `mindcanvas/masses.py`: a closed solid tagged `mc.kind = mass` on `MindCanvas::_Masses`
   (translucent, never printed, layer tag `exclude`, skipped by the drawing scene). Where it cuts a
@@ -251,6 +296,7 @@ doc; `test_phase5`..`test_phase10` assert `not doc.Path`): `tests/test_phase0.py
 `test_phase2.py`, `test_layers.py`, `test_phase3.py` (`run(doc, parts="a"|"b"|"ab")`),
 `test_phase4.py` (`run(doc, drawing_on=True, captures=True)`, ~30 s), `test_phase5.py` to
 `test_phase10.py` (`run(doc, drawing_on=True, captures=True, log=<path>)`; 45 / 25 / 17 / 16 / 9 / 9 s;
+`test_phase12.py` the same, ~3 s;
 `test_phase6` takes `only="drawings"`). Offline (no Rhino): `tests/offline/test_join_plan.py`,
 `test_entourage_shapes.py`,
 `test_join_find.py` with `%USERPROFILE%\.rhinocode\py39-rh8\python.exe` (no system Python on this
