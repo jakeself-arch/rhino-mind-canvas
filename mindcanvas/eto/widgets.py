@@ -43,6 +43,19 @@ def textbox(text="", handler=None, width=None):
     return c
 
 
+def entry(text="", handler=None, width=None, placeholder=None):
+    """A TextBox that commits (handler()) on Enter and when it loses focus."""
+    c = textbox(text, handler, width)
+    if placeholder:
+        try:
+            c.PlaceholderText = placeholder
+        except Exception:
+            pass
+    if handler is not None:
+        c.KeyDown += lambda s, e: handler() if e.Key == forms.Keys.Enter else None
+    return c
+
+
 def textarea(text="", height=80):
     c = forms.TextArea()
     c.Text = text

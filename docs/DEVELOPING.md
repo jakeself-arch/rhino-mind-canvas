@@ -439,6 +439,54 @@ written at every sync).
   Eto views can be checked without screen grabs: render `form.ControlObject.Content` with WPF
   `RenderTargetBitmap` to a PNG.
 
+## Visual assembly editor (Phase 12)
+`MCAssemblyEditor` / the panel's "Edit assembly" open `eto/visual.py` (`VisualAssemblyEditor`). The
+Phase 8 list editor (`eto/editor.py`) is unchanged and reachable from its "List editor..." button.
+Every piece that decides something is plain Python, so tests drive it without clicks:
+- **`asmedit.AssemblyModel`** (extended, not forked): `stack_key` / `stacks()` / `set_stack("ceiling")`
+  (a roof's attic ceiling; every layer method works on the current stack), `move_to(i, j)`,
+  `fitted(i)` / `thickness_in(i)` (the thickness the engine builds: the kinds' `fitted_layer`),
+  `member(i)` (the profile the engine picks), `member_sizes(i)` (library depths of the layer's system /
+  family / gauge; floors with metal joists + 2 track t; None for free layers or `fit` = layer),
+  `snap(i, inches, fine)` (nearest member, else 1/16"; 1/64" with `fine` or below 1/16"),
+  `set_thickness_in(i, t, member)` (a joist / rafter layer that names its member gets the snapped
+  member), `option_fields(i)` / `set_option(i, key, value, type)` / `advanced_options` /
+  `set_advanced_options`, `setting_fields()` / `set_setting` / `advanced_settings` /
+  `set_advanced_settings`. Lengths compare by value (10' == 10'-0"), so browsing never dirties.
+- **`asmfields.py`**: schemas `LAYER_OPTIONS[(kind, component)]` and `SETTINGS[kind]` as
+  `(key, type, label, choices, default[, when])`; types choice / bool / length / number / int / text /
+  material / profile (choices from a profile family); `("sys", key)` defaults read the layer's
+  framing / joist system. Keys without a schema entry get a field typed from their value; dict / list
+  values stay in the advanced JSON box (which replaces exactly those keys). `(default)` / `(none)` /
+  an empty box removes the key. Add a component's options here when you add a component.
+- **`asmview.py`**: `SectionLayout(model, w, h)` (bands at true relative thickness, `MIN_PX` for
+  membranes, labels: a staircase under walls, spread beside floors / roofs; `hit`, `edges`,
+  `edge_target(k)`: the exterior / top layer of a boundary, a membrane hands it to its neighbor),
+  `SectionController` (`down` / `move` / `up` -> "select" / "thickness" / "reorder"; the scale is
+  frozen during a boundary drag; helpers `band_point`, `edge_point`, `drag_edge`, `drag_band`).
+- **`eto/sectionview.py`**: `paint(g, controller)` (Eto Graphics), `render_png(controller, path)`,
+  `SectionView` (a Drawable forwarding mouse events; `before` commits typed fields first because a
+  click in a Drawable takes no focus). Hatches are simple stand-ins for the material's section
+  pattern (Hatch1/2/3, Grid, Plus, solid), batts are a loop line (honoring `fill_depth` in floors /
+  roofs), members are drawn from their profile (rect + X, C, I).
+- **`preview.py`**: `Preview(doc).build(lib, data)` builds the unsaved data through the normal engine
+  with `library_view` (a shallow library copy holding `PREVIEW_ASSEMBLY`; the shared library never
+  sees it), joins off, right of everything (10' gap), then re-tags every object `mc.kind = preview`
+  + `mc.preview = <token>` on `docutil.PREVIEW_LAYER` (object color / render material copied from the
+  material layer); drawings and section styles skip that layer. `clear()` deletes by token, `close()`
+  also removes unused MC blocks and the empty layers it added (and an empty `_Preview` layer);
+  `purge(doc, keep)` removes previews left by a crash (run when an editor opens). The editor
+  debounces rebuilds with an Eto `UITimer` (0.6 s); tests call `rebuild_preview()` directly.
+- Eto layout notes: nest label / control pairs in their own `w.rows(...)` (a DynamicLayout shares
+  column widths across rows), use a TableLayout with `ScaleHeight` rows for parts that grow, and give
+  a `Scrollable` a small preferred size, or it asks for its full content height. `w.entry` commits
+  on Enter and on focus loss. Synthetic mouse events in tests: `forms.MouseEventArgs(buttons, keys,
+  PointF)`; "None" enum values via `System.Enum.ToObject(member.GetType(), 0)`.
+- **Testing**: `tests/test_phase12.py` (model, layout, controller, the Eto window through its
+  handlers and its Drawable's mouse handlers, preview build / rebuild / cleanup, untouched browsing
+  of every library assembly). A screen grab of a real window: `Graphics.CopyFromScreen` at
+  `form.Location * form.Screen.LogicalPixelSize`.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,

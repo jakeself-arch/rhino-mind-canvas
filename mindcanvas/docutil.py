@@ -8,6 +8,7 @@ import Rhino
 ROOT_LAYER = "MindCanvas"
 DRIVER_LAYER = ROOT_LAYER + "::_Drivers"
 MASS_LAYER = ROOT_LAYER + "::_Masses"     # opening masses (masses.py): never drawn
+PREVIEW_LAYER = ROOT_LAYER + "::_Preview" # the assembly editor's sample (preview.py): never drawn
 SIG_KEY = "mc.matsig"
 SIG_VERSION = "|ss2"  # bump to re-apply section styles to existing layers
 
