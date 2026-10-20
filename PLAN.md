@@ -123,6 +123,23 @@ docs/                  findings, user guide
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
 
+**2026-10-19: fast UI** (user request: fewer clicks, more Rhino-like) on branch `fast-ui`
+(branched from `cw-grid-editor`). From a brainstorm of six ideas the user picked the inspector,
+short aliases and a match tool first. Details in the README ("Fast modeling") and
+`docs/DEVELOPING.md` ("Inspector, match, aliases").
+- `MCInspector` (`I`): a window that follows the selection; edits walls, curtain walls, floors,
+  roofs and windows / doors at once (`mindcanvas/props.py` + `eto/inspector.py`); double-click
+  an assembly opens it (curtain walls: the grid editor). `MCMatch` (`MT`): match assembly +
+  settings. Create commands no longer open the assembly dialog (current assembly per kind,
+  saved with the model). Short aliases in `tools/aliases.json`.
+- Tests: `tests/test_inspector.py` (~4 s) and `tests/offline/test_match_aliases.py` pass;
+  `test_phase8` passes. The window layout was checked on rendered PNGs. Not verified by the agent: a
+  real mouse double-click in a viewport (the callback was driven directly), and the short aliases
+  in the user's Rhino (install.py was not run, so the user's alias settings are unchanged).
+- Remaining ideas from the brainstorm: layer = assembly (draw on a layer to get that assembly),
+  dress any massing solid, work at Schematic and add detail where sections cut, a window ghost
+  that follows the cursor, drag handles in the viewport.
+
 **2026-10-18: visual curtain-grid editor** (user request, outside the numbered phases) done on
 branch `cw-grid-editor` (branched from `phase10-wall-masses`, so it includes PR #7's commits until
 that merges). Details in `docs/DEVELOPING.md` ("Curtain walls" -> Visual grid editor) and the

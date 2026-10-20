@@ -66,11 +66,10 @@ def run():
     lib = library.get()
     names = lib.assemblies("wall")
     st = scriptcontext.sticky.get(STICKY, {})
-    name = st.get("assembly") if st.get("assembly") in names else None
-    if name is None:
-        name = ui.pick_assembly(lib, "wall", "Mind Canvas - Wall mass")
-        if not name:
-            return ui.Result.Cancel
+    name = st.get("assembly") if st.get("assembly") in names else ui.current_assembly(lib, "wall", doc)
+    if not name:
+        ui.say("No wall assemblies in library/assemblies.")
+        return ui.Result.Cancel
     mode_i = MODE_OPTIONS.index(st.get("mode", "Auto")) if st.get("mode") in MODE_OPTIONS else 0
     masses.ensure_layer(doc)
     wallmasses.show_arrows(True)

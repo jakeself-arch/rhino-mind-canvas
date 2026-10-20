@@ -391,3 +391,13 @@ def orphan_parts(doc):
         if d is None or d.IsDeleted:
             out.append(o)
     return out
+
+
+def rebuild_as(doc, driver_obj, assembly_name, params, lib=None):
+    """Give a driver an assembly and a whole set of params in one rebuild (MCMatch)."""
+    lib = lib or library.get()
+    kind = lib.assembly(assembly_name).get("kind", "wall")
+    old = meta.params(driver_obj)
+    meta.write_driver(doc, driver_obj, kind, assembly_name, params)
+    r = build(doc, driver_obj.Id, lib)
+    return _after_wall_params(doc, driver_obj, old, params, lib, force=True) or r

@@ -13,6 +13,12 @@ def run():
         live.enable()
         ui.say("Live update is ON (MCLive toggles it).")
     try:
+        from ..eto import inspector
+        inspector.enable_double_click()
+        ui.say("Double-click an assembly to edit it (MCInspector opens the inspector).")
+    except Exception as ex:
+        ui.say("Double-click editing skipped: {}".format(ex))
+    try:
         from ..drawing import displaymode, patterns
         patterns.ensure(doc)
         displaymode.ensure()

@@ -406,6 +406,38 @@ written at every sync).
   point; masses with two or more holes; moving a wall mass together with its opening mass moves the
   opening mass twice.
 
+## Inspector, match, aliases (fast UI)
+- **`mindcanvas/props.py`** is the inspector's logic (no Eto): `FIELDS[kind]` (key, label, type
+  `assembly | length | number | choice | bool`, choices) and `ACTIONS[kind]` (buttons -> commands);
+  kinds without fields get `GENERIC` (assembly + detail level). `selected(doc)` /
+  `assembly_of(doc, obj)`: a part -> its driver, a window part -> the window, a wall mass -> its
+  wall. `settings(lib, driver)` merges params over the assembly (curtain walls:
+  `cwsettings.merged`, roofs: `rshape.merged`) or the opening type; `value` / `common` read a
+  field (lengths in inches); `apply(doc, lib, drivers, field, value, snap)` changes it on every
+  driver in one undo record (openings like MCEditOpening: type, `core.update`, brick head snap,
+  host rebuild), restores the old params if a build raises, and adds `companions` (a flat roof
+  turned shed / gable gets a pitch). To show a new setting, add a `Field` to `FIELDS`.
+- **`mindcanvas/eto/inspector.py`**: the window (one instance in `scriptcontext.sticky`). It marks
+  itself dirty on `RhinoDoc.SelectObjects / DeselectObjects / DeselectAllObjects` and
+  `Command.EndCommand` and refreshes on `RhinoApp.Idle`; events are ignored while it applies a
+  change (`busy`), and afterwards it reselects the drivers so the selection stays on them. Rows
+  (`_Row`) reload in place when the selected set is unchanged (keeps focus / Tab), else the
+  content is rebuilt. Fixed control / label widths keep long assembly names from widening the
+  scrollable. Double-click: a `Rhino.UI.MouseCallback` subclass (pythonnet needs
+  `__namespace__`), kept in sticky; it cancels Rhino's own double-click on MC objects and opens
+  the editor on the next Idle (`later`).
+- **`mindcanvas/match.py`**: `matched_params(kind, src, dst, keep)` is pure (offline test);
+  `OWN[kind]` are per-curve keys never copied; `engine.rebuild_as` writes assembly + params and
+  rebuilds once.
+- **Current assembly**: `ui.current_assembly(lib, kind, doc)` (sticky, then
+  `doc.Strings["mindcanvas", "current.<kind>"]`, then the library's first) and
+  `ui.set_current_assembly`; `pick_assembly` saves the choice.
+- **Aliases**: `tools/aliases.json`; `install.install_short` never overwrites an alias that does
+  not run a `commands/MC*.py` script.
+- Tests: `tests/test_inspector.py` (Rhino) and `python tests/offline/test_match_aliases.py`.
+  Eto views can be checked without screen grabs: render `form.ControlObject.Content` with WPF
+  `RenderTargetBitmap` to a PNG.
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,
@@ -419,9 +451,10 @@ Material entries: see `library/materials/core.json` (color, render, section, pri
 ## Commands
 Command logic lives in `mindcanvas/cmd/<name>.py` with `run()`; `commands/MC<Name>.py` is a
 6-line entry script (copy an existing one). Shared helpers in `mindcanvas/cmd/ui.py`
-(`select_drivers`, `pick_from_list`, `pick_assembly`, option helpers, `report`).
+(`select_drivers`, `pick_from_list`, `pick_assembly`, `current_assembly` /
+`set_current_assembly`, option helpers, `report`).
 Engine API (any kind, incl. curtain walls): `engine.create / build / build_many / update_params / set_override / set_assembly /
-rebuild_all / add_opening / update_opening / delete_openings`.
+rebuild_all / add_opening / update_opening / delete_openings / rebuild_as`.
 
 ## Version control
 GitHub: `jakeself-arch/rhino-mind-canvas`, branch `main`. Commit when a phase or feature is done

@@ -9,17 +9,42 @@ section drawings.
 ## Install (once)
 1. Open Rhino 8.
 2. Run `_RunPythonScript` and choose `tools/install.py` in this folder.
-   This registers the `MC...` commands as Rhino aliases. Re-run it if new commands are added.
+   This registers the `MC...` commands as Rhino aliases, plus short names (`I` inspector,
+   `WA` wall, ...: see "Fast modeling"). Re-run it if new commands are added.
 3. In each model, run **`MCSetup`** once. It tightens the model tolerance to 0.001"
    (thin layers such as a 1/32" membrane disappear at Rhino's default 0.01 ft) and turns on
    live update.
+
+## Fast modeling: inspector, match, short names
+- **`MCInspector`** (type `I`): a floating window that follows the selection. Click a wall,
+  floor, roof, curtain wall or window (its curve or any stud, brick, panel ...) and its settings
+  show up; a change applies at once to everything selected of that kind (Enter or Tab out of a
+  box, pick from a list, tick a box). Settings that differ show *(varies)*. Buttons under each
+  section open the full editors (layers, framing, joins, trim, grid editor, ...). With nothing
+  selected it shows what the next wall / curtain wall / floor / roof will be, with *Draw* buttons.
+- **Double-click** an assembly in a viewport: a curtain wall opens the grid editor, anything else
+  opens the inspector. `MCSetup` and `MCInspector` turn this on (once per Rhino session).
+- **`MCMatch`** (type `MT`): click an assembly, then click others of the same kind; each takes
+  its assembly and settings at once (like Rhino's MatchProperties). `Match=AssemblyOnly` swaps
+  the type only. Never copied: a wall's end joins, a curtain wall's custom grid lines, a
+  window's place along its wall, and the height of a wall that a wall mass drives.
+- **No assembly dialog**: MCWall / MCFloor / MCRoof / MCCurtainWall / MCWallMass build the
+  current assembly of their kind right away. Change it with the command's `Assembly` option or
+  in the inspector; it is saved with the model.
+- **Short names** (from `tools/aliases.json`, added by `tools/install.py`): `I` inspector,
+  `MT` match, `WA` wall, `CW` curtain wall, `FL` floor, `RF` roof, `OP` window / door,
+  `WM` wall mass, `OM` opening mass, `SC` section cut, `DR` drawing, `UP` update. (`W` is
+  Rhino's SelWindow, so walls are `WA`.) Edit the file to change them and re-run install.py; a
+  name that already runs something else is left alone and reported.
 
 ## Commands
 | Command | What it does |
 |---|---|
 | `MCPanel` | The Mind Canvas panel: a floating window with every tool (build buttons, edit the selection, draw the view, entourage, library) |
+| `MCInspector` | The **inspector**: a floating window that follows the selection; change any setting of the selected walls, floors, roofs, curtain walls and windows at once (see "Fast modeling") |
+| `MCMatch` | Click an assembly, then click others: they take its assembly and settings. Option: Match (All / AssemblyOnly) |
 | `MCSetup` | Prepare the model (tolerance, driver layer, live update on) |
-| `MCWall` | Pick an assembly, then select curves (or `Draw`) to make walls. Options: Height, Location line, Flip, Detail level |
+| `MCWall` | Select curves (or `Draw`) to make walls of the current wall assembly (`Assembly` changes it). Options: Height, Location line, Flip, Detail level |
 | `MCEdit` | Change height, base offset, location line, flip or detail level of selected walls |
 | `MCSetAssembly` | Swap the assembly type of selected walls |
 | `MCJoin` | How selected walls join others: `Start` / `End` = Auto / Wrap / Miter / Butt / None, `Priority` (at an L the higher one runs through), `Report` lists every join (L, T, floors, roofs) |
@@ -30,12 +55,12 @@ section drawings.
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
 | `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
 | `MCEditOpening` | Change the type, size, sill, swing / hinge, head course or SnapHead of selected windows / doors (click their line or any of their parts), or `Remove` them |
-| `MCCurtainWall` | Pick a curtain-wall assembly, then select curves (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
+| `MCCurtainWall` | Select curves of the current curtain-wall assembly (`Assembly` changes it) (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
 | `MCCurtainGrid` | The **visual curtain-grid editor**: select a curtain wall; a window shows its elevation. Drag grid lines and transoms, add / delete them (transoms can cross only some bays), paint panels, put single or pair doors in bays and drag their heads; the wall rebuilds as you go (see "Curtain walls") |
 | `MCEditCurtainWall` | `Editor` (opens MCCurtainGrid), Grid (Equal / Fixed / List / Custom, Spacing, Bays), Transoms, Rows (infill per row), Cell (click panels to cycle vision / spandrel / shadow box), Style, Mullion profile, Spandrel (Glass / Metal), Slabs (anchors), Stack (unitized), Location, Flip, Detail, Height, BaseOffset |
-| `MCFloor` | Pick a floor assembly, then select closed boundary curves (or `Draw`). Options: Elevation (framing bottom, e.g. the wall height), Span (Short / Long / Edge: click the edge the joists bear on), System (Keep / Wood / Metal), Detail |
+| `MCFloor` | Select closed boundary curves of the current floor assembly (`Assembly` changes it) (or `Draw`). Options: Elevation (framing bottom, e.g. the wall height), Span (Short / Long / Edge: click the edge the joists bear on), System (Keep / Wood / Metal), Detail |
 | `MCEditFloor` | Elevation, Reference (FramingBottom / FramingTop / Top / Bottom), Span (Short / Long / Edge / Rotate90), SpacingInches, System, Detail |
-| `MCRoof` | Pick a roof assembly, then select closed boundary curves (the plate line; or `Draw`). Options: PlateHeight, Shape (Flat / Shed / Gable), Pitch (x in 12), Overhang, Rake, Ridge (Long / Short / Edge), Flip (shed high side), System, Detail |
+| `MCRoof` | Select closed boundary curves of the current roof assembly (`Assembly` changes it) (the plate line; or `Draw`). Options: PlateHeight, Shape (Flat / Shed / Gable), Pitch (x in 12), Overhang, Rake, Ridge (Long / Short / Edge), Flip (shed high side), System, Detail |
 | `MCEditRoof` | The same options on selected roofs |
 | `MCUpdate` | Rebuild selected assemblies (Enter = all), e.g. after editing library files |
 | `MCLive` | Toggle live update (walls, floors and roofs follow their curves while you edit them) |
