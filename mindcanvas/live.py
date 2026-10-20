@@ -86,6 +86,7 @@ def enable():
             engine = __import__("mindcanvas.engine", fromlist=["x"])
             masses = __import__("mindcanvas.masses", fromlist=["x"])
             seen = set()
+            mass_docs = {}       # docs where a mass changed or something was deleted: dressed stories
             for sn, oid in items:
                 if (sn, oid) in seen:
                     continue
@@ -96,6 +97,8 @@ def enable():
                 undo = doc.BeginUndoRecord("Mind Canvas update")
                 try:
                     obj = doc.Objects.FindId(oid)
+                    if obj is None or obj.IsDeleted or _meta().is_mass(obj):
+                        mass_docs[sn] = doc
                     if obj is None or obj.IsDeleted:
                         engine.delete_parts(doc, oid)
                         engine.delete_openings(doc, oid)   # a deleted wall takes its openings along
@@ -121,6 +124,19 @@ def enable():
                 finally:
                     doc.EndUndoRecord(undo)
                 doc.Views.Redraw()
+            if mass_docs:
+                dress = __import__("mindcanvas.dress", fromlist=["x"])
+                for doc in mass_docs.values():
+                    undo = doc.BeginUndoRecord("Mind Canvas update")
+                    try:
+                        dr = dress.sync_if_dressed(doc)
+                        for w in (dr.warnings if dr else []):
+                            print("Mind Canvas: " + w)
+                    except Exception as ex:
+                        print("Mind Canvas dress update failed: {}".format(ex))
+                    finally:
+                        doc.EndUndoRecord(undo)
+                    doc.Views.Redraw()
         finally:
             state["busy"] = False
 
