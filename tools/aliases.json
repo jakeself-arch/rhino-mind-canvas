@@ -11,5 +11,9 @@
   "OM": "MCOpeningMass",
   "SC": "MCSectionCut",
   "DR": "MCDrawing",
-  "UP": "MCUpdate"
+  "UP": "MCUpdate",
+  "PA": "MCPalette",
+  "AL": "MCAssemblyLayers",
+  "DM": "MCDress",
+  "VH": "MCHandles"
 }

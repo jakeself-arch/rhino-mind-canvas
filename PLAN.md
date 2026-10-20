@@ -124,9 +124,31 @@ docs/                  findings, user guide
 | 12 | Visual assembly editor: drawn layer section (material colors + hatches), click a layer to edit, drag to reorder, drag an edge to change thickness (snaps 1/16" or library sizes), per-key option widgets instead of raw JSON, live sample-wall preview | Done, awaiting review (`MCAssemblyEditor` / panel open it; `mindcanvas/asmview.py`, `asmfields.py`, `preview.py`, `eto/visual.py`, `eto/sectionview.py`; branch `claude/phase12-visual-editor-725423`, PR jakeself-arch/rhino-mind-canvas#8) |
 | 13 | Profile editor: named fields for parametric profiles (stud, track, mullion) with a live drawing; custom profiles on a "profile board" in Rhino, re-captured automatically when edited | |
 | CW | Visual curtain-grid editor (user request 2026-10-18, ArchiCAD-style): the elevation in a window, drag / add / delete grid lines and transoms (transoms in some bays only), paint panels, doors (single + pair) in bays with a draggable head, 3D preview, auto apply | Done (`MCCurtainGrid`; `curtainwall/gridedit.py`, `gridio.py`, `eto/cwgrid*.py`; branch `cw-grid-editor`, built on `phase10-wall-masses`) |
+| UI | Viewport editing + picking by sight (user request 2026-10-20, from a brainstorm): drag handles on the selected assemblies, hover labels, ghost previews in MCOpening / MCWall Draw; the assembly palette (drawn tiles, built on Phase 12); layer = assembly; dress massing solids (one solid = one story, floors where they stack, no roofs) | Done (`MCHandles`, `MCPalette`, `MCPaintAssembly`, `MCAssemblyLayers`, `MCDress`; `mindcanvas/viewport/`, `eto/palette.py`, `eto/tiles.py`, `laylink.py`, `dress.py`; branch `claude/ui-smoothness-visual-design-4af79f`, includes Phase 12) |
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
+
+**2026-10-20: viewport editing + picking by sight** on branch `claude/ui-smoothness-visual-design-4af79f`
+(from main 797b2ed, with Phase 12 / PR jakeself-arch/rhino-mind-canvas#8 merged in because the
+palette's tiles use its drawn section). The user asked for a smoother, more visual UI for studio work,
+chose the "edit in the viewport" and "pick assemblies by sight" groups of a brainstorm, and decided:
+build on Phase 12; dressing = one solid per story; no roofs from dressing for now; handles show on
+selection. Details in the README ("Editing in the viewport, picking by sight") and
+`docs/DEVELOPING.md` ("Viewport editing, palette, assembly layers, dressing").
+- Built: drag handles + hover labels (`viewport/shapes.py`, `overlay.py`, `MCHandles`), MCOpening's
+  ghost + MCWall Draw's band (`viewport/ghost.py`), the palette (`eto/palette.py`, `eto/tiles.py`,
+  `MCPalette`, `MCPaintAssembly`), layer = assembly (`laylink.py`, `MCAssemblyLayers`), dressing
+  (`dress.py`, `MCDress`; wall-mass param `top_cut`). `MCSetup` turns on handles, labels and layer
+  watching; `MCInspector` turns on handles / labels; the inspector's "Edit assembly" opens the Phase 12
+  editor; aliases `PA`, `AL`, `DM`, `VH`.
+- Tests (each in its own run_python call, own spawned slot): `tests/test_viewui.py`,
+  `test_palette.py`, `test_laylink.py`, `test_dress.py` pass, and so do `test_phase7`, `test_phase9`,
+  `test_phase10`, `test_phase12`, `test_inspector`, `test_cwgrid` (run with drawings / captures off).
+- Not yet / checked by hand only: real mouse drags in a live Rhino (the tests drive the mouse
+  callback with stand-in events; Undo of a drag cannot run inside run_python), the palette window's
+  look (only its tiles were rendered), roofs from massing (Phase 11), a story larger than the one
+  below gets a floor only over the lower outline.
 
 **2026-10-19: fast UI** (user request: fewer clicks, more Rhino-like) on branch `fast-ui`
 (branched from `cw-grid-editor`). From a brainstorm of six ideas the user picked the inspector,

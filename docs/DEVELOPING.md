@@ -487,6 +487,55 @@ Every piece that decides something is plain Python, so tests drive it without cl
   of every library assembly). A screen grab of a real window: `Graphics.CopyFromScreen` at
   `form.Location * form.Screen.LogicalPixelSize`.
 
+## Viewport editing, palette, assembly layers, dressing (UI smoothness)
+- **`viewport/shapes.py`** (no drawing, no events): `shape_of(doc, lib, driver)` -> `Shape`
+  (`outline` polylines for the hover highlight, `handles`, `lines` = hover label). A `Handle` has an
+  `anchor`, a unit `axis` (drag direction) and `at(t, fine)` -> `Drag(changes, ghost, text)` for a
+  drag of t model units along the axis; `click` handles act on `at(0)`. Geometry comes from the
+  drivers: walls `masses.WallInfo`, windows `OpeningFrame` (station -> origin on the oriented wall
+  curve, X along, Y exterior, `sgn` = station direction) + `opening_box` (rough opening), floors /
+  roofs their `make_context` (roof: face 0's frame, `plate_bbox`, `v_ridge`). Add a handle by
+  appending one in the kind's builder; its `changes` are driver params.
+- **`viewport/overlay.py`**: state in `scriptcontext.sticky["mindcanvas.viewport"]`; handlers
+  (`DisplayPipeline.DrawForeground`, selection / EndCommand / Replace marks, Idle, a
+  `MouseCallback` subclass with `__namespace__`) call the module through `sys.modules`, so a dev
+  reload takes effect. Idle rebuilds the selected shapes (max 16) and runs the hover pick after the
+  mouse rests (`PickContext` + `doc.Objects.PickObjects`, nearest to `vp.CameraLocation`: the
+  frustum line runs far -> near). Drag: MouseDown within `HIT_PX` of an arrow tip cancels Rhino's
+  click; MouseMove maps the ray to the axis (`Intersection.LineLine(a, b)` without a tolerance:
+  skew lines); MouseUp applies on the next Idle via `apply(doc, id, changes, label)` (one undo record;
+  openings: brick head snap + `engine.update_opening`; others `engine.update_params`, so mass
+  `follow` runs). Everything is off while `Command.InCommand()` (tests switch `_busy` off: run_python
+  runs inside a command). pythonnet notes: `GetWorldToScreenScale` returns `(ok, ppu)`; mutating a
+  struct returned by a property (`line.Direction.Unitize()`) does not stick; `Draw2dText` takes
+  the text's top-left.
+- **`viewport/ghost.py`**: `OpeningPreview` (MCOpening's `GetPoint` with `MouseMove` +
+  `DynamicDraw`; `hit` = mouse ray vs each wall's mid surface, else the nearest wall curve on
+  screen within `NEAR_PX`; brick head snap cached per host / size) and `WallBand` (MCWall Draw's own
+  polyline getter: faces by `geo.offset` of the picked points, one quad per segment for the fill:
+  Rhino fills a concave polygon as a fan).
+- **`eto/tiles.py`** + **`eto/palette.py`**: tiles = `asmview.SectionLayout(..., compact=True)`
+  (no labels, 4 px margins, 2 px thinnest band) painted by `sectionview.paint_tile`; curtain walls
+  and openings have their own small painters. Bitmaps are cached by the definition's JSON. The
+  palette window is the inspector's pattern (sticky instance, selection marks + Idle refresh);
+  `pick` = `set_current` (+ MCOpening's sticky type) and `props.apply` with the kind's assembly
+  field. *Paint...* passes the tile in `sticky["mindcanvas.palette.paint"]` to `MCPaintAssembly`
+  (input needs a running command).
+- **`laylink.py`**: layers `MC Assemblies::<Group>::<name>` with user text `mc.kind` /
+  `mc.assembly` (the name is a label: `"` -> `in`, other bad characters -> `-`, clashes get " (2)").
+  `AddRhinoObject` / `ModifyObjectAttributes` (layer changed) queue; Idle runs `process()` ->
+  `convert()`; nothing is queued during undo / redo, live builds or its own work.
+- **`dress.py`**: a dressed solid = perimeter wall mass + `params["dress"]`. `sync(doc)`:
+  `Story` per dressed mass (bottom-face outline, z0 / z1), `plan()` = a floor key
+  `"<lower>|<upper>"` per stacked pair (`|<upper>` = ground floor), `floor_depth` (top down through
+  the joist layer) -> the lower mass's `top_cut`, which `wallmasses.derive` subtracts from the wall
+  height and `wallmasses.follow` adds back to the mass; floor drivers carry `mc.dress` and are
+  created / replaced / deleted to match. Live mode calls `sync_if_dressed` after any mass edit or
+  delete. Not yet: roofs, floors only over the lower outline (an upper story larger than the one
+  below is not supported), stories that straddle two lower solids get one floor per pair.
+- Tests: `tests/test_viewui.py`, `test_palette.py`, `test_laylink.py`, `test_dress.py` (Rhino;
+  captures `docs/captures/viewui_*.png`, `palette_tiles.png`, `dress_stories.png`).
+
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
 `library/profiles/<topic>.json`, `library/framing/<system>.json`, `library/assemblies/<topic>.json`,

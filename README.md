@@ -33,9 +33,46 @@ section drawings.
   in the inspector; it is saved with the model.
 - **Short names** (from `tools/aliases.json`, added by `tools/install.py`): `I` inspector,
   `MT` match, `WA` wall, `CW` curtain wall, `FL` floor, `RF` roof, `OP` window / door,
-  `WM` wall mass, `OM` opening mass, `SC` section cut, `DR` drawing, `UP` update. (`W` is
-  Rhino's SelWindow, so walls are `WA`.) Edit the file to change them and re-run install.py; a
-  name that already runs something else is left alone and reported.
+  `WM` wall mass, `OM` opening mass, `SC` section cut, `DR` drawing, `UP` update, `PA` palette,
+  `AL` assembly layers, `DM` dress, `VH` handles. (`W` is Rhino's SelWindow, so walls are
+  `WA`.) Edit the file to change them and re-run install.py; a name that already runs something
+  else is left alone and reported.
+
+## Editing in the viewport, picking by sight
+- **Drag handles**: select a wall, curtain wall, window / door, floor or roof (its curve or any
+  part) and blue arrows show on it. Drag one: an orange ghost and a dimension tag follow the
+  mouse; release to rebuild (one undo step). Walls: Height (top), Base (bottom; the top stays),
+  and a click on the arrow out of the exterior face flips the wall. Windows / doors: left / right
+  edges (width; the other edge stays), head (height), sill (windows; the head stays), center
+  (slides along the wall); with SnapHead the head lands on the brick coursing. Floors: Elevation.
+  Roofs: Plate height, Overhang, Pitch (1/2 in 12 steps). Lengths snap to 1"; hold **Shift** for
+  1/8". Mass-driven walls and opening masses follow. Arrows pointing at the camera are hidden
+  (plan views show the sideways ones).
+- **Hover labels**: rest the mouse on an assembly: it is outlined and a label shows its assembly
+  and main sizes (thickness and height, window size and sill, floor top and depth, roof pitch).
+- **Previews while placing**: `MCOpening` shows the window / door as a ghost on the wall under
+  the mouse (3D or plan) with its size and sill, head already on the brick coursing; `MCWall`'s
+  `Draw` shows the wall's real thickness as you pick points (exterior face heavier, ticks on the
+  exterior side, its top in 3D views), with `Flip`, `Location`, `Undo` and `Close` on the fly.
+- **`MCHandles`** (type `VH`): handles / hover labels / SnapHead on or off. `MCSetup` and
+  `MCInspector` turn them on.
+- **`MCPalette`** (type `PA`): a floating window with a tab per kind and a drawn tile per library
+  entry (the layer section for walls / floors / roofs, an elevation for curtain walls, a glyph for
+  windows and doors). Click a tile: it is what the next one you build will be (blue, NEXT), and
+  the selected assemblies of that kind take it at once. It follows the selection (orange,
+  SELECTED). Double-click: the visual assembly editor. *Paint...*: click assemblies in the
+  viewport to give them the tile (`MCPaintAssembly`).
+- **`MCAssemblyLayers`** (type `AL`): a layer per assembly under *MC Assemblies* (Walls, Curtain
+  walls, Floors, Roofs), colored like its main material. Draw or move geometry onto one and it
+  becomes that assembly: a curve on a wall layer = a wall, a closed curve on a floor / roof layer
+  = a floor / roof, a closed solid on a wall layer = a wall mass; a wall moved onto another wall
+  layer takes that assembly. The layers are an inbox: the result goes to Mind Canvas's own layers.
+- **`MCDress`** (type `DM`): select massing solids; each one is a story. A closed wall runs around
+  it (finished exterior face on the solid) and where one solid sits on another the upper story
+  gets a floor whose top is the shared face; the walls below stop under its framing. Stack solids
+  for more stories and push / pull them with the gumball: walls and floors follow. Options:
+  `Wall`, `Floor` (None = no floors), `GroundFloor`. No roofs yet (a sloped top is reported): put
+  an `MCRoof` on top.
 
 ## Commands
 | Command | What it does |
@@ -43,8 +80,13 @@ section drawings.
 | `MCPanel` | The Mind Canvas panel: a floating window with every tool (build buttons, edit the selection, draw the view, entourage, library) |
 | `MCInspector` | The **inspector**: a floating window that follows the selection; change any setting of the selected walls, floors, roofs, curtain walls and windows at once (see "Fast modeling") |
 | `MCMatch` | Click an assembly, then click others: they take its assembly and settings. Option: Match (All / AssemblyOnly) |
-| `MCSetup` | Prepare the model (tolerance, driver layer, live update on) |
-| `MCWall` | Select curves (or `Draw`) to make walls of the current wall assembly (`Assembly` changes it). Options: Height, Location line, Flip, Detail level |
+| `MCPalette` | The **assembly palette**: drawn tiles of every assembly and window / door type; click one to build it next and to swap the selected ones (see "Editing in the viewport, picking by sight") |
+| `MCPaintAssembly` | Click assemblies to give them one assembly / window type (the palette's *Paint...*). Option: Assembly |
+| `MCHandles` | Viewport drag handles and hover labels on / off. Options: Handles, Labels, SnapHead |
+| `MCAssemblyLayers` | A layer per assembly under *MC Assemblies*; geometry drawn or moved onto one becomes that assembly. Option: Watch |
+| `MCDress` | Dress massing solids (one story each) with walls, and floors where they stack. Options: Wall, Floor, GroundFloor |
+| `MCSetup` | Prepare the model (tolerance, driver layer, live update, double-click, handles and hover labels, assembly-layer watching on) |
+| `MCWall` | Select curves (or `Draw`, which shows the wall's band as you pick points) to make walls of the current wall assembly (`Assembly` changes it). Options: Height, Location line, Flip, Detail level |
 | `MCEdit` | Change height, base offset, location line, flip or detail level of selected walls |
 | `MCSetAssembly` | Swap the assembly type of selected walls |
 | `MCJoin` | How selected walls join others: `Start` / `End` = Auto / Wrap / Miter / Butt / None, `Priority` (at an L the higher one runs through), `Report` lists every join (L, T, floors, roofs) |
@@ -53,7 +95,7 @@ section drawings.
 | `MCProfileCapture` | Turn closed curves you drew into a library profile (base point = where it sits on the wall face) for MCTrim |
 | `MCLayers` | Edit the layer stack of selected walls: Replace, Insert, Remove, Thickness, ToExterior/ToInterior, Mirror, Reset, **SaveAs** a new assembly. Changes show immediately; Esc undoes them |
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
-| `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
+| `MCOpening` | Place windows and doors: a ghost follows the mouse along the wall under it; click where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
 | `MCEditOpening` | Change the type, size, sill, swing / hinge, head course or SnapHead of selected windows / doors (click their line or any of their parts), or `Remove` them |
 | `MCCurtainWall` | Select curves of the current curtain-wall assembly (`Assembly` changes it) (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
 | `MCCurtainGrid` | The **visual curtain-grid editor**: select a curtain wall; a window shows its elevation. Drag grid lines and transoms, add / delete them (transoms can cross only some bays), paint panels, put single or pair doors in bays and drag their heads; the wall rebuilds as you go (see "Curtain walls") |
