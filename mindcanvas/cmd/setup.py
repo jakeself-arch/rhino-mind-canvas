@@ -26,6 +26,12 @@ def run():
     except Exception as ex:
         ui.say("Viewport handles skipped: {}".format(ex))
     try:
+        from .. import laylink
+        laylink.enable()
+        ui.say("Geometry on the 'MC Assemblies' layers becomes assemblies (MCAssemblyLayers makes them).")
+    except Exception as ex:
+        ui.say("Assembly layers skipped: {}".format(ex))
+    try:
         from ..drawing import displaymode, patterns
         patterns.ensure(doc)
         displaymode.ensure()
