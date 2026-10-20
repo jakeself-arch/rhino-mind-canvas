@@ -394,6 +394,10 @@ files load alphabetically and later entries with the same name win. Run `MCLibra
     ]
   }
   ```
+  Component `strata` builds a solid layer as horizontal lifts, as in rammed earth: option
+  `lifts` lists `{"material", "height"}` BOTTOM → TOP and repeats up the wall (`min_lift`, default
+  1", folds a thin top sliver into the lift below). See `Ext - Rammed Earth, 18" Solid` in
+  `library/assemblies/walls_earth.json` (Boston Blue Clay + Glacial Soil, `materials/earth.json`).
 - **Window / door type** (`library/openings/*.json`): size, sill, frame (face, depth, material),
   operation (fixed / casement / awning / double_hung / sliding), sash, mullions, glazing; doors:
   leaf (thickness, material, glass lite), threshold, swing / hinge. Brick details under

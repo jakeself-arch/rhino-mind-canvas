@@ -1,0 +1,8 @@
+{
+  "_comment": "Rammed earth soils (see core.json for the format). Used as the lifts of a 'strata' layer; Boston Blue Clay is the grey-blue marine clay under Boston, Glacial Soil the tan, gravelly till above it.",
+
+  "Rammed Earth - Boston Blue Clay": {"color": [112, 126, 138], "render": {"gloss": 0.02},
+                                      "section": {"fill": "hatch", "hatch": "Hatch2", "scale": 0.1}, "print": {"weight": 0.25}},
+  "Rammed Earth - Glacial Soil":     {"color": [176, 154, 116], "render": {"gloss": 0.02},
+                                      "section": {"fill": "hatch", "hatch": "Hatch1", "scale": 0.1}, "print": {"weight": 0.25}}
+}

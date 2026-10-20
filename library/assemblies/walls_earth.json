@@ -1,0 +1,24 @@
+{
+  "_comment": "Earth walls, layers EXTERIOR -> INTERIOR. A 'strata' layer is built as horizontal lifts; options.lifts lists them BOTTOM -> TOP (material + compacted height) and repeats up the wall.",
+
+  "Ext - Rammed Earth, 18\" Solid": {
+    "kind": "wall",
+    "default_height": "10'",
+    "default_reference": "interior_face",
+    "layers": [
+      {"name": "Rammed Earth", "component": "strata", "material": "Rammed Earth - Glacial Soil", "thickness": "18", "core": true,
+       "options": {"lifts": [
+         {"material": "Rammed Earth - Glacial Soil",     "height": "7"},
+         {"material": "Rammed Earth - Boston Blue Clay", "height": "3"},
+         {"material": "Rammed Earth - Glacial Soil",     "height": "5"},
+         {"material": "Rammed Earth - Boston Blue Clay", "height": "1-1/2"},
+         {"material": "Rammed Earth - Glacial Soil",     "height": "8"},
+         {"material": "Rammed Earth - Boston Blue Clay", "height": "4"},
+         {"material": "Rammed Earth - Glacial Soil",     "height": "3"},
+         {"material": "Rammed Earth - Boston Blue Clay", "height": "2"},
+         {"material": "Rammed Earth - Glacial Soil",     "height": "6"},
+         {"material": "Rammed Earth - Boston Blue Clay", "height": "5"}
+       ]}}
+    ]
+  }
+}
