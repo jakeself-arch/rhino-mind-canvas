@@ -69,6 +69,11 @@ class Band(object):
         self.section = dict((m or {}).get("section") or {})
         self.core = bool(spec.get("core"))
         self.options = spec.get("options") or {}
+        self.lifts = []               # strata: [(rgb, height)] bottom -> top
+        if self.component == "strata":
+            for lift in self.options.get("lifts") or []:
+                lm = lib.data["materials"].get(lift.get("material")) or {}
+                self.lifts.append((tuple(lm.get("color") or self.color), lift.get("height", 6)))
         self.lo = self.hi = 0.0
         self.rect = (0.0, 0.0, 0.0, 0.0)
         self.thin = False

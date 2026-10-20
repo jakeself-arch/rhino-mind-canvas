@@ -257,6 +257,40 @@ def _brick_joints(p, lay, b):
         u += step
 
 
+def _strata(p, lay, b):
+    """Rammed earth lifts as stripes, bottom-up (walls) or exterior-in (floors / roofs). True scale,
+    shrunk when needed so one whole cycle of lifts shows in the band."""
+    x, y, w, h = b.rect
+    seq = []
+    for rgb, height in b.lifts:
+        try:
+            t = units.parse_length(height)
+        except ValueError:
+            continue
+        if t > 0:
+            seq.append((rgb, t))
+    if not seq:
+        p.rect(b.color, x, y, w, h)
+        return
+    span = h if lay.orient == "h" else w
+    sc = min(lay.scale, span / sum(t for _, t in seq))
+    seq = [(rgb, t * sc) for rgb, t in seq]
+    edge = _pen(_tint(INK, 0.5), 0.5)
+    u, i = 0.0, 0
+    while u < span:
+        rgb, px = seq[i % len(seq)]
+        d = min(px, span - u)
+        if lay.orient == "h":
+            p.rect(rgb, x, y + h - u - d, w, d)
+            if u > 0:
+                p.line(edge, x, y + h - u, x + w, y + h - u)
+        else:
+            p.rect(rgb, x + u, y, d, h)
+            if u > 0:
+                p.line(edge, x + u, y, x + u, y + h)
+        u, i = u + d, i + 1
+
+
 def _band(p, lay, b):
     rect = b.rect
     if b.component == "void":
@@ -282,6 +316,8 @@ def _band(p, lay, b):
             else:
                 _pattern(p, frect, sec, rgb)
         _members(p, lay, b)
+    elif b.component == "strata":
+        _strata(p, lay, b)
     else:
         if _is_batt(b.material):
             p.rect(_tint(b.color, 0.45), *rect)

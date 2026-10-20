@@ -67,6 +67,8 @@
       "Concrete*":                  {"hatch": {"pattern": "MC Concrete", "mm": 3.0}},
       "Ground*":                    {"ground": true, "stipple": 2.4, "inner": false},
       "Earth*":                     {"ground": true, "stipple": 2.4, "inner": false},
+      "Rammed Earth - Boston Blue Clay": {"fill": "grey", "grey": 0.3, "stipple": 0.8},
+      "Rammed Earth - Glacial Soil": {"stipple": 2.0},
       "Asphalt Shingles":           {"fill": "black"},
       "Roofing Underlayment":       {"fill": "black"},
       "Ice and Water Shield":       {"fill": "black"},
