@@ -1,0 +1,15 @@
+{
+  "_comment": "Short names typed in Rhino's command line -> Mind Canvas commands. tools/install.py adds them; it never replaces an alias that already runs something else (W is Rhino's SelWindow, so walls are WA). Edit freely and re-run install.py.",
+  "I": "MCInspector",
+  "MT": "MCMatch",
+  "WA": "MCWall",
+  "CW": "MCCurtainWall",
+  "FL": "MCFloor",
+  "RF": "MCRoof",
+  "OP": "MCOpening",
+  "WM": "MCWallMass",
+  "OM": "MCOpeningMass",
+  "SC": "MCSectionCut",
+  "DR": "MCDrawing",
+  "UP": "MCUpdate"
+}

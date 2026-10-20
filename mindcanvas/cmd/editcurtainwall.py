@@ -1,6 +1,7 @@
 """MCEditCurtainWall: change the grid, joint style and infill of selected curtain walls.
 
-Options: Height, BaseOffset, Spacing, Grid (Equal / Fixed / List), Bays (list widths),
+Options: Editor (the visual grid editor, MCCurtainGrid), Height, BaseOffset, Spacing, Grid
+(Equal / Fixed / List / Custom = the editor's grid lines), Bays (list widths),
 Transoms (heights), Rows (infill per row, bottom -> top: V = vision, S = spandrel,
 B = shadow box), Cell (click cells to cycle vision -> spandrel -> shadow box; the wall rebuilds
 as you click), ClearCells, Style, Mullion (profile), Spandrel (Glass / Metal), Slabs (anchor
@@ -16,7 +17,7 @@ from .curtainwall import STYLE_OPTIONS
 from .wall import LOD_OPTIONS
 
 RI = Rhino.Input
-GRID_OPTIONS = ["Equal", "Fixed", "List"]
+GRID_OPTIONS = ["Equal", "Fixed", "List", "Custom"]
 REF_OPTIONS = ["Glass", "GlassCenter", "ExteriorFace", "MullionBack"]
 SPANDREL_OPTIONS = ["Glass", "Metal"]
 INFILL_CODES = {"v": "vision", "s": "spandrel", "b": "shadow_box", "sb": "shadow_box"}
@@ -46,7 +47,13 @@ def parse_rows(text):
 
 
 def fmt_lengths(vals):
-    return ", ".join(units.format_inches(units.parse_length(v)) for v in vals) or "none"
+    out = []
+    for v in vals:
+        if isinstance(v, dict):     # a transom crossing some bays (the grid editor)
+            out.append(units.format_inches(units.parse_length(v.get("z", 0))) + " (part)")
+        else:
+            out.append(units.format_inches(units.parse_length(v)))
+    return ", ".join(out) or "none"
 
 
 def fmt_rows(rows):
@@ -139,6 +146,7 @@ def run():
             fmt_lengths(bays) if GRID_OPTIONS[grid_i] == "List" else units.format_inches(
                 units.to_inches(doc, opt_sp.CurrentValue)), fmt_lengths(transoms), fmt_rows(rows), mullion))
         gg.ClearCommandOptions()
+        i_editor = gg.AddOption("Editor")
         ui.add_option_double(gg, "Height", opt_h)
         ui.add_option_double(gg, "BaseOffset", opt_base)
         ui.add_option_double(gg, "Spacing", opt_sp)
@@ -162,6 +170,10 @@ def run():
         if res != RI.GetResult.Option:
             return ui.Result.Cancel
         oi = gg.OptionIndex()
+        if oi == i_editor:
+            from ..eto import cwgrid
+            cwgrid.open_editor(doc, doc.Objects.FindId(d0.Id), lib)
+            return ui.Result.Success
         try:
             if oi == i_grid:
                 grid_i = gg.Option().CurrentListOptionIndex
@@ -179,7 +191,10 @@ def run():
                     bays = parse_lengths(s)
                     grid_i = 2 if bays else grid_i
             elif oi == i_tr:
-                s = get_string("Transom heights above the base (e.g. 30, 10'-6\")", ", ".join(str(t) for t in transoms))
+                if any(isinstance(t, dict) for t in transoms):
+                    ui.say("  Typed transoms cross every bay; use the Editor for transoms in some bays.")
+                s = get_string("Transom heights above the base (e.g. 30, 10'-6\")",
+                               ", ".join(str(t.get("z") if isinstance(t, dict) else t) for t in transoms))
                 if s is not None:
                     transoms = parse_lengths(s)
             elif oi == i_rows:

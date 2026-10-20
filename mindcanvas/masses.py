@@ -2,9 +2,11 @@
 drivers (the kinds are not rewritten: a mass only writes their params).
 
 A mass carries user text
-    mc.kind = mass      mc.type = opening      mc.assembly = <opening type name>
+    mc.kind = mass      mc.type = opening | wall      mc.assembly = <opening type / wall assembly>
     mc.params = JSON: snap (SnapHead: head on the brick coursing), swing, hinge, head
 and sits on MindCanvas::_Masses (translucent, tagged `exclude`: never drawn, never printed).
+Wall masses (mc.type = wall, Phase 10) are in mindcanvas/wallmasses.py; sync() and release()
+dispatch to it.
 
 Opening masses (Phase 9): a solid crossing a wall. Where it cuts the wall's mid surface, the
 bounding rectangle of the cut (along the wall x up) is the ROUGH OPENING; the mass's depth is
@@ -22,7 +24,9 @@ Two-way:
                       openings; type, swing, hinge and head stay as edited (MCEditOpening).
     follow(doc, ctx)  called by engine.build after every host build: a mass with ONE opening is
                       moved with the opening's frame (stored on the opening as mc.mass.frame: the
-                      host curve moved) and resized to its rough opening ("ro", else derived from
+                      host curve moved, e.g. its wall mass was moved; a frame that only turned
+                      around while the box still fits, a flipped wall, leaves it) and resized to
+                      its rough opening ("ro", else derived from
                       the unit size: numeric edits, the opening line moved). Masses with several
                       openings only follow their own edits.
 """
@@ -145,10 +149,10 @@ def is_visible(doc):
     return idx < 0 or doc.Layers[idx].IsVisible
 
 
-def write(doc, obj, type_name, prm):
+def write(doc, obj, type_name, prm, kind="opening"):
     attrs = obj.Attributes.Duplicate()
     attrs.SetUserString(meta.KIND, meta.MASS_KIND)
-    attrs.SetUserString(meta.TYPE, "opening")
+    attrs.SetUserString(meta.TYPE, kind)
     attrs.SetUserString(meta.ASSEMBLY, type_name)
     attrs.SetUserString(meta.PARAMS, json.dumps(prm, sort_keys=True))
     attrs.LayerIndex = ensure_layer(doc)
@@ -338,6 +342,7 @@ class SyncResult(object):
         self.results = []          # engine BuildResults of the hosts
         self.warnings = []
         self.openings = []         # opening ids now driven by the mass
+        self.walls = []            # wall ids driven by the wall masses synced (wallmasses)
         self.removed = 0
         self.seconds = 0.0
 
@@ -352,6 +357,9 @@ def sync(doc, mass_obj, lib=None):
     from . import engine
     from .openings import core
     t0 = time.time()
+    if meta.get(mass_obj, meta.TYPE) == "wall":
+        from . import wallmasses
+        return wallmasses.sync(doc, mass_obj, lib)
     lib = lib or library.get()
     out = SyncResult()
     brep = to_brep(mass_obj.Geometry)
@@ -414,12 +422,14 @@ def sync(doc, mass_obj, lib=None):
 
 
 def release(doc, mass_id, lib=None):
-    """A mass was deleted: delete its openings and rebuild their hosts. Returns the BuildResults."""
-    from . import engine
+    """A mass was deleted: delete its openings and rebuild their hosts. Returns the BuildResults.
+    Wall masses: a deleted wall mass deletes its wall, a deleted wall its mass (wallmasses)."""
+    from . import engine, wallmasses
     from .openings import core
+    out = wallmasses.release(doc, mass_id, lib)
     ops = openings_of(doc, mass_id)
     if not ops:
-        return []
+        return out
     hosts = {}
     with _quiet():
         for o in ops:
@@ -427,7 +437,7 @@ def release(doc, mass_id, lib=None):
             if h is not None:
                 hosts[str(h.Id)] = h
             doc.Objects.Delete(o, True)
-    return [engine.build(doc, h.Id, lib) for h in hosts.values()]
+    return out + [engine.build(doc, h.Id, lib) for h in hosts.values()]
 
 
 def delete_unused(doc, mass_ids):
@@ -439,7 +449,8 @@ def delete_unused(doc, mass_ids):
                 m = doc.Objects.FindId(System.Guid(mid))
             except Exception:
                 continue
-            if m is not None and not m.IsDeleted and is_mass(m) and not openings_of(doc, m.Id):
+            if (m is not None and not m.IsDeleted and is_mass(m) and meta.get(m, meta.TYPE) != "wall"
+                    and not openings_of(doc, m.Id)):
                 if doc.Objects.Delete(m, True):
                     n += 1
     return n
@@ -538,16 +549,20 @@ def _fit(doc, ctx, op, o, m, tol):
     geom = m.Geometry
     target = target_local(ctx, op)
     cur = rect_local(ctx, op, to_brep(geom))
-    if cur is not None and _close(cur, target, tol):
-        return
+    fits = cur is not None and _close(cur, target, tol)
     moved = None
     raw = meta.get(o, FRAME)
     if raw:
         old = _frame_plane(json.loads(raw))
-        if old.Origin.DistanceTo(op.plane.Origin) > tol or old.XAxis.IsParallelTo(op.plane.XAxis, 1e-6) != 1:
+        changed = old.Origin.DistanceTo(op.plane.Origin) > tol or old.XAxis.IsParallelTo(op.plane.XAxis, 1e-6) != 1
+        # the wall moved: the box rides along (unless it still fits a wall whose line only turned
+        # around, e.g. a wall mass flipped to its other face)
+        if changed and not (fits and old.XAxis * op.plane.XAxis < 0):
             moved = _transformed(geom, G.Transform.PlaneToPlane(old, op.plane))
             if moved is not None:
                 cur = rect_local(ctx, op, to_brep(moved))
+    if moved is None and fits:
+        return
     base = moved if moved is not None else geom
     if cur is None:
         cur = _bbox_local(op, to_brep(base))

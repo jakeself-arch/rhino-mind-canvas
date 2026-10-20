@@ -75,11 +75,7 @@ def run():
     if not names:
         ui.say("No floor assemblies in library/assemblies.")
         return ui.Result.Cancel
-    name = scriptcontext.sticky.get(ui.LAST_ASSEMBLY + floorkind.KIND)
-    if name not in names:
-        name = ui.pick_assembly(lib, floorkind.KIND, "Mind Canvas - Floor")
-        if not name:
-            return ui.Result.Cancel
+    name = ui.current_assembly(lib, floorkind.KIND, doc)   # Assembly option changes it; no dialog
     st = scriptcontext.sticky.get(STICKY, {})
     opt_el = ui.length_option(float(st.get("base_offset", 0.0)), doc)
     span_i = SPAN_OPTIONS.index(st.get("span", "Short")) if st.get("span") in SPAN_OPTIONS else 0

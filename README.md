@@ -9,17 +9,42 @@ section drawings.
 ## Install (once)
 1. Open Rhino 8.
 2. Run `_RunPythonScript` and choose `tools/install.py` in this folder.
-   This registers the `MC...` commands as Rhino aliases. Re-run it if new commands are added.
+   This registers the `MC...` commands as Rhino aliases, plus short names (`I` inspector,
+   `WA` wall, ...: see "Fast modeling"). Re-run it if new commands are added.
 3. In each model, run **`MCSetup`** once. It tightens the model tolerance to 0.001"
    (thin layers such as a 1/32" membrane disappear at Rhino's default 0.01 ft) and turns on
    live update.
+
+## Fast modeling: inspector, match, short names
+- **`MCInspector`** (type `I`): a floating window that follows the selection. Click a wall,
+  floor, roof, curtain wall or window (its curve or any stud, brick, panel ...) and its settings
+  show up; a change applies at once to everything selected of that kind (Enter or Tab out of a
+  box, pick from a list, tick a box). Settings that differ show *(varies)*. Buttons under each
+  section open the full editors (layers, framing, joins, trim, grid editor, ...). With nothing
+  selected it shows what the next wall / curtain wall / floor / roof will be, with *Draw* buttons.
+- **Double-click** an assembly in a viewport: a curtain wall opens the grid editor, anything else
+  opens the inspector. `MCSetup` and `MCInspector` turn this on (once per Rhino session).
+- **`MCMatch`** (type `MT`): click an assembly, then click others of the same kind; each takes
+  its assembly and settings at once (like Rhino's MatchProperties). `Match=AssemblyOnly` swaps
+  the type only. Never copied: a wall's end joins, a curtain wall's custom grid lines, a
+  window's place along its wall, and the height of a wall that a wall mass drives.
+- **No assembly dialog**: MCWall / MCFloor / MCRoof / MCCurtainWall / MCWallMass build the
+  current assembly of their kind right away. Change it with the command's `Assembly` option or
+  in the inspector; it is saved with the model.
+- **Short names** (from `tools/aliases.json`, added by `tools/install.py`): `I` inspector,
+  `MT` match, `WA` wall, `CW` curtain wall, `FL` floor, `RF` roof, `OP` window / door,
+  `WM` wall mass, `OM` opening mass, `SC` section cut, `DR` drawing, `UP` update. (`W` is
+  Rhino's SelWindow, so walls are `WA`.) Edit the file to change them and re-run install.py; a
+  name that already runs something else is left alone and reported.
 
 ## Commands
 | Command | What it does |
 |---|---|
 | `MCPanel` | The Mind Canvas panel: a floating window with every tool (build buttons, edit the selection, draw the view, entourage, library) |
+| `MCInspector` | The **inspector**: a floating window that follows the selection; change any setting of the selected walls, floors, roofs, curtain walls and windows at once (see "Fast modeling") |
+| `MCMatch` | Click an assembly, then click others: they take its assembly and settings. Option: Match (All / AssemblyOnly) |
 | `MCSetup` | Prepare the model (tolerance, driver layer, live update on) |
-| `MCWall` | Pick an assembly, then select curves (or `Draw`) to make walls. Options: Height, Location line, Flip, Detail level |
+| `MCWall` | Select curves (or `Draw`) to make walls of the current wall assembly (`Assembly` changes it). Options: Height, Location line, Flip, Detail level |
 | `MCEdit` | Change height, base offset, location line, flip or detail level of selected walls |
 | `MCSetAssembly` | Swap the assembly type of selected walls |
 | `MCJoin` | How selected walls join others: `Start` / `End` = Auto / Wrap / Miter / Butt / None, `Priority` (at an L the higher one runs through), `Report` lists every join (L, T, floors, roofs) |
@@ -30,11 +55,12 @@ section drawings.
 | `MCFraming` | Switch selected walls between wood and metal framing, change stud spacing / gauge |
 | `MCOpening` | Place windows and doors: click a wall where the center goes (repeat, Enter to finish). Options: Type, Width, Height, Sill, Swing, Hinge (doors), HeadCourse (brick: None / Soldier / Sailor), SnapHead (default Yes: in brick walls the head lands on the coursing) |
 | `MCEditOpening` | Change the type, size, sill, swing / hinge, head course or SnapHead of selected windows / doors (click their line or any of their parts), or `Remove` them |
-| `MCCurtainWall` | Pick a curtain-wall assembly, then select curves (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
-| `MCEditCurtainWall` | Grid (Equal / Fixed / List, Spacing, Bays), Transoms, Rows (infill per row), Cell (click panels to cycle vision / spandrel / shadow box), Style, Mullion profile, Spandrel (Glass / Metal), Slabs (anchors), Stack (unitized), Location, Flip, Detail, Height, BaseOffset |
-| `MCFloor` | Pick a floor assembly, then select closed boundary curves (or `Draw`). Options: Elevation (framing bottom, e.g. the wall height), Span (Short / Long / Edge: click the edge the joists bear on), System (Keep / Wood / Metal), Detail |
+| `MCCurtainWall` | Select curves of the current curtain-wall assembly (`Assembly` changes it) (or `Draw`). Options: Height, Spacing (grid module), Style (Captured / SSG4 / SSG2 / Butt / Unitized), Detail level |
+| `MCCurtainGrid` | The **visual curtain-grid editor**: select a curtain wall; a window shows its elevation. Drag grid lines and transoms, add / delete them (transoms can cross only some bays), paint panels, put single or pair doors in bays and drag their heads; the wall rebuilds as you go (see "Curtain walls") |
+| `MCEditCurtainWall` | `Editor` (opens MCCurtainGrid), Grid (Equal / Fixed / List / Custom, Spacing, Bays), Transoms, Rows (infill per row), Cell (click panels to cycle vision / spandrel / shadow box), Style, Mullion profile, Spandrel (Glass / Metal), Slabs (anchors), Stack (unitized), Location, Flip, Detail, Height, BaseOffset |
+| `MCFloor` | Select closed boundary curves of the current floor assembly (`Assembly` changes it) (or `Draw`). Options: Elevation (framing bottom, e.g. the wall height), Span (Short / Long / Edge: click the edge the joists bear on), System (Keep / Wood / Metal), Detail |
 | `MCEditFloor` | Elevation, Reference (FramingBottom / FramingTop / Top / Bottom), Span (Short / Long / Edge / Rotate90), SpacingInches, System, Detail |
-| `MCRoof` | Pick a roof assembly, then select closed boundary curves (the plate line; or `Draw`). Options: PlateHeight, Shape (Flat / Shed / Gable), Pitch (x in 12), Overhang, Rake, Ridge (Long / Short / Edge), Flip (shed high side), System, Detail |
+| `MCRoof` | Select closed boundary curves of the current roof assembly (`Assembly` changes it) (the plate line; or `Draw`). Options: PlateHeight, Shape (Flat / Shed / Gable), Pitch (x in 12), Overhang, Rake, Ridge (Long / Short / Edge), Flip (shed high side), System, Detail |
 | `MCEditRoof` | The same options on selected roofs |
 | `MCUpdate` | Rebuild selected assemblies (Enter = all), e.g. after editing library files |
 | `MCLive` | Toggle live update (walls, floors and roofs follow their curves while you edit them) |
@@ -158,6 +184,38 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
   mullion** (convex and concave); arcs are **faceted**: every bay is a flat panel and the mullion
   between two facets sits on the bisector. `Transoms` are heights above the base; the sill and
   head are always there.
+- **Visual grid editor** (`MCCurtainGrid`, `MCEditCurtainWall` → `Editor`, or the panel's
+  "Curtain grid editor"): the wall's elevation, seen from the exterior (or the interior), with
+  mullions and transoms at their true width, panel colors, doors and dimensions (bay widths
+  under it, row heights of the selected bay beside it). Tools (keys in brackets):
+  - **Select** (S): click a line, panel or door; drag a **grid line** sideways or a **transom**
+    up / down (Ctrl-drag: only its segment in that bay; dropped at the height of the transom next
+    door, it joins it again); drag a **door head**. The right side shows the selection with typed
+    values: a grid line's distance from the previous / to the next one, a transom's height or its
+    height above the line below, a door's height — type `4'-6` and Enter.
+  - **Grid line** (V) / **Transom** (H): click to add one (and keep dragging to place it). A
+    transom goes into the bay you click; Shift-click (or `Whole width`) puts it across every bay.
+  - **Delete** (X or the Delete key): a grid line, a transom segment (Shift: the whole transom)
+    or a door. Wall ends, corners and kinks stay.
+  - **Paint** (P): click or drag over panels: vision, spandrel or shadow box.
+  - **Door** (D): click a panel: a door fills that bay from the floor to the top of that panel
+    (in the bottom row: the door type's height, or a transom within 12" of it). Pick the type
+    (single or **pair**), swing and hinge in the toolbar; select a door to change them.
+  - `Divide bay into` n, `Equalize run` (spread the grid lines between two corners evenly),
+    Undo / Redo (Ctrl+Z / Ctrl+Y), Revert, Snap (1/16" .. 1', off; Alt = no snapping).
+  - **Auto apply** (on) rebuilds the wall after every edit (about 0.1 s for a 30' wall at
+    detail); **3D preview** draws the edited grid in orange on the wall in the viewports, the
+    selection in blue. The window stays open while you work in Rhino.
+  - **Curved walls** (arcs, circles, splines, lines + arcs): the elevation is unfolded along the
+    curve, but every bay is a **flat panel** on the chord between its grid lines. The widths
+    under the bays are the panel widths, with how far each panel strays from the curve
+    (`dev`); the angle between neighbouring panels shows over each grid line on a curve. Panels
+    more than `Max off the curve` (3" by default) away are outlined in red; **Fit curve** adds
+    the fewest grid lines that bring them back (`Equalize run` spreads the lines evenly).
+    Doors in curved bays sit flat in their panel.
+  The editor saves the wall with `Grid = Custom`: grid lines at stations along the curve (a flipped
+  or reshaped curve keeps them where they are), transoms that cross only some bays as
+  `{"z": height, "at": [stations]}`. `MCEditCurtainWall` → `Grid=Equal` returns to a module.
 - **Infill** per row (bottom → top, the last repeats; `Rows` in `MCEditCurtainWall`, e.g. `V,V,S`)
   and per cell (`Cell`: click panels to cycle **vision** → **spandrel** → **shadow box**):
   vision = insulated glass (two lites + spacer); spandrel = opaque spandrel glass (or a metal
@@ -180,9 +238,12 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
   slab, back pans), Detail (gaskets, isolators, pressure plates, IGU lites + spacers, silicone,
   backer rods, setting blocks, perimeter sealant + backer rod at head / sill / jambs, and with
   `Slabs` set: clip-angle anchors at every mullion, fire safing + smoke seal at each slab edge).
-- **Doors**: `MCOpening` with a door type on a curtain wall puts the door in the bay you click; it
-  fills the bay's clear width, gets a transom over its head, and the sill under it is left out
-  (`Door - Aluminum Entrance, Full Lite` is made for this).
+- **Doors**: the grid editor's Door tool, or `MCOpening` with a door type on a curtain wall: the
+  door goes in the bay you click; it fills the bay's clear width, gets a transom over its head, and
+  the sill under it is left out. Curtain-wall doors (`library/openings/curtainwall_doors.json`):
+  `Door - Aluminum Entrance, Full Lite` / `Narrow Stile`, and their **Pair** versions (two leaves
+  hinged at the jambs: `"leaf": {"leaves": 2}` on any door type). Size a door by moving the grid
+  lines of its bay.
 - **Drawings**: `MCSectionCut` works on curtain walls; `Plan=Yes` makes a plan detail at a
   mullion. See `docs/drawings/d_curtainwall_*.png` for 1-1/2" plans of every style and sections
   at a spandrel / slab edge.

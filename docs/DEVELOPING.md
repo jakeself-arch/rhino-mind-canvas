@@ -122,9 +122,30 @@ stack and no components; the kind builds everything itself.
   `ctx.grid`, one pseudo band "Curtain Wall" (`d_ext` = front of caps, `d_int` = back of
   mullions; used by section cuts and openings) and `ctx.openings`.
 - **Grid** (`grid.py`, model units): `vertices` (kind `start` / `end` / `inline` / `corner`,
-  `X` = mullion axis on the bisector, `turn` in degrees, + = concave), `bays` (straight chords:
-  `frame(u, z)`, `local(p)`, `world(u, y, z)`), `horizontals` (sill / transom / stack / head),
-  `rows`, `infill(bay, row)`, `cell_at(point)`.
+  `X` = mullion axis on the bisector, `turn` in degrees, + = concave, `u` = length along the grid
+  curve; grid mode `custom` puts them at `verticals` = stations in inches along the driver AS
+  DRAWN, plus run ends and kinks), `bays` (straight chords:
+  `frame(u, z)`, `local(p)`, `world(u, y, z)`), `horizontals` (sill / transom / stack / head:
+  the ones every bay shares), `bay_hs[bay]` (each bay's own list: a transom
+  `{"z", "at": [stations]}` only goes into the bays holding those stations), `bay_rows(bay)`,
+  `infill(bay, row)` (rows count per bay), `cell_at(point)`; stations: `point_at_station`,
+  `station_of`, `u_of`, `point_at_u`, `bay_at_station`.
+- **Visual grid editor** (`MCCurtainGrid`): `curtainwall/gridedit.py` is plain Python (no Rhino;
+  `tests/offline/test_cw_gridedit.py`): `GridModel` (the elevation in inches: `verts` with
+  `locked` ends / corners / kinks, `hlines` = `HLine(z, bays, kind)`, `cells` for every
+  (bay, row), `doors` = `Door(type, head, swing, hinge, leaves, shim, id)`; edits raise
+  `EditRefused`; topology edits re-map cells by their centres; `export(station_of_u)` = driver
+  params) and `GridController` (layout, `hit`, tools, mouse / keys, snapping + magnet, undo,
+  `info` / `set_value` for typed values). Curved walls: `model.curve_pt(u) -> (x, y)` (inches, set by
+  `gridio.read` for every wall) gives `chord(bay)` (the flat panel's width; door clear widths use
+  it), `deviation(bay)` (largest curve-to-chord distance, sampled, cached), `turn(k)`,
+  `over_limit()` (beyond `max_dev`, default 3") and `fit_curves()`; without it the model is
+  straight (offline tests). `curtainwall/gridio.py`: `Session` reads a BUILT grid
+  (`read(ctx)`) and `apply` writes the params + door opening drivers (created / updated /
+  deleted in `live.quiet()`), then one `engine.update_params` rebuild. `eto/cwgridview.py`
+  paints a controller (`render_png` for tests) and forwards events; `eto/cwgrid.py` is the
+  window (auto apply on a 0.35 s UITimer after a finished edit; the 3D preview is a
+  `DisplayPipeline.DrawForeground` handler removed when the window closes).
 - **Sections** (`sections.py`): 2D member sections in (a, q) inches — a across the member, q depth
   behind the glass face. `vertical(dims, kind, lod)` / `horizontal(dims, kind, lod)` return a
   `Section` with `members` (role, material, loops, `cover`, `detail`), the glass edges
@@ -140,7 +161,10 @@ stack and no components; the kind builds everything itself.
   `mc.x.area` + `mc.x.panel` + `mc.x.cell` on the first lite of each panel.
 - **Openings** in a curtain wall: `kinds.curtainwall.place_opening` snaps an opening to the bay
   nearest its station; `Builder._openings` sizes it to the bay's clear width, adds a head transom
-  and drops the infill (and, for doors, the sill) below it; the unit comes from `openings.units`.
+  and drops the infill (and, for doors, the sill) and the bay's horizontals below it; the unit
+  comes from `openings.units` (`leaf.leaves = 2`: a pair). The grid editor writes a door's
+  `width` a little under the bay's clear width so neighbouring door bays do not count as
+  overlapping in `openings.resolve`.
 - **Schedule**: `kinds.curtainwall.summary(ctx)` (panels per infill type with nominal areas,
   bays, rows) feeds `schedule.curtain_walls`.
 - Drawing: `drawing.sectioncut.wall_frame` works for any kind with bands (a curtain wall uses the
@@ -312,6 +336,108 @@ tag `exclude`, and `drawing/scene.py` skips the layer, so they never reach a dra
 - **Testing**: `tests/test_phase9.py` calls the live Idle handler directly
   (`scriptcontext.sticky[live.STICKY_KEY]["handlers"][2](None, None)`) after `doc.Objects.Transform`
   / `Replace` / `Delete`, which is what Rhino does after a gumball edit.
+- A box with one opening rides along when its opening's frame moves (its wall moved, e.g. by a wall
+  mass), even if it still cuts the wall; only a frame that turned around while the box still fits
+  (a flipped wall) leaves it in place.
+
+## Wall masses (Phase 10)
+`mindcanvas/wallmasses.py`; `masses.sync` / `masses.release` dispatch to it for `mc.type = wall`.
+User text: the mass has `mc.assembly` (the wall assembly for a new wall), `mc.wall` (its wall id)
+and `mc.params` = `flip`, `side` (outward normal [x, y] of the face the automatic rule chose last),
+`wall` (create params); the wall driver has `mc.mass` (`masses.MASS`) and `mc.mass.line` (`LINE`:
+driver start / mid point, cap midpoints `ci` / `cj`, end extensions `ext`, which cap it `start`s at;
+written at every sync).
+
+- **Footprint** (`Footprint(doc, mass)`, model units): the flat downward bottom face (else an
+  error). Mass param `mode` (`MODES`): `perimeter` = the outer loop alone is chain A (a closed
+  wall, exterior outside, `B` = None, holes ignored, `f.perimeter` and `f.ring` set, flip ignored,
+  `t` = half the smaller bbox side); `strip` = never a perimeter (holes are an error); `auto` = a
+  ring with one hole, a strip when its thickness <= `STRIP_RATIO` (1/3) x its shorter long face,
+  otherwise (a cube, a non-strip outline, more holes) a perimeter. `set_mode` changes it (and drops
+  the stored side). Outer loop + one hole = a ring (chains A = outer, B = hole; a closed wall). Otherwise the
+  loop's segments (split at kinks, collinear lines merged) are searched for two non-adjacent CAP
+  segments whose remaining chains stay a constant distance apart (edge midpoints within 15 %; caps
+  <= 3 x that thickness; shortest caps win): chains A and B run from cap i to cap j. No such pair:
+  the minimum-area rectangle is used (warning). `Chain.o` = outward normal at mid-length,
+  `Chain.left` = it is on the left of the chain's direction. `polys` = 2D outline for the 2D tests.
+- **Groups**: footprints that overlap in z and lie within `GAP_IN` (1") in plan. `auto_side`: ring ->
+  A; a face whose outside point (just off its mid) is enclosed (all of `RAYS` rays hit the group's
+  outlines) is interior; else the face farther from the group's area centroid; else the stored
+  `side`, else the face toward the active viewport's camera (perspective: camera location;
+  parallel views: direction, plan views have no say), else the left of the cap i -> cap j axis.
+  Then `flip` takes the other face.
+- **Corners** (`_end_cut`): for each cap of a strip, every group member the cap touches (within the
+  gap) whose exterior line (extended by its end tangents) crosses this end's tangent line within
+  `t_self + t_other + gap` at >= 15 degrees: crossing near that line's end (or past it) = L -> this
+  line ends at the crossing (both walls compute the same point); otherwise T -> it ends at the other
+  WALL's near face (`m.T` = its assembly thickness inward of its exterior face when we come from
+  inside, else its exterior face). Nearest |extension| wins. `_set_end` extends with a line or trims.
+- **Driver** (`derive`): the exterior chain (with corners), oriented exterior-on-the-left, offset by
+  `-y_ext` (the reference's exterior face offset; new walls `reference = exterior_face`, so 0),
+  reversed when flipped (wall `flip` = mass `flip`), at `z0 - base_offset`. Params written: height
+  (mass), flip; the rest of the wall's params is kept. The wall's assembly wins over the mass's.
+  `_write` replaces the driver only when the curve / height / flip / assembly changed, remapping
+  the openings' stations first (`_remap_openings`: projection when the mass did not change, else
+  distance from cap i minus the old extension there).
+- **sync_many(doc, masses)**: footprints of every wall mass in the doc, groups, the seeds' groups +
+  the masses of walls joined to the seeds' walls at the last build (a mass moved away); sides for
+  every member of those groups (store `side`), derive + write, then `engine.build_many` on the
+  changed walls inside `_driving()` (follow() is off; `masses._driving` is NOT set, so opening masses
+  follow their walls). Returns a `masses.SyncResult` (`walls`, `results`, `warnings`).
+- **follow(doc, ctx, wall)** (engine.build of a wall, not while driving): mass bottom / height to
+  `ctx.base_z` / `ctx.height` (z scale + move); a driver whose start / mid moved from `mc.mass.line`
+  moves the mass rigidly (start + direction), then the group is synced.
+- **after_params** (`engine.update_params` / `set_assembly` call it via `_after_wall_params`): a
+  change of `flip`, `reference`, `layers` or `overrides` (or an assembly change) copies the flip to
+  the mass and syncs it (the face position / thickness of this wall and the T ends of its neighbors).
+- **release(doc, id)** (live Idle for every deleted id, via `masses.release`): walls with `mc.mass`
+  = id are deleted with their parts and openings (opening masses left without openings go too); the
+  mass with `mc.wall` = id is deleted; the neighbors are synced, other joined walls rebuilt.
+- **Arrows**: `show_arrows(True)` subscribes once to `DisplayPipeline.DrawForeground` (handler kept
+  in `scriptcontext.sticky[ARROWS_KEY]`); arrows come from `_store_arrow` at each sync and are drawn
+  for visible masses on visible layers. Display only.
+- **Panel / selection**: `eto.editor.selected_drivers` maps a selected wall mass to its wall.
+- **Testing**: `tests/test_phase10.py` (same live pattern as Phase 9). Note `SetCameraLocations`
+  takes (target, camera). Run drawing tests one `run_python` call each.
+- **Perimeters as T hosts**: a strip whose end touches a perimeter's outline (a partition inside a
+  block) always T's: to the interior face from inside, to the exterior face from outside.
+- **Not yet**: a mass running past a corner by more than the gap makes a T; two touching perimeter
+  blocks make two closed walls; courtyards (holes) of a perimeter get no walls; collinear masses are
+  separate walls; corners with plain (mass-less) walls are not adjusted; sloped tops use the highest
+  point; masses with two or more holes; moving a wall mass together with its opening mass moves the
+  opening mass twice.
+
+## Inspector, match, aliases (fast UI)
+- **`mindcanvas/props.py`** is the inspector's logic (no Eto): `FIELDS[kind]` (key, label, type
+  `assembly | length | number | choice | bool`, choices) and `ACTIONS[kind]` (buttons -> commands);
+  kinds without fields get `GENERIC` (assembly + detail level). `selected(doc)` /
+  `assembly_of(doc, obj)`: a part -> its driver, a window part -> the window, a wall mass -> its
+  wall. `settings(lib, driver)` merges params over the assembly (curtain walls:
+  `cwsettings.merged`, roofs: `rshape.merged`) or the opening type; `value` / `common` read a
+  field (lengths in inches); `apply(doc, lib, drivers, field, value, snap)` changes it on every
+  driver in one undo record (openings like MCEditOpening: type, `core.update`, brick head snap,
+  host rebuild), restores the old params if a build raises, and adds `companions` (a flat roof
+  turned shed / gable gets a pitch). To show a new setting, add a `Field` to `FIELDS`.
+- **`mindcanvas/eto/inspector.py`**: the window (one instance in `scriptcontext.sticky`). It marks
+  itself dirty on `RhinoDoc.SelectObjects / DeselectObjects / DeselectAllObjects` and
+  `Command.EndCommand` and refreshes on `RhinoApp.Idle`; events are ignored while it applies a
+  change (`busy`), and afterwards it reselects the drivers so the selection stays on them. Rows
+  (`_Row`) reload in place when the selected set is unchanged (keeps focus / Tab), else the
+  content is rebuilt. Fixed control / label widths keep long assembly names from widening the
+  scrollable. Double-click: a `Rhino.UI.MouseCallback` subclass (pythonnet needs
+  `__namespace__`), kept in sticky; it cancels Rhino's own double-click on MC objects and opens
+  the editor on the next Idle (`later`).
+- **`mindcanvas/match.py`**: `matched_params(kind, src, dst, keep)` is pure (offline test);
+  `OWN[kind]` are per-curve keys never copied; `engine.rebuild_as` writes assembly + params and
+  rebuilds once.
+- **Current assembly**: `ui.current_assembly(lib, kind, doc)` (sticky, then
+  `doc.Strings["mindcanvas", "current.<kind>"]`, then the library's first) and
+  `ui.set_current_assembly`; `pick_assembly` saves the choice.
+- **Aliases**: `tools/aliases.json`; `install.install_short` never overwrites an alias that does
+  not run a `commands/MC*.py` script.
+- Tests: `tests/test_inspector.py` (Rhino) and `python tests/offline/test_match_aliases.py`.
+  Eto views can be checked without screen grabs: render `form.ControlObject.Content` with WPF
+  `RenderTargetBitmap` to a PNG.
 
 ## Library files
 Add your own files rather than editing someone else's: `library/materials/<topic>.json`,
@@ -326,9 +452,10 @@ Material entries: see `library/materials/core.json` (color, render, section, pri
 ## Commands
 Command logic lives in `mindcanvas/cmd/<name>.py` with `run()`; `commands/MC<Name>.py` is a
 6-line entry script (copy an existing one). Shared helpers in `mindcanvas/cmd/ui.py`
-(`select_drivers`, `pick_from_list`, `pick_assembly`, option helpers, `report`).
+(`select_drivers`, `pick_from_list`, `pick_assembly`, `current_assembly` /
+`set_current_assembly`, option helpers, `report`).
 Engine API (any kind, incl. curtain walls): `engine.create / build / build_many / update_params / set_override / set_assembly /
-rebuild_all / add_opening / update_opening / delete_openings`.
+rebuild_all / add_opening / update_opening / delete_openings / rebuild_as`.
 
 ## Version control
 GitHub: `jakeself-arch/rhino-mind-canvas`, branch `main`. Commit when a phase or feature is done

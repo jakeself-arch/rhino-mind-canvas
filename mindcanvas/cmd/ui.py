@@ -47,12 +47,34 @@ def pick_from_list(title, message, items, default=None):
 LAST_ASSEMBLY = "mindcanvas.last_assembly."
 
 
+DOC_SECTION = "mindcanvas"
+
+
+def current_assembly(lib, kind, doc_=None):
+    """The assembly the next MCWall / MCFloor / ... builds: the last one used in this Rhino
+    session, else the one saved with the model, else the library's first. Never asks."""
+    names = lib.assemblies(kind)
+    name = scriptcontext.sticky.get(LAST_ASSEMBLY + kind)
+    if name not in names:
+        d = doc_ or doc()
+        name = d.Strings.GetValue(DOC_SECTION, "current." + kind) if d is not None else None
+    if name not in names:
+        name = names[0] if names else None
+    return name
+
+
+def set_current_assembly(kind, name, doc_=None):
+    scriptcontext.sticky[LAST_ASSEMBLY + kind] = name
+    d = doc_ or doc()
+    if d is not None and name:
+        d.Strings.SetString(DOC_SECTION, "current." + kind, name)
+
+
 def pick_assembly(lib, kind, title="Mind Canvas"):
     names = lib.assemblies(kind)
-    key = LAST_ASSEMBLY + kind
-    choice = pick_from_list(title, "Choose a {} assembly".format(kind), names, scriptcontext.sticky.get(key))
+    choice = pick_from_list(title, "Choose a {} assembly".format(kind), names, current_assembly(lib, kind))
     if choice:
-        scriptcontext.sticky[key] = choice
+        set_current_assembly(kind, choice)
     return choice
 
 

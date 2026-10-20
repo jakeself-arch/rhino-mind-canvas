@@ -245,10 +245,14 @@ class AssemblyEditor(object):
 
 
 def selected_drivers(doc):
-    """Drivers of the selected objects (a part selects its assembly), in selection order."""
+    """Drivers of the selected objects (a part selects its assembly, a wall mass its wall), in
+    selection order."""
+    from .. import wallmasses
     out, seen = [], set()
     for o in doc.Objects.GetSelectedObjects(False, False) or []:
         d = meta.driver_of(doc, o)
+        if d is None and wallmasses.is_wall_mass(o):
+            d = wallmasses.wall_of(doc, o)
         if d is not None and d.Id not in seen:
             seen.add(d.Id)
             out.append(d)

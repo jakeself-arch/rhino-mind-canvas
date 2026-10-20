@@ -118,7 +118,7 @@ def summary(ctx):
         for h0, h1 in zip(hs, hs[1:]):
             if getattr(h0, "door", False):
                 continue
-            row = b.grid_row(h0, h1)
+            row = b.grid_row(bay, h0, h1)
             kind = g.infill(bay.index, row)
             z0 = b.zc(h0) + b.hsec[h0.kind].edge_pos * s
             z1 = b.zc(h1) + b.hsec[h1.kind].edge_neg * s

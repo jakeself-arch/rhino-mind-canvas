@@ -33,11 +33,7 @@ def run():
     if not names:
         ui.say("No roof assemblies in library/assemblies.")
         return ui.Result.Cancel
-    name = scriptcontext.sticky.get(ui.LAST_ASSEMBLY + roofkind.KIND)
-    if name not in names:
-        name = ui.pick_assembly(lib, roofkind.KIND, "Mind Canvas - Roof")
-        if not name:
-            return ui.Result.Cancel
+    name = ui.current_assembly(lib, roofkind.KIND, doc)   # Assembly option changes it; no dialog
     sticky = scriptcontext.sticky.get(STICKY, {})
 
     def _defaults(asm_name):

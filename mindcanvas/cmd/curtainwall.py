@@ -29,11 +29,7 @@ def run():
     if not names:
         ui.say("No curtain-wall assemblies in library/assemblies.")
         return ui.Result.Cancel
-    name = scriptcontext.sticky.get(ui.LAST_ASSEMBLY + cwkind.KIND)
-    if name not in names:
-        name = ui.pick_assembly(lib, cwkind.KIND, "Mind Canvas - Curtain Wall")
-        if not name:
-            return ui.Result.Cancel
+    name = ui.current_assembly(lib, cwkind.KIND, doc)   # Assembly option changes it; no dialog
     st = scriptcontext.sticky.get(STICKY, {})
 
     def _defaults(asm_name):

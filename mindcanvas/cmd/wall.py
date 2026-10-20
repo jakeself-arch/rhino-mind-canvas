@@ -27,13 +27,10 @@ def run():
     lib = library.get()
     if not engine.tolerance_ok(doc):
         ui.say("Mind Canvas: model tolerance is too coarse for assembly detail. Run MCSetup first.")
-    names = lib.assemblies("wall")
-    name = scriptcontext.sticky.get(ui.LAST_ASSEMBLY + "wall")
-    if name not in names:
-        name = ui.pick_assembly(lib, "wall", "Mind Canvas - Wall")
-        if not name:
-            return ui.Result.Cancel
-
+    name = ui.current_assembly(lib, "wall", doc)   # Assembly option changes it; no dialog
+    if not name:
+        ui.say("No wall assemblies in library/assemblies.")
+        return ui.Result.Cancel
     st = scriptcontext.sticky.get(STICKY, {})
 
     def _defaults(asm_name):

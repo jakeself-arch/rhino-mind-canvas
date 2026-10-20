@@ -79,7 +79,7 @@ DEFAULTS = {
         "category": "door", "width": "3'", "height": "7'", "sill": 0,
         "frame": {"material": "Hollow Metal", "face": "2", "depth": "auto", "stop": "5/8"},
         "leaf": {"thickness": "1-3/4", "material": "Hollow Metal Door", "undercut": "3/4", "clearance": "1/8",
-                 "lite": None},
+                 "lite": None, "leaves": 1, "meeting": "1/8"},     # leaves 2 = a pair; meeting gap
         "threshold": {"material": "Aluminum", "width": "5", "height": "1/2"},
         "swing": "in", "hinge": "left",
         "glazing": {"lites": 2, "glass": "1/4", "space": "1/2", "bite": "1/2",
