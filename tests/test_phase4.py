@@ -214,7 +214,8 @@ def two_sided(doc, lib):
 def corner_and_arc(doc, lib):
     f = lambda v: _ft(doc, v)
     out = {}
-    # L-shaped: window asked 1' from the corner (pushed clear), door on the other leg
+    # L-shaped: window asked 1' from the corner (pushed clear: as close as the layers' miter at the
+    # corner + the jamb framing allow), door on the other leg
     for k, asm in enumerate((BRICK, WOOD)):
         x0 = 24.0 + 22.0 * k
         pl = G.PolylineCurve([G.Point3d(f(x0 + 14), f(0), 0), G.Point3d(f(x0), f(0), 0), G.Point3d(f(x0), f(-12), 0)])
@@ -227,7 +228,10 @@ def corner_and_arc(doc, lib):
         thick = max(b.d_ext for b in ctx.bands) - min(b.d_int for b in ctx.bands)
         win = [op for op in ctx.openings if not op.door][0]
         corner = G.Point3d(f(x0), 0, 0)
-        assert abs(win.local(corner)[0]) >= win.rx + thick, "window not clear of the corner"
+        gap = abs(win.local(corner)[0]) - win.rx      # rough opening edge -> driver corner
+        # at most the far face's miter (<= the wall thickness) + 4" of jamb framing; the old rule
+        # kept thickness + 6"
+        assert ctx.u(4) - 1e-6 <= gap <= thick + ctx.u(4) + 1e-6, "window gap {}".format(gap / ctx.s)
         out["L " + asm] = r.driver_id
     # arcs
     for k, asm in enumerate((BRICK, METAL)):
