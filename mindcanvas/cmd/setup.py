@@ -19,6 +19,13 @@ def run():
     except Exception as ex:
         ui.say("Double-click editing skipped: {}".format(ex))
     try:
+        from ..viewport import overlay
+        if not overlay.is_on():
+            overlay.enable(True, True)
+        ui.say("Drag the arrows on a selected assembly; rest the mouse on one for its label (MCHandles).")
+    except Exception as ex:
+        ui.say("Viewport handles skipped: {}".format(ex))
+    try:
         from ..drawing import displaymode, patterns
         patterns.ensure(doc)
         displaymode.ensure()
