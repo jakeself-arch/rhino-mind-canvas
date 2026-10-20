@@ -394,6 +394,26 @@ def paint(g, ctl, width=None, height=None):
         _edge_line(p, lay, lay.slot_pos(d["slot"]), _pen(SEL, 3.5), 10)
 
 
+def paint_tile(g, lay, width, height):
+    """A compact layout (SectionLayout(..., compact=True)) for the assembly palette: the bands and
+    the two finished faces heavy, no text. Returns False when there is no layer stack."""
+    p = Painter(g)
+    p.rect(WHITE, 0, 0, width, height)
+    if not lay.bands:
+        return False
+    for b in lay.bands:
+        _band(p, lay, b)
+    heavy = _pen(INK, 1.8)
+    first, last = lay.bands[0], lay.bands[-1]
+    if lay.orient == "h":
+        p.line(heavy, first.lo, lay.y0, first.lo, lay.y1)
+        p.line(heavy, last.hi, lay.y0, last.hi, lay.y1)
+    else:
+        p.line(heavy, lay.x0, first.lo, lay.x1, first.lo)
+        p.line(heavy, lay.x0, last.hi, lay.x1, last.hi)
+    return True
+
+
 def _edge_line(p, lay, pos, pen, over=4):
     if lay.orient == "h":
         p.line(pen, pos, lay.y0 - over, pos, lay.y1 + over)

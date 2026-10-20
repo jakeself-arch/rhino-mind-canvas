@@ -90,9 +90,11 @@ class Band(object):
 
 class SectionLayout(object):
     """Bands of a model's current stack fitted into width x height pixels.
-    override: {index: inches} (a thickness being dragged); scale: frozen px / inch."""
+    override: {index: inches} (a thickness being dragged); scale: frozen px / inch.
+    compact: the whole size for the bands, no labels (the assembly palette's tiles)."""
 
-    def __init__(self, model, width, height, override=None, scale=None):
+    def __init__(self, model, width, height, override=None, scale=None, compact=False):
+        self.compact = compact
         self.kind = model.kind if model.kind in END_LABELS else "wall"
         self.orient = "h" if self.kind == "wall" else "v"
         self.width, self.height = float(width), float(height)
@@ -112,7 +114,11 @@ class SectionLayout(object):
             self.bands.append(b)
         self.total = sum(b.thickness for b in self.bands)
         self.ends = END_LABELS[self.kind]
-        if self.orient == "h":
+        if compact:
+            m = 4.0
+            self.x0, self.x1, self.y0, self.y1 = m, self.width - m, m, self.height - m
+            length = (self.x1 - self.x0) if self.orient == "h" else (self.y1 - self.y0)
+        elif self.orient == "h":
             self.x0, self.x1 = 30.0, max(90.0, self.width - LABEL_W)
             self.y0 = 40.0
             self.y1 = max(self.y0 + 60.0, self.height - 20.0 - n * ROW)
@@ -121,7 +127,7 @@ class SectionLayout(object):
             self.x0, self.x1 = 40.0, max(100.0, self.width - LABEL_W - 40.0)
             self.y0, self.y1 = 30.0, max(90.0, self.height - 30.0)
             length = self.y1 - self.y0
-        sp, self.scale = spans([b.thickness for b in self.bands], length, MIN_PX, scale)
+        sp, self.scale = spans([b.thickness for b in self.bands], length, 2.0 if compact else MIN_PX, scale)
         start = self.x0 if self.orient == "h" else self.y0
         for b, (lo, hi) in zip(self.bands, sp):
             b.lo, b.hi = start + lo, start + hi
@@ -136,7 +142,8 @@ class SectionLayout(object):
         if self.kind == "wall" and self.bands:
             ref = model.data.get("default_reference") or "center"
             self.reference = ref, self._reference(ref)
-        self._labels()
+        if not compact:
+            self._labels()
 
     def _reference(self, ref):
         """Pixel position of a wall's location line (kinds.wall.reference_distance)."""

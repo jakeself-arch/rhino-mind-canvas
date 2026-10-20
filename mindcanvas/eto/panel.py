@@ -144,6 +144,8 @@ class MindCanvasPanel(object):
                       (w.button("Reload library", self.reload_library), w.button("Open folder", self.open_folder)),
                       (w.button("Assembly editor...", self.open_editor),
                        w.button("Capture profile...", lambda: self.command("MCProfileCapture"))),
+                      (w.button("Palette (pick by sight)...", lambda: self.command("MCPalette")),
+                       w.button("Assembly layers", lambda: self.command("MCAssemblyLayers"))),
                       None)
 
     # -- actions -----------------------------------------------------------------------------
