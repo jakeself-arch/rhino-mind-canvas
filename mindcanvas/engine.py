@@ -80,6 +80,7 @@ def create(doc, curve_obj, assembly_name, params=None, lib=None):
     meta.write_driver(doc, curve_obj, kind, assembly_name, prm)
     obj = doc.Objects.FindId(curve_obj.Id)
     attrs = obj.Attributes.Duplicate()
+    meta.remember_home(doc, attrs)
     attrs.LayerIndex = docutil.ensure_driver_layer(doc)
     doc.Objects.ModifyAttributes(obj, attrs, True)
     return build(doc, curve_obj.Id, lib)
@@ -323,6 +324,75 @@ def delete_openings(doc, host_id):
     if mass_ids:
         masses.delete_unused(doc, mass_ids)
     return n
+
+
+def home_layer(doc, obj):
+    """Where a released curve / solid goes: the layer it was on before Mind Canvas took it, else the
+    current layer, else Default; never a Mind Canvas layer or an assembly layer (laylink would turn
+    it back into an assembly)."""
+    from . import laylink
+
+    def ok(idx):
+        if idx is None or idx < 0 or idx >= doc.Layers.Count:
+            return False
+        layer = doc.Layers[idx]
+        path = layer.FullPath or ""
+        return (not layer.IsDeleted and path.split("::")[0] not in (docutil.ROOT_LAYER, laylink.ROOT)
+                and laylink.assembly_of_layer(doc, idx) is None)
+
+    home = meta.get(obj, meta.HOME)
+    if home:
+        try:
+            layer = doc.Layers.FindId(System.Guid(home))
+        except Exception:
+            layer = None
+        if layer is not None and ok(layer.Index):
+            return layer.Index
+    if ok(doc.Layers.CurrentLayerIndex):
+        return doc.Layers.CurrentLayerIndex
+    return docutil.ensure_layer(doc, "Default")
+
+
+def release(doc, driver_id, lib=None):
+    """An assembly whose parts were all deleted (it was selected and Deleted): it is gone, its
+    input stays as plain geometry that drives nothing. The driver curve loses its Mind Canvas user
+    text and goes back to its layer (home_layer); a wall driven by a wall mass gives back the
+    SOLID instead (the wall's curve was made from it and is deleted; the neighbors re-derive). A
+    wall's windows / doors are deleted. The assemblies joined to it rebuild. Returns
+    (kept object or None, BuildResults)."""
+    from . import wallmasses
+    lib = lib or library.get()
+    obj = doc.Objects.FindId(_guid(driver_id))
+    if not meta.is_driver(obj) or hosted_kind(obj):
+        return None, []
+    kind = meta.get(obj, meta.TYPE, "wall")
+    partners = meta.joined_ids(obj)
+    delete_openings(doc, obj.Id)
+    g = doc.Groups.FindName(_group_name(kind, obj.Id))
+    if g is not None and not g.IsDeleted:
+        doc.Groups.Delete(g.Index)
+    out = []
+    mass = wallmasses.mass_of(doc, obj)
+    with _quiet():
+        if mass is not None:
+            doc.Objects.Delete(obj, True)
+            out.extend(wallmasses.release(doc, obj.Id, lib, keep=True))
+            kept = doc.Objects.FindId(mass.Id)
+        else:
+            kept = meta.strip(doc, obj, home_layer(doc, obj))
+    done = set(str(r.driver_id) for r in out)
+    for pid in sorted(partners - done):
+        try:
+            o = doc.Objects.FindId(System.Guid(pid))
+        except Exception:
+            o = None
+        if o is None or o.IsDeleted or not meta.is_driver(o) or hosted_kind(o):
+            continue
+        try:
+            out.append(build(doc, o.Id, lib))
+        except Exception as ex:
+            print("Mind Canvas: a joined assembly could not be rebuilt: {}".format(ex))
+    return kept, out
 
 
 def orphan_openings(doc):

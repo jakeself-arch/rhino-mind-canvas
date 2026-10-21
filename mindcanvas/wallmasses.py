@@ -1042,9 +1042,10 @@ def after_params(doc, wall_id, old, new, lib=None, force=False):
 
 
 # -- deleting --------------------------------------------------------------------------------------
-def release(doc, oid, lib=None):
+def release(doc, oid, lib=None, keep=False):
     """A deleted object: a wall mass takes its wall (and the wall's openings) along; a wall takes
-    its mass along. The neighbors are re-derived. Returns BuildResults."""
+    its mass along (keep: the mass stays as a plain solid on its own layer, engine.release). The
+    neighbors are re-derived. Returns BuildResults."""
     from . import engine
     masses = _masses()
     lib = lib or library.get()
@@ -1077,7 +1078,11 @@ def release(doc, oid, lib=None):
                 if g.id != str(m.Id):
                     neighbors.append(g.obj)
             with _quiet():
-                doc.Objects.Delete(m, True)
+                if keep:
+                    from . import engine as _engine
+                    meta.strip(doc, m, _engine.home_layer(doc, m))
+                else:
+                    doc.Objects.Delete(m, True)
             _arrow_state()["arrows"].pop((doc.RuntimeSerialNumber, str(m.Id)), None)
     _arrow_state()["arrows"].pop((doc.RuntimeSerialNumber, key), None)
     out = []

@@ -254,6 +254,16 @@ params), never from generated parts, so build order never matters.
   (user text `mc.joined`) with `joined=False` (no further cascade); `BuildResult.partners` /
   `.joined`. `rebuild_all` / `build_many` build everything once, then the partners not built yet.
   Live mode: deleting a driver queues its `mc.joined` partners.
+- **Deleting an assembly, keeping its curve** (`live.py` + `engine.release`): a deleted PART
+  queues its `mc.driver` (`state["parts"]`); on Idle a driver that still exists but has no parts
+  left was deleted by the user (a rebuild re-adds parts before Idle, a partial delete leaves some)
+  -> `engine.release`: openings deleted, the empty group removed, every `mc.*` user text stripped
+  (`meta.strip`), the curve moved to `home_layer` (`mc.home` = the layer id `engine.create` /
+  `masses.write` saw before moving it to `_Drivers` / `_Masses` (`meta.remember_home`), else the
+  current layer, else Default; never a MindCanvas or `MC Assemblies` layer), joined partners
+  rebuilt. A wall-mass wall: its driver is deleted and `wallmasses.release(..., keep=True)` strips
+  the mass instead of deleting it. One undo record "Mind Canvas: delete <kind>" (after the user's
+  Delete record). Test: `tests/test_delete.py`.
 - **Testing without Rhino**: `python tests/offline/test_join_plan.py` (plan.py imports nothing from
   Rhino) and `python tests/offline/test_join_find.py` (find.py against a small
   fake of `Rhino.Geometry` (straight polylines) for quick logic checks; geometry needs Rhino
@@ -392,7 +402,8 @@ written at every sync).
   the mass and syncs it (the face position / thickness of this wall and the T ends of its neighbors).
 - **release(doc, id)** (live Idle for every deleted id, via `masses.release`): walls with `mc.mass`
   = id are deleted with their parts and openings (opening masses left without openings go too); the
-  mass with `mc.wall` = id is deleted; the neighbors are synced, other joined walls rebuilt.
+  mass with `mc.wall` = id is deleted (`keep=True`: made a plain solid again, engine.release); the
+  neighbors are synced, other joined walls rebuilt.
 - **Arrows**: `show_arrows(True)` subscribes once to `DisplayPipeline.DrawForeground` (handler kept
   in `scriptcontext.sticky[ARROWS_KEY]`); arrows come from `_store_arrow` at each sync and are drawn
   for visible masses on visible layers. Display only.

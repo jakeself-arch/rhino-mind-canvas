@@ -1,5 +1,8 @@
 """Live mode: rebuild an assembly when its driver curve is edited, delete its
-parts when the driver is deleted.
+parts when the driver is deleted. Deleting an assembly itself (clicking it selects all its parts:
+they are one group; Delete) releases it (engine.release): its curve stays as a plain curve that
+drives nothing. Deleting only some of its parts changes nothing (the next rebuild brings them
+back).
 
 Events only queue work; the rebuild happens on the next Idle so Rhino has
 finished the user's command. Nothing is queued while Undo/Redo is running,
@@ -39,7 +42,7 @@ def _undoing(doc):
 def enable():
     if is_on():
         return
-    state = {"queue": [], "busy": False, "handlers": None}
+    state = {"queue": [], "parts": set(), "busy": False, "handlers": None}
 
     def _meta():
         return sys.modules.get("mindcanvas.meta") or __import__("mindcanvas.meta", fromlist=["x"])
@@ -74,19 +77,53 @@ def enable():
                 for pid in (joined or "").split(","):
                     if pid:   # walls / floors / roofs joined to it rebuild without it
                         state["queue"].append((sn, System.Guid(pid)))
+            elif _meta().is_part(e.TheObject):
+                # the user deleted the assembly (or a rebuild replaced its parts: Idle checks)
+                did = e.TheObject.Attributes.GetUserString(_meta().DRIVER)
+                if did:
+                    state["parts"].add((doc.RuntimeSerialNumber, did))
         except Exception as ex:
             print("Mind Canvas live (delete): {}".format(ex))
 
     def on_idle(sender, e):
-        if not state["queue"] or state["busy"]:
+        if not (state["queue"] or state.get("parts")) or state["busy"]:
             return
         state["busy"] = True
         items, state["queue"] = state["queue"], []
+        gone, state["parts"] = state.get("parts") or set(), set()
         try:
             engine = __import__("mindcanvas.engine", fromlist=["x"])
             masses = __import__("mindcanvas.masses", fromlist=["x"])
             seen = set()
             mass_docs = {}       # docs where a mass changed or something was deleted: dressed stories
+            for sn, did in sorted(gone):
+                doc = Rhino.RhinoDoc.FromRuntimeSerialNumber(sn)
+                try:
+                    obj = doc.Objects.FindId(System.Guid(did)) if doc is not None else None
+                except Exception:
+                    obj = None
+                # all its parts gone, the driver still there: the assembly itself was deleted
+                if (obj is None or obj.IsDeleted or not _meta().is_driver(obj)
+                        or engine.hosted_kind(obj) or _meta().parts_of(doc, obj.Id)):
+                    continue
+                kind = (_meta().get(obj, _meta().TYPE) or "assembly").replace("_", " ")
+                undo = doc.BeginUndoRecord("Mind Canvas: delete " + kind)
+                try:
+                    kept, rs = engine.release(doc, obj.Id)
+                    seen.add((sn, obj.Id))
+                    for r in rs:
+                        seen.add((sn, r.driver_id))
+                        for j in r.joined:
+                            seen.add((sn, j.driver_id))
+                    mass_docs[sn] = doc
+                    print("Mind Canvas: {} deleted; its {} stays and drives nothing.".format(
+                        kind, "solid" if kept is not None and not isinstance(kept.Geometry, Rhino.Geometry.Curve)
+                        else "curve"))
+                except Exception as ex:
+                    print("Mind Canvas: deleting the {} failed: {}".format(kind, ex))
+                finally:
+                    doc.EndUndoRecord(undo)
+                doc.Views.Redraw()
             for sn, oid in items:
                 if (sn, oid) in seen:
                     continue

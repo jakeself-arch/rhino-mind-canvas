@@ -172,6 +172,14 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
 - The **curve is the wall**. It lives on the `MindCanvas::_Drivers` layer (orange, never prints).
   Edit the curve (move points, move, rotate, scale) and the wall rebuilds. Delete the curve and
   the wall goes with it.
+- **Delete the wall, keep the curve**: click a wall, floor, roof, curtain wall or stair (any of
+  its parts: they are one group) and press Delete. The assembly is gone and its curve stays as a
+  plain curve on the layer you drew it on (a curve from an assembly layer goes to the current
+  layer); it drives nothing, so you can reuse it. A wall's windows / doors go with it; a wall
+  made from a wall mass gives back the plain solid. Walls joined to it close up. Undo twice to get
+  it back (the first Undo makes the curve a wall again, the second brings back its parts). Needs
+  live update on (`MCSetup` / `MCLive`); deleting only a few parts (Ctrl+Shift picks) changes
+  nothing.
 - Wall parts are grouped. To change a wall, edit its curve or use `MCEdit`; editing parts directly
   is overwritten on the next rebuild.
 - **Exterior side**: on an open curve the exterior is on the **left** of the drawing direction;

@@ -155,6 +155,7 @@ def write(doc, obj, type_name, prm, kind="opening"):
     attrs.SetUserString(meta.TYPE, kind)
     attrs.SetUserString(meta.ASSEMBLY, type_name)
     attrs.SetUserString(meta.PARAMS, json.dumps(prm, sort_keys=True))
+    meta.remember_home(doc, attrs)
     attrs.LayerIndex = ensure_layer(doc)
     attrs.MaterialSource = Rhino.DocObjects.ObjectMaterialSource.MaterialFromLayer
     attrs.ColorSource = Rhino.DocObjects.ObjectColorSource.ColorFromLayer
