@@ -14,6 +14,7 @@ ROLE = "mc.role"            # "stud", "plate", "brick", "solid", ... (part)
 MATERIAL = "mc.material"    # material name (part)
 EXTRA_PREFIX = "mc.x."      # free-form per-part data, e.g. mc.x.length
 JOINED = "mc.joined"        # ids of the assemblies joined to this one at its last build (driver)
+HOME = "mc.home"            # id of the layer a curve / solid was on before Mind Canvas moved it
 
 DRIVER_KIND = "driver"
 PART_KIND = "part"
@@ -49,6 +50,27 @@ def write_driver(doc, obj, kind, assembly, prm):
     attrs.SetUserString(ASSEMBLY, assembly)
     attrs.SetUserString(PARAMS, json.dumps(prm, sort_keys=True))
     doc.Objects.ModifyAttributes(obj, attrs, True)
+
+
+def remember_home(doc, attrs):
+    """Before Mind Canvas moves a curve / solid to its own layer: keep the layer it is on, so a
+    released object (strip) goes back there. The first home is kept."""
+    if not attrs.GetUserString(HOME) and 0 <= attrs.LayerIndex < doc.Layers.Count:
+        attrs.SetUserString(HOME, str(doc.Layers[attrs.LayerIndex].Id))
+
+
+def strip(doc, obj, layer_index=None):
+    """Make a driver / mass a plain object again: every mc.* user text removed, on layer_index
+    (when given). Returns the object."""
+    attrs = obj.Attributes.Duplicate()
+    keys = attrs.GetUserStrings()
+    for k in list(keys.AllKeys) if keys is not None else []:
+        if k and k.startswith("mc."):
+            attrs.DeleteUserString(k)
+    if layer_index is not None and layer_index >= 0:
+        attrs.LayerIndex = layer_index
+    doc.Objects.ModifyAttributes(obj, attrs, True)
+    return doc.Objects.FindId(obj.Id)
 
 
 def driver_of(doc, obj):
