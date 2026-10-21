@@ -37,11 +37,14 @@ cw_src2 = dict(cw_src, grid="fixed")
 out = match.matched_params("curtain_wall", cw_src2, cw_dst)
 assert out["grid"] == "fixed" and out["transoms"] == [80]
 
-# openings keep their place; unknown kinds (stairs) are not changed
+# openings keep their place; stairs keep what is measured on their own curve; unknown kinds are not changed
 op = match.matched_params("opening", {"width": 36, "height": 84, "station": 10, "swing": "out"},
                           {"width": 30, "height": 60, "station": 99, "ro": {"width": 32}})
 assert op == {"width": 36, "height": 84, "station": 99, "ro": {"width": 32}, "swing": "out"}
-assert match.matched_params("stair", {"width": 60}, {"width": 44}) == {"width": 44}
+st = match.matched_params("stair", {"width": 60, "height": 144, "side": "right", "landings": [10], "start": 5},
+                          {"width": 44, "side": "left", "flip": True, "landings": [99]})
+assert st == {"width": 60, "height": 144, "side": "left", "flip": True, "landings": [99]}, st
+assert match.matched_params("ramp", {"width": 60}, {"width": 44}) == {"width": 44}
 
 
 # short aliases: added / updated when free or ours, never over someone else's

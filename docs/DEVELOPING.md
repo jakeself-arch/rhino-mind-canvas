@@ -442,10 +442,16 @@ components, no LOD. MCEditStair's Flip swaps `side` too, so the footprint stays 
   flight / landing run is built alone and unioned. `_samples` must end at the curve's end
   (DivideByCount leaves it out on closed curves); `_pieces` trims between kinks (Split merges the
   pieces on both sides of a closed curve's seam).
+- **UI**: inspector fields `props.FIELDS["stair"]` (floor to floor, floors, width, elevation, side,
+  flip, laps, style, max riser; `props.settings` merges `kinds.stair.DEFAULTS` + `settings()`; an
+  inspector Flip also swaps `side`, as MCEditStair does), `match.OWN["stair"]` = landings, start,
+  side, flip; palette tab + `tiles._stair` (a flight in section per style); an assembly layer group
+  `MC Assemblies::Stairs` (a curve put on it becomes a stair with default settings); alias `ST`;
+  MCStair builds `ui.current_assembly` (no dialog).
 - `section_frame` cuts along the walking direction (MCSectionCut). Tests: `python
   tests/offline/test_stair_plan.py` (layout, floor / curved landings, wraps, every mesh closed, the
   pushed-out cuts cover the curves), `tests/test_stair.py` in Rhino (captures `stairs`,
-  `stair_elevator_wrap`).
+  `stair_elevator_wrap`; also the inspector, match, layer and tile hooks).
 - **Not yet**: railings, winders at corners, stringers, a center column for true spiral stairs (the
   inside radius must exceed 0); the last riser is the upper floor's edge (the stair ends with the top
   tread at the path's end); headroom is only checked between laps of a closed curve.

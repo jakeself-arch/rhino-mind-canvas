@@ -17,7 +17,7 @@ section drawings.
 
 ## Fast modeling: inspector, match, short names
 - **`MCInspector`** (type `I`): a floating window that follows the selection. Click a wall,
-  floor, roof, curtain wall or window (its curve or any stud, brick, panel ...) and its settings
+  floor, roof, stair, curtain wall or window (its curve or any stud, brick, panel ...) and its settings
   show up; a change applies at once to everything selected of that kind (Enter or Tab out of a
   box, pick from a list, tick a box). Settings that differ show *(varies)*. Buttons under each
   section open the full editors (layers, framing, joins, trim, grid editor, ...). With nothing
@@ -27,12 +27,13 @@ section drawings.
 - **`MCMatch`** (type `MT`): click an assembly, then click others of the same kind; each takes
   its assembly and settings at once (like Rhino's MatchProperties). `Match=AssemblyOnly` swaps
   the type only. Never copied: a wall's end joins, a curtain wall's custom grid lines, a
-  window's place along its wall, and the height of a wall that a wall mass drives.
-- **No assembly dialog**: MCWall / MCFloor / MCRoof / MCCurtainWall / MCWallMass build the
+  window's place along its wall, a stair's clicked landings / start / side / direction, and the
+  height of a wall that a wall mass drives.
+- **No assembly dialog**: MCWall / MCFloor / MCRoof / MCStair / MCCurtainWall / MCWallMass build the
   current assembly of their kind right away. Change it with the command's `Assembly` option or
   in the inspector; it is saved with the model.
 - **Short names** (from `tools/aliases.json`, added by `tools/install.py`): `I` inspector,
-  `MT` match, `WA` wall, `CW` curtain wall, `FL` floor, `RF` roof, `OP` window / door,
+  `MT` match, `WA` wall, `CW` curtain wall, `FL` floor, `RF` roof, `ST` stair, `OP` window / door,
   `WM` wall mass, `OM` opening mass, `SC` section cut, `DR` drawing, `UP` update, `PA` palette,
   `AL` assembly layers, `DM` dress, `VH` handles. (`W` is Rhino's SelWindow, so walls are
   `WA`.) Edit the file to change them and re-run install.py; a name that already runs something
@@ -57,8 +58,8 @@ section drawings.
 - **`MCHandles`** (type `VH`): handles / hover labels / SnapHead on or off. `MCSetup` and
   `MCInspector` turn them on.
 - **`MCPalette`** (type `PA`): a floating window with a tab per kind and a drawn tile per library
-  entry (the layer section for walls / floors / roofs, an elevation for curtain walls, a glyph for
-  windows and doors). Click a tile: it is what the next one you build will be (blue, NEXT), and
+  entry (the layer section for walls / floors / roofs, an elevation for curtain walls, a flight in
+  section for stairs, a glyph for windows and doors). Click a tile: it is what the next one you build will be (blue, NEXT), and
   the selected assemblies of that kind take it at once. It follows the selection (orange,
   SELECTED). Double-click: the visual assembly editor. *Paint...*: click assemblies in the
   viewport to give them the tile (`MCPaintAssembly`).
@@ -104,7 +105,7 @@ section drawings.
 | `MCEditFloor` | Elevation, Reference (FramingBottom / FramingTop / Top / Bottom), Span (Short / Long / Edge / Rotate90), SpacingInches, System, Detail |
 | `MCRoof` | Select closed boundary curves of the current roof assembly (`Assembly` changes it) (the plate line; or `Draw`). Options: PlateHeight, Shape (Flat / Shed / Gable), Pitch (x in 12), Overhang, Rake, Ridge (Long / Short / Edge), Flip (shed high side), System, Detail |
 | `MCEditRoof` | The same options on selected roofs |
-| `MCStair` | Pick a stair assembly (Concrete / Solid Mass / Open Wood Treads), then select a curve along the LEFT or RIGHT side of the stair (or `Draw`). Open curve: click near its bottom end. **Closed curve** (a circle / rounded rectangle around an elevator): the stair winds around it; click where it starts and a point a little further the way it goes up. Then click the side the stair goes and any landing centers. Options: FloorHeight (floor to floor: sets the risers), Floors (floors climbed: a landing exactly at each floor), Laps (times around a closed curve), Width, Elevation, Side, MaxRiserInches, LandingsPerFloor (evenly spaced, also on curved flights). Treads are fitted to the curve; corners become landings, arcs smooth curved flights. No railings |
+| `MCStair` | Builds the current stair assembly (Concrete / Solid Mass / Open Wood Treads; `Assembly` option, inspector or palette changes it): select a curve along the LEFT or RIGHT side of the stair (or `Draw`). Open curve: click near its bottom end. **Closed curve** (a circle / rounded rectangle around an elevator): the stair winds around it; click where it starts and a point a little further the way it goes up. Then click the side the stair goes and any landing centers. Options: FloorHeight (floor to floor: sets the risers), Floors (floors climbed: a landing exactly at each floor), Laps (times around a closed curve), Width, Elevation, Side, MaxRiserInches, LandingsPerFloor (evenly spaced, also on curved flights). Treads are fitted to the curve; corners become landings, arcs smooth curved flights. No railings |
 | `MCEditStair` | FloorHeight, Floors, Laps, Width, Elevation, Side, Flip (goes up the other way, same footprint), StartPoint (closed curves), LandingsPerFloor, LandingDepth, AddLandings / ClearLandings (click centers on the curve), MaxRiserInches, Risers (0 = from the max riser), Style (Slab / Solid / Open), WaistInches |
 | `MCUpdate` | Rebuild selected assemblies (Enter = all), e.g. after editing library files |
 | `MCLive` | Toggle live update (walls, floors and roofs follow their curves while you edit them) |

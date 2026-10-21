@@ -104,12 +104,8 @@ def run():
     if not names:
         ui.say("No stair assemblies in library/assemblies.")
         return ui.Result.Cancel
-    name = scriptcontext.sticky.get(ui.LAST_ASSEMBLY + stairkind.KIND)
-    if name not in names:
-        name = ui.pick_assembly(lib, stairkind.KIND, "Mind Canvas - Stair")
-        if not name:
-            return ui.Result.Cancel
-    st = scriptcontext.sticky.get(STICKY, {})
+    name = ui.current_assembly(lib, stairkind.KIND, doc)   # Assembly option changes it; no dialog
+    st =scriptcontext.sticky.get(STICKY, {})
     opt_h = ui.length_option(float(st.get("height", stairkind.DEFAULTS["height"])), doc)
     opt_floors = RI.Custom.OptionInteger(int(st.get("floors", 1)), 1, 100)
     opt_laps = RI.Custom.OptionDouble(float(st.get("laps", 1.0)), 0.05, 50.0)

@@ -68,6 +68,58 @@ def _check(doc, r, name, risers=None, pieces=None):
     return ctx
 
 
+def _ui(doc, lib):
+    """Inspector fields, MCMatch, layer = assembly, the palette tile."""
+    from mindcanvas import laylink, match, props
+    fld = dict((f.key, f) for f in props.fields("stair"))
+    a = doc.Objects.FindId(_poly(doc, [(0, 0), (187 / 12.0, 0)], oy=-80).Id)
+    r = engine.create(doc, a, SLAB, {"height": 120, "width": 42, "landings": [90]}, lib)
+    a = doc.Objects.FindId(r.driver_id)
+    v = dict((k, props.value(lib, a, f)) for k, f in fld.items())
+    assert v["height"] == 120 and v["width"] == 42 and v["side"] == "left" and v["flip"] is False, v
+    assert v["style"] == "slab" and v["max_riser"] == 7 and v["floors"] == 1, v
+    bb0 = _bbox(doc, a.Id)
+    props.apply(doc, lib, [a], fld["flip"], True)        # up the other way, same footprint
+    a = doc.Objects.FindId(a.Id)
+    assert meta.params(a).get("side") == "right", "inspector Flip must swap the side"
+    bb1 = _bbox(doc, a.Id)
+    assert abs(bb1.Min.Y - bb0.Min.Y) < 1e-6 and abs(bb1.Max.Y - bb0.Max.Y) < 1e-6, "flip moved the stair"
+    props.apply(doc, lib, [a], fld["height"], 108.0)
+    props.apply(doc, lib, [a], fld["style"], "open")
+    a = doc.Objects.FindId(a.Id)
+    assert props.value(lib, a, fld["height"]) == 108 and props.value(lib, a, fld["style"]) == "open"
+    _check(doc, engine.build(doc, a.Id, lib), "inspector edits", risers=16)
+
+    b = doc.Objects.FindId(_poly(doc, [(0, 0), (10, 0), (10, -12.5)], ox=20, oy=-80).Id)
+    r = engine.create(doc, b, SOLID, {"height": 120, "width": 40, "side": "right", "landings": [30]}, lib)
+    b = doc.Objects.FindId(r.driver_id)
+    match.match(doc, lib, a, b)
+    pb = meta.params(doc.Objects.FindId(b.Id))
+    assert meta.get(doc.Objects.FindId(b.Id), meta.ASSEMBLY) == SLAB
+    assert pb.get("height") == 108 and pb.get("style") == "open" and pb.get("width") == 42, pb
+    assert pb.get("side") == "right" and pb.get("landings") == [30] and not pb.get("flip"), "match copied curve settings"
+    _check(doc, engine.build(doc, b.Id, lib), "matched", risers=16)
+
+    made = laylink.ensure_layers(doc, lib)
+    assert ("stair", SOLID) in made, "no assembly layer for stairs"
+    lay = doc.Layers[made[("stair", SOLID)]]
+    assert laylink.assembly_of_layer(doc, lay.Index) == ("stair", SOLID)
+    c = doc.Objects.FindId(_poly(doc, [(0, 0), (12, 0)], ox=40, oy=-80).Id)
+    note = laylink.convert(doc, c, "stair", SOLID)
+    assert meta.get(doc.Objects.FindId(c.Id), meta.TYPE) == "stair", note
+    _check(doc, engine.build(doc, c.Id, lib), "from a stair layer", risers=18)
+
+    from mindcanvas.eto import tiles
+    out = os.path.join(os.environ.get("TEMP", HERE), "mc_stair_tiles")
+    if not os.path.isdir(out):
+        os.makedirs(out)
+    for name in lib.assemblies("stair"):
+        p = os.path.join(out, name.replace(" ", "_") + ".png")
+        tiles.render_png(lib, "stair", name, p)
+        assert os.path.getsize(p) > 500, "empty tile " + name
+    say("  ui: inspector, match, assembly layer, tiles ok ({})".format(out))
+
+
 def run(doc, clear=True, captures=True):
     assert not doc.Path, "test_stair clears the document: run it in an empty, unsaved model"
     if clear:
@@ -183,6 +235,7 @@ def run(doc, clear=True, captures=True):
     r = engine.create(doc, sq, SLAB, {"height": 120, "width": 42, "side": "left", "laps": 1.0})
     ctx = _check(doc, r, "square wrap", risers=18, pieces=1)
     assert ctx.layout.landing_runs == 3, "square wrap: {} landings".format(ctx.layout.landing_runs)
+    _ui(doc, lib)
     say("stairs ok in {:.1f}s".format(time.time() - t0))
     if captures:
         cap = runpy.run_path(os.path.join(HERE, "capture.py"))["capture"]
