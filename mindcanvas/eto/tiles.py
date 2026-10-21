@@ -8,14 +8,18 @@
     windows / doors        an elevation glyph: frame, glass, mullions, the operation (casement /
                            awning hinge lines, double-hung meeting rail, sliding arrow), door leaves
                            with lites and the hinge-side swing lines
+    stairs                 a flight in section in the assembly's style (sloped soffit / solid mass /
+                           open plates) and material, at its max riser and an 11" tread
 
     bitmap(lib, kind, name, width, height)   -> Eto Bitmap (cached per definition)
     render_png(lib, kind, name, path, ...)   the same into a file (tests)
 """
 
 import json
+import math
 
 import Eto.Drawing as drawing
+import System
 
 from .. import units
 from . import sectionview as sv
@@ -62,6 +66,8 @@ def paint(g, lib, kind, name, width, height):
         return _opening(g, lib, name, width, height)
     if kind == "curtain_wall":
         return _curtain_wall(g, lib, name, width, height)
+    if kind == "stair":
+        return _stair(g, lib, name, width, height)
     from .. import asmedit, asmview
     model = asmedit.AssemblyModel(lib, name)
     lay = asmview.SectionLayout(model, width, height, compact=True)
@@ -105,6 +111,53 @@ def _curtain_wall(g, lib, name, width, height):
         y = y0 + (H - zz) * s
         p.line(trans, x0, y, x0 + W * s, y)
     p.frame(sv._pen(INK, 2.6), x0, y0, W * s, H * s)
+
+
+# -- stairs ---------------------------------------------------------------------------------------
+def _stair(g, lib, name, width, height, steps=6, tread=11.0):
+    from ..kinds import stair as stairkind
+    st = stairkind.settings(lib.assembly(name), {})
+    m = lib.data["materials"].get(st["material"]) or {}
+    fill = sv._tint(tuple(m.get("color") or (160, 160, 160)), 0.55)
+    p = sv.Painter(g)
+    p.rect(sv.WHITE, 0, 0, width, height)
+    R, T, n = float(units.parse_length(st["max_riser"])), tread, steps
+    land = 1.5 * T
+    W, H = (n - 1) * T + land, n * R
+    s, x0, y0 = _fit(W + T, H + R, width, height)
+    x0 += 0.5 * T * s
+
+    def pt(x, z):
+        return drawing.PointF(float(x0 + x * s), float(y0 + (H + 0.5 * R - z) * s))
+
+    heavy, thin = sv._pen(INK, 2.0), sv._pen(INK, 1.0)
+    floor = sv._pen(INK, 1.0, "dash")
+    p.line(floor, x0 - 0.5 * T * s, pt(0, 0).Y, x0 + (W + 0.5 * T) * s, pt(0, 0).Y)
+    p.line(floor, x0 - 0.5 * T * s, pt(0, H).Y, x0 + (W + 0.5 * T) * s, pt(0, H).Y)
+    if st["style"] == "open":
+        t = max(1.0, float(units.parse_length(st["tread_thickness"])))
+        for i in range(1, n + 1):
+            x, ln = (i - 1) * T, (land if i == n else T + 1.0)
+            a, b = pt(x - 1.0 if i < n else x, i * R), pt(x - 1.0 + ln if i < n else x + ln, i * R - t)
+            p.rect(fill, a.X, a.Y, b.X - a.X, b.Y - a.Y)
+            p.frame(heavy, a.X, a.Y, b.X - a.X, b.Y - a.Y)
+        p.line(thin, pt(0, 0).X, pt(0, 0).Y, pt((n - 1) * T, H - t).X, pt((n - 1) * T, H - t).Y)
+        return
+    top = [(0.0, 0.0)]
+    for i in range(n):
+        top += [(i * T, (i + 1) * R), ((i + 1) * T if i < n - 1 else W, (i + 1) * R)]
+    if st["style"] == "solid":
+        bottom = [(W, 0.0)]
+    else:
+        waist = float(units.parse_length(st["waist"]))
+        tl = waist if st["landing"] is None else float(units.parse_length(st["landing"]))
+        off = waist / math.cos(math.atan2(R, T))     # vertical drop of the soffit under the tread roots
+        x1 = min(W, (H - tl + off) * T / R)
+        bottom = [(W, H - tl), (x1, H - tl), (min(x1, off * T / R), 0.0)]
+    pts = [pt(x, z) for x, z in top + bottom]
+    arr = System.Array[drawing.PointF](pts)
+    g.FillPolygon(sv._c(fill), arr)
+    g.DrawPolygon(heavy, arr)
 
 
 # -- windows / doors -------------------------------------------------------------------------------

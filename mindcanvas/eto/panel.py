@@ -28,11 +28,13 @@ from . import widgets as w
 
 LODS = ["schematic", "design", "detail"]
 BUILD = [("Inspector", "MCInspector"), ("Match", "MCMatch"), ("Wall", "MCWall"), ("Curtain wall", "MCCurtainWall"), ("Floor", "MCFloor"), ("Roof", "MCRoof"),
+         ("Stair", "MCStair"),
          ("Window / door", "MCOpening"), ("Opening mass", "MCOpeningMass"), ("Wall mass", "MCWallMass"),
          ("Edit walls", "MCEdit"),
          ("Layers", "MCLayers"), ("Framing", "MCFraming"), ("Joins", "MCJoin"), ("Trim", "MCTrim"),
          ("Edit opening", "MCEditOpening"),
          ("Edit curtain wall", "MCEditCurtainWall"), ("Curtain grid editor", "MCCurtainGrid"), ("Edit floor", "MCEditFloor"), ("Edit roof", "MCEditRoof"),
+         ("Edit stair", "MCEditStair"),
          ("Setup model", "MCSetup"), ("Update", "MCUpdate"), ("Live on / off", "MCLive"),
          ("Schedule", "MCSchedule"), ("Purge", "MCPurge")]
 _OPEN = []

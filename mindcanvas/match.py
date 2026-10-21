@@ -2,8 +2,9 @@
 
 Settings that belong to each driver's own curve are never copied: a wall's end joins, a curtain
 wall's custom grid lines (and transoms / cells placed on them), an opening's place along its
-wall. A wall driven by a wall mass keeps the height and base its mass gives it. Kinds without a
-rule here (e.g. stairs, whose landings sit on their own curve) get the assembly only.
+wall, a stair's clicked landings, start point, side and direction (all measured on its own curve).
+A wall driven by a wall mass keeps the height and base its mass gives it. Kinds without a rule
+here get the assembly only.
 """
 
 import copy
@@ -16,6 +17,7 @@ OWN = {
     "floor": (),
     "roof": (),
     "opening": ("station", "ro"),
+    "stair": ("landings", "start", "side", "flip"),
 }
 MASS_OWN = ("height", "base_offset")
 

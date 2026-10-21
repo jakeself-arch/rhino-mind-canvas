@@ -1,7 +1,7 @@
 """Layer = assembly (MCAssemblyLayers): a layer per library assembly; put geometry on it and it
 becomes that assembly.
 
-    MC Assemblies::Walls::<assembly>          (also Curtain walls, Floors, Roofs)
+    MC Assemblies::Walls::<assembly>          (also Curtain walls, Floors, Roofs, Stairs)
 
 Each layer carries user text mc.kind / mc.assembly (its name is only a label, so assembly names
 with quotes or slashes still work) and the color of the assembly's main material.
@@ -11,6 +11,8 @@ Watched (enable(), turned on by MCSetup and MCAssemblyLayers): an object added t
 
     a curve on a wall / curtain-wall layer          -> a wall / curtain wall (engine.create)
     a closed curve on a floor / roof layer          -> a floor / roof (its elevation as drawn)
+    a curve on a stair layer                        -> a stair (default settings: the curve is
+                                                       its left side, up from the curve's start)
     a closed solid on a wall layer                  -> a wall mass (wallmasses.make)
     a driver of that kind (or its wall mass)        -> takes the layer's assembly
                                                        (engine.set_assembly)
@@ -29,7 +31,8 @@ import scriptcontext
 from . import docutil, meta
 
 ROOT = "MC Assemblies"
-GROUPS = [("wall", "Walls"), ("curtain_wall", "Curtain walls"), ("floor", "Floors"), ("roof", "Roofs")]
+GROUPS = [("wall", "Walls"), ("curtain_wall", "Curtain walls"), ("floor", "Floors"), ("roof", "Roofs"),
+          ("stair", "Stairs")]
 KIND_KEY = "mc.kind"
 ASM_KEY = "mc.assembly"
 STATE_KEY = "mindcanvas.laylink"
@@ -53,10 +56,13 @@ def layer_name(assembly):
 
 def main_color(lib, kind, name):
     """The color of an assembly's main material: a wall's exterior layer (the first one not a
-    void / membrane), a floor's / roof's top layer; curtain walls: glass."""
+    void / membrane), a floor's / roof's top layer; curtain walls: glass; stairs: their material."""
     asm = lib.assembly(name)
     if kind == "curtain_wall":
         return (120, 165, 200)
+    if kind == "stair":
+        m = lib.data["materials"].get(asm.get("material") or "Concrete")
+        return tuple(m["color"]) if m and m.get("color") else (160, 160, 160)
     for spec in asm.get("layers") or []:
         try:
             spec = lib.resolve_layer(spec)

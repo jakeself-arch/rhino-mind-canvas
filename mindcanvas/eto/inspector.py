@@ -1,6 +1,6 @@
 """The inspector (MCInspector): a floating window that follows the Rhino selection.
 
-Select walls, curtain walls, floors, roofs or windows / doors (their curve or any of their parts)
+Select walls, curtain walls, floors, roofs, stairs or windows / doors (their curve or any of their parts)
 and the inspector shows their settings, one section per kind (props.FIELDS). A change applies at
 once to every selected assembly of that kind: press Enter or leave a box, pick from a list, tick
 a box. Values that differ show "(varies)" / an empty box until you set them. Buttons under each
@@ -25,7 +25,7 @@ STATE_KEY = "mindcanvas.inspector"
 MOUSE_KEY = "mindcanvas.dblclick"
 VARIES = "(varies)"
 CREATE = [("wall", "Wall", "MCWall"), ("curtain_wall", "Curtain wall", "MCCurtainWall"),
-          ("floor", "Floor", "MCFloor"), ("roof", "Roof", "MCRoof")]
+          ("floor", "Floor", "MCFloor"), ("roof", "Roof", "MCRoof"), ("stair", "Stair", "MCStair")]
 EDITABLE_ASSEMBLIES = ("wall", "floor", "roof", "curtain_wall")   # the assembly editor's kinds
 FIELD_WIDTH = 170    # fixed, so long assembly names don't widen the window
 TEXT_WIDTH = 290     # wrapping labels: a width to wrap at (the scrollable would let them run on)
@@ -311,7 +311,7 @@ class Inspector(object):
 
     def _empty(self, lay):
         lay.AddRow(w.label("Nothing selected", bold=True))
-        lay.AddRow(_note("Select walls, curtain walls, floors, roofs or windows / doors (their curve "
+        lay.AddRow(_note("Select walls, curtain walls, floors, roofs, stairs or windows / doors (their curve "
                          "or any part) to edit them here. Double-click one to open its editor."))
         lay.AddRow(w.label("Next to build", bold=True))
         from ..cmd import ui

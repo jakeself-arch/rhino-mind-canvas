@@ -1,8 +1,8 @@
 """The assembly palette (MCPalette): pick assemblies by sight.
 
-A floating window with a tab per kind (walls, curtain walls, floors, roofs, windows & doors) and a
-tile per library entry: its drawn layer section (walls, floors, roofs), a curtain-wall elevation or
-a window / door glyph (eto/tiles.py).
+A floating window with a tab per kind (walls, curtain walls, floors, roofs, stairs, windows & doors)
+and a tile per library entry: its drawn layer section (walls, floors, roofs), a curtain-wall
+elevation, a stair flight in section or a window / door glyph (eto/tiles.py).
 
     click         the tile becomes what the next MCWall / MCFloor / MCOpening ... builds (blue
                   frame, "NEXT"); selected assemblies of that kind take it at once (one undo step)
@@ -26,7 +26,7 @@ from . import widgets as w
 STATE_KEY = "mindcanvas.palette"
 PAINT_KEY = "mindcanvas.palette.paint"
 TABS = [("wall", "Walls"), ("curtain_wall", "Curtain walls"), ("floor", "Floors"), ("roof", "Roofs"),
-        ("opening", "Windows & doors")]
+        ("stair", "Stairs"), ("opening", "Windows & doors")]
 TILE_W, TILE_H = 168, 92
 COLS = 3
 NEXT = (0, 120, 215)
@@ -308,9 +308,10 @@ class Palette(object):
             self.say("MCPaintAssembly did not run (run tools/install.py to register the MC commands).")
 
     def edit(self, kind, name):
-        if kind == "opening" or not name:
-            self.say("Window and door types are edited in library/openings (JSON)." if kind == "opening"
-                     else "Click a tile first.")
+        if kind in ("opening", "stair") or not name:
+            self.say({"opening": "Window and door types are edited in library/openings (JSON).",
+                      "stair": "Stair assemblies are edited in library/assemblies/stairs.json; "
+                               "a stair's own settings in the inspector or MCEditStair."}.get(kind, "Click a tile first."))
             return
         from . import editor, visual
         doc = Rhino.RhinoDoc.ActiveDoc

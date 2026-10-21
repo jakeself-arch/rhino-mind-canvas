@@ -2,8 +2,8 @@
 of assembly.
 
 FIELDS[kind] lists the settings a kind shows: key, label, type (assembly | length | number |
-choice | bool) and the choices of a choice. Kinds without an entry (e.g. stairs) show the
-assembly and detail level only; ACTIONS[kind] are the buttons that run the full edit commands.
+choice | bool) and the choices of a choice. Kinds without an entry show the assembly and detail
+level only; ACTIONS[kind] are the buttons that run the full edit commands.
 
     selected(doc)                     the selected assemblies: drivers, and windows / doors for
                                       their parts (a wall mass selects its wall)
@@ -14,6 +14,7 @@ assembly and detail level only; ACTIONS[kind] are the buttons that run the full 
 from . import engine, masses, meta, units
 from .curtainwall import settings as cwsettings
 from .kinds import floor as floorkind
+from .kinds import stair as stairkind
 from .kinds import wall as wallkind
 from .openings import core as opcore
 from .roofs import shape as rshape
@@ -65,6 +66,14 @@ FIELDS = {
                 Field("swing", "Swing", "choice", ("in", "out"), doors_only=True),
                 Field("hinge", "Hinge", "choice", ("left", "right"), doors_only=True),
                 Field("head", "Head course", "choice", ("none", "soldier", "sailor"))],
+    "stair": [_assembly(), Field("height", "Floor to floor", "length"),
+              Field("floors", "Floors climbed", "number"), Field("width", "Width", "length"),
+              Field("base_offset", "Elevation", "length"),
+              Field("side", "Curve on the stair's", "choice", stairkind.SIDES),
+              Field("flip", "Up the other way", "bool"),
+              Field("laps", "Laps (closed curve)", "number"),
+              Field("style", "Style", "choice", stairkind.STYLES),
+              Field("max_riser", "Max riser", "length")],
 }
 GENERIC = [_assembly(), _lod()]
 
@@ -157,6 +166,10 @@ def settings(lib, driver):
         s = dict(cwsettings.merged(asm, prm))
     elif kind == "roof":
         s = dict(rshape.merged(asm, prm))
+    elif kind == "stair":
+        s = dict(stairkind.DEFAULTS, floors=1, laps=1)
+        s.update(stairkind.settings(asm, prm))
+        s.update(prm)
     else:
         s = dict(prm)
     for k, v in prm.items():
@@ -231,8 +244,12 @@ def apply(doc, lib, drivers, field, new, snap=True):
 
 def companions(lib, driver, key, new):
     """The change plus what it needs to build: a flat roof turned into a shed / gable gets a
-    6 in 12 pitch when it has none."""
+    6 in 12 pitch when it has none; a stair going up the other way swaps its side too, so it stays
+    where it is (as MCEditStair's Flip)."""
     changes = {key: new}
+    if meta.get(driver, meta.TYPE) == "stair" and key == "flip":
+        side = settings(lib, driver).get("side", "left")
+        changes["side"] = "right" if side == "left" else "left"
     if meta.get(driver, meta.TYPE) == "roof" and key == "shape" and new != "flat":
         try:
             pitch = float(settings(lib, driver).get("pitch") or 0)

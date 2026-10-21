@@ -6,6 +6,7 @@
   "CW": "MCCurtainWall",
   "FL": "MCFloor",
   "RF": "MCRoof",
+  "ST": "MCStair",
   "OP": "MCOpening",
   "WM": "MCWallMass",
   "OM": "MCOpeningMass",

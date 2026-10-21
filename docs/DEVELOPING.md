@@ -407,6 +407,55 @@ written at every sync).
   point; masses with two or more holes; moving a wall mass together with its opening mass moves the
   opening mass twice.
 
+## Stairs
+Kind `stair` (`kinds/stair.py`), code in `mindcanvas/stairs/`; commands `MCStair`, `MCEditStair`.
+The driver is a horizontal curve = one side of the stair in plan. Open: walked from its start
+(`flip`: from its end). Closed (a stair wrapping an elevator): walked from `start` (inches along the
+curve as drawn) `laps` times, the plan overlapping itself (`build.path_pieces`). Params: `height`
+(floor to floor), `floors` (total rise = floors x height), `base_offset`, `side` ("left": the curve is
+the stair's left side walking up, the stair lies on its right; "right"), `width`, `landings` (centers,
+inches along the curve as drawn; every lap), `landing_count` (per floor), `landing_depth`; assembly
+settings (`kinds.stair.SETTINGS`, overridable per driver): `style` slab | solid | open, `material`,
+`max_riser`, `risers` (per floor), `waist`, `landing`, `tread_thickness`. No layer stack, no
+components, no LOD. MCEditStair's Flip swaps `side` too, so the footprint stays put.
+
+- **Layout** (`stairs/plan.py`, pure Python, inches): `layout(segments, width, height, sigma, ...)`.
+  Segments = the path split at corners > `build.SMOOTH_DEG`, sampled as (x, y, dx, dy); consecutive
+  cuts may not cross (`_check_strip`: radius on the stair side < width is refused). Every corner gets
+  a landing: cuts square to each segment through the corner's inner point (path on the outer edge:
+  the segments are trimmed by the landing; inner edge: not trimmed) plus a diagonal cut. Then
+  landings along flights (`_insert_landing`, any flight, curved or not, split at walkline stations):
+  floor landings at k/floors of the walk, `landing_count` per floor section, clicked ones (side-line
+  distance `q` -> station). Floor sections (`_sections`) each get N - 1 levels (N = risers per floor),
+  floor runs sit at exactly k x N; treads per flight by walkline length (largest remainder), fitted
+  (depth = length / treads); flights shorter than half a tread become flat. `Layout.cuts` (c, o, s, q,
+  hard), `levels[cell]`, `pieces(style)`, `ranges()`, `coarse(a, b)` (hard cuts + a sample every 20
+  degrees), `extended(js)` (cuts pushed past both sides so the chords stay outside the true curves,
+  stopped before converging cut lines meet). Checks: risers, tread depth (closed: the laps that give
+  11" treads), narrow-end depth on curves (6"), headroom between laps.
+- **Geometry** (`stairs/build.py`): each piece is ONE watertight mesh (tops, risers, underside,
+  sides, ends; vertical edges split at every height on their line, vertices identified by cut end
+  + height, not position) -> `Brep.CreateFromMesh` + `MergeCoplanarFaces`. Curved stairs: the piece
+  is meshed on `coarse` + `extended` cuts and intersected with `band()` (the true region between the
+  curve and its offset, extruded) -> smooth sides, exact curved tread edges; falls back to the
+  faceted solid if the Boolean fails. If a solid is not closed (flights touching side by side) each
+  flight / landing run is built alone and unioned. `_samples` must end at the curve's end
+  (DivideByCount leaves it out on closed curves); `_pieces` trims between kinks (Split merges the
+  pieces on both sides of a closed curve's seam).
+- **UI**: inspector fields `props.FIELDS["stair"]` (floor to floor, floors, width, elevation, side,
+  flip, laps, style, max riser; `props.settings` merges `kinds.stair.DEFAULTS` + `settings()`; an
+  inspector Flip also swaps `side`, as MCEditStair does), `match.OWN["stair"]` = landings, start,
+  side, flip; palette tab + `tiles._stair` (a flight in section per style); an assembly layer group
+  `MC Assemblies::Stairs` (a curve put on it becomes a stair with default settings); alias `ST`;
+  MCStair builds `ui.current_assembly` (no dialog).
+- `section_frame` cuts along the walking direction (MCSectionCut). Tests: `python
+  tests/offline/test_stair_plan.py` (layout, floor / curved landings, wraps, every mesh closed, the
+  pushed-out cuts cover the curves), `tests/test_stair.py` in Rhino (captures `stairs`,
+  `stair_elevator_wrap`; also the inspector, match, layer and tile hooks).
+- **Not yet**: railings, winders at corners, stringers, a center column for true spiral stairs (the
+  inside radius must exceed 0); the last riser is the upper floor's edge (the stair ends with the top
+  tread at the path's end); headroom is only checked between laps of a closed curve.
+
 ## Inspector, match, aliases (fast UI)
 - **`mindcanvas/props.py`** is the inspector's logic (no Eto): `FIELDS[kind]` (key, label, type
   `assembly | length | number | choice | bool`, choices) and `ACTIONS[kind]` (buttons -> commands);
