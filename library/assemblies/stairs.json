@@ -1,0 +1,26 @@
+{
+  "_comment": "Stair assemblies (kind 'stair'). The driver is an open horizontal curve = the LEFT or RIGHT side of the stair in plan (driver param side), in the direction of travel up (flip = up from the curve's end); height = floor to floor, width, base_offset = lower floor above the curve. Risers = ceil(height / max_riser) unless 'risers' > 0; treads are fitted to the curve; corners of the curve become landings, curved segments curved flights. style: slab (sloped soffit, 'waist' thick under the tread roots, landings 'landing' thick, default = waist) | solid (stepped mass down to the lower floor) | open (plates 'tread_thickness' thick, no risers). Any of these keys can also be a driver param. No railings.",
+
+  "Stair - Concrete": {
+    "kind": "stair",
+    "style": "slab",
+    "material": "Concrete",
+    "max_riser": 7,
+    "waist": 6
+  },
+
+  "Stair - Solid Mass": {
+    "kind": "stair",
+    "style": "solid",
+    "material": "Concrete",
+    "max_riser": 7
+  },
+
+  "Stair - Open Wood Treads": {
+    "kind": "stair",
+    "style": "open",
+    "material": "Wood Flooring",
+    "max_riser": 7,
+    "tread_thickness": 2
+  }
+}
