@@ -2,7 +2,8 @@
 
 Options: "lifts" = [{"material", "height"}, ...] listed BOTTOM -> TOP; the list repeats up the
 wall and the top lift is cut off at the wall top. "min_lift" (default 1") folds a thinner
-sliver at the top into the lift below it. At schematic LOD the layer is one plain solid."""
+sliver at the top into the lift below it. The lifts are built at every LOD (they are the point
+of the layer, and plain solids are cheap)."""
 
 from ..openings import core as openings
 from .base import Component, Part, register
@@ -43,12 +44,8 @@ class Strata(Component):
 
     def build(self, ctx, band):
         z0, z1 = ctx.z_range(band)
-        if ctx.lod == "schematic":
-            layers = [(band.material, z0, z1)]
-        else:
-            layers = courses(ctx, band, z0, z1)
         parts = []
-        for mat, a, b in layers:
+        for mat, a, b in courses(ctx, band, z0, z1):
             for s in openings.cut(ctx, ctx.solids(band.d_ext, band.d_int, a, b), band, z0):
                 parts.append(Part(s, mat, role=self.role))
         return parts
