@@ -1,0 +1,343 @@
+{
+ "_comment": "Entourage models (Vehicles), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Car - Sedan": {
+  "file": "models/vehicles/car-sedan.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   186.0,
+   89.0,
+   70.0
+  ],
+  "triangles": 1868,
+  "source": "LowPoly Cars",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-cars",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-sedan.png"
+ },
+ "Car - Hatchback": {
+  "file": "models/vehicles/car-hatchback.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   162.0,
+   88.0,
+   63.1
+  ],
+  "triangles": 1510,
+  "source": "LowPoly Cars",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-cars",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-hatchback.png"
+ },
+ "Car - Crossover": {
+  "file": "models/vehicles/car-crossover.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   180.0,
+   95.4,
+   71.5
+  ],
+  "triangles": 1510,
+  "source": "LowPoly Cars",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-cars",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-crossover.png"
+ },
+ "Car - Sports": {
+  "file": "models/vehicles/car-sports.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   174.0,
+   93.0,
+   51.4
+  ],
+  "triangles": 1876,
+  "source": "LowPoly Cars",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-cars",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-sports.png"
+ },
+ "Car - Taxi": {
+  "file": "models/vehicles/car-taxi.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   192.0,
+   88.8,
+   81.7
+  ],
+  "triangles": 1598,
+  "source": "LowPoly Cars",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-cars",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-taxi.png"
+ },
+ "Car - Police": {
+  "file": "models/vehicles/car-police.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   192.0,
+   89.3,
+   84.6
+  ],
+  "triangles": 1748,
+  "source": "LowPoly Cars",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-cars",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-police.png"
+ },
+ "Car - SUV": {
+  "file": "models/vehicles/car-suv.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   192.0,
+   106.7,
+   92.4
+  ],
+  "triangles": 2474,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-suv.png"
+ },
+ "Car - Coupe": {
+  "file": "models/vehicles/car-coupe.obj",
+  "category": "Vehicles",
+  "group": "Cars",
+  "size": [
+   180.0,
+   91.8,
+   77.6
+  ],
+  "triangles": 2088,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/car-coupe.png"
+ },
+ "Truck - Van": {
+  "file": "models/vehicles/truck-van.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   204.0,
+   111.3,
+   100.1
+  ],
+  "triangles": 2082,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-van.png"
+ },
+ "Truck - Pickup Truck": {
+  "file": "models/vehicles/truck-pickup-truck.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   216.0,
+   109.8,
+   95.2
+  ],
+  "triangles": 2082,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-pickup-truck.png"
+ },
+ "Truck - Delivery Truck": {
+  "file": "models/vehicles/truck-delivery-truck.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   264.0,
+   121.8,
+   134.0
+  ],
+  "triangles": 2476,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-delivery-truck.png"
+ },
+ "Truck - Garbage Truck": {
+  "file": "models/vehicles/truck-garbage-truck.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   312.0,
+   144.7,
+   144.7
+  ],
+  "triangles": 3124,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-garbage-truck.png"
+ },
+ "Truck - Fire Truck": {
+  "file": "models/vehicles/truck-fire-truck.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   384.0,
+   169.4,
+   192.0
+  ],
+  "triangles": 2767,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-fire-truck.png"
+ },
+ "Truck - Ambulance (Box)": {
+  "file": "models/vehicles/truck-ambulance-box.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   252.0,
+   116.3,
+   139.6
+  ],
+  "triangles": 2804,
+  "source": "Car Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/car-kit",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-ambulance-box.png"
+ },
+ "Truck - Ambulance": {
+  "file": "models/vehicles/truck-ambulance.obj",
+  "category": "Vehicles",
+  "group": "Trucks & vans",
+  "size": [
+   211.9,
+   105.2,
+   108.0
+  ],
+  "triangles": 1646,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "heading": true,
+  "thumb": "thumbs/vehicles/truck-ambulance.png"
+ },
+ "Bus - Shuttle": {
+  "file": "models/vehicles/bus-shuttle.obj",
+  "category": "Vehicles",
+  "group": "Transit",
+  "size": [
+   307.2,
+   131.2,
+   126.0
+  ],
+  "triangles": 1530,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "heading": true,
+  "thumb": "thumbs/vehicles/bus-shuttle.png"
+ },
+ "Bus - School, Short": {
+  "file": "models/vehicles/bus-school-short.obj",
+  "category": "Vehicles",
+  "group": "Transit",
+  "size": [
+   264.8,
+   108.0,
+   126.0
+  ],
+  "triangles": 1782,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "heading": true,
+  "thumb": "thumbs/vehicles/bus-school-short.png"
+ },
+ "Tram": {
+  "file": "models/vehicles/tram.obj",
+  "category": "Vehicles",
+  "group": "Transit",
+  "size": [
+   421.2,
+   127.6,
+   132.0
+  ],
+  "triangles": 712,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "heading": true,
+  "thumb": "thumbs/vehicles/tram.png"
+ },
+ "Bicycle": {
+  "file": "models/vehicles/bicycle.obj",
+  "category": "Vehicles",
+  "group": "Bicycles",
+  "size": [
+   68.0,
+   17.4,
+   36.7
+  ],
+  "triangles": 2976,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "heading": true,
+  "thumb": "thumbs/vehicles/bicycle.png"
+ },
+ "Bicycle - Square Frame": {
+  "file": "models/vehicles/bicycle-square-frame.obj",
+  "category": "Vehicles",
+  "group": "Bicycles",
+  "size": [
+   68.0,
+   17.6,
+   36.8
+  ],
+  "triangles": 1308,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "heading": true,
+  "thumb": "thumbs/vehicles/bicycle-square-frame.png"
+ }
+}

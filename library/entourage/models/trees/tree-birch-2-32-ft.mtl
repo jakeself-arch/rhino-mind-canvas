@@ -1,0 +1,11 @@
+newmtl White_001
+Kd 0.7451 0.7608 0.7294
+
+newmtl Black_001
+Kd 0.2392 0.2392 0.2392
+
+newmtl Green_001
+Kd 0.298 0.3843 0.251
+
+newmtl DarkGreen_001
+Kd 0.2392 0.3059 0.2078

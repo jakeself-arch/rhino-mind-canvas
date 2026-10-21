@@ -1,0 +1,883 @@
+{
+ "_comment": "Entourage models (Trees), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Tree - Deciduous 1 (30 ft)": {
+  "file": "models/trees/tree-deciduous-1-30-ft.obj",
+  "category": "Trees",
+  "group": "Deciduous",
+  "size": [
+   274.2,
+   402.5,
+   360.0
+  ],
+  "triangles": 2888,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-deciduous-1-30-ft.png"
+ },
+ "Tree - Deciduous 2 (26 ft)": {
+  "file": "models/trees/tree-deciduous-2-26-ft.obj",
+  "category": "Trees",
+  "group": "Deciduous",
+  "size": [
+   166.2,
+   253.9,
+   312.0
+  ],
+  "triangles": 2952,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-deciduous-2-26-ft.png"
+ },
+ "Tree - Deciduous 3 (34 ft)": {
+  "file": "models/trees/tree-deciduous-3-34-ft.obj",
+  "category": "Trees",
+  "group": "Deciduous",
+  "size": [
+   150.5,
+   184.3,
+   408.0
+  ],
+  "triangles": 1584,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-deciduous-3-34-ft.png"
+ },
+ "Tree - Deciduous 4 (28 ft)": {
+  "file": "models/trees/tree-deciduous-4-28-ft.obj",
+  "category": "Trees",
+  "group": "Deciduous",
+  "size": [
+   190.5,
+   217.3,
+   336.0
+  ],
+  "triangles": 1352,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-deciduous-4-28-ft.png"
+ },
+ "Tree - Deciduous 5 (38 ft)": {
+  "file": "models/trees/tree-deciduous-5-38-ft.obj",
+  "category": "Trees",
+  "group": "Deciduous",
+  "size": [
+   233.0,
+   405.5,
+   456.0
+  ],
+  "triangles": 1836,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-deciduous-5-38-ft.png"
+ },
+ "Tree - Birch 1 (36 ft)": {
+  "file": "models/trees/tree-birch-1-36-ft.obj",
+  "category": "Trees",
+  "group": "Birch",
+  "size": [
+   205.7,
+   299.7,
+   432.0
+  ],
+  "triangles": 1704,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-birch-1-36-ft.png"
+ },
+ "Tree - Birch 2 (32 ft)": {
+  "file": "models/trees/tree-birch-2-32-ft.obj",
+  "category": "Trees",
+  "group": "Birch",
+  "size": [
+   139.9,
+   161.3,
+   384.0
+  ],
+  "triangles": 1568,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-birch-2-32-ft.png"
+ },
+ "Tree - Birch 3 (40 ft)": {
+  "file": "models/trees/tree-birch-3-40-ft.obj",
+  "category": "Trees",
+  "group": "Birch",
+  "size": [
+   184.7,
+   207.6,
+   480.0
+  ],
+  "triangles": 1730,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-birch-3-40-ft.png"
+ },
+ "Tree - Birch 4 (30 ft)": {
+  "file": "models/trees/tree-birch-4-30-ft.obj",
+  "category": "Trees",
+  "group": "Birch",
+  "size": [
+   116.6,
+   332.6,
+   360.0
+  ],
+  "triangles": 2338,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-birch-4-30-ft.png"
+ },
+ "Tree - Birch 5 (34 ft)": {
+  "file": "models/trees/tree-birch-5-34-ft.obj",
+  "category": "Trees",
+  "group": "Birch",
+  "size": [
+   96.7,
+   157.5,
+   408.0
+  ],
+  "triangles": 1734,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-birch-5-34-ft.png"
+ },
+ "Tree - Pine 1 (45 ft)": {
+  "file": "models/trees/tree-pine-1-45-ft.obj",
+  "category": "Trees",
+  "group": "Conifer",
+  "size": [
+   391.2,
+   363.1,
+   540.0
+  ],
+  "triangles": 1920,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-pine-1-45-ft.png"
+ },
+ "Tree - Pine 2 (38 ft)": {
+  "file": "models/trees/tree-pine-2-38-ft.obj",
+  "category": "Trees",
+  "group": "Conifer",
+  "size": [
+   229.9,
+   250.4,
+   456.0
+  ],
+  "triangles": 1692,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-pine-2-38-ft.png"
+ },
+ "Tree - Pine 3 (52 ft)": {
+  "file": "models/trees/tree-pine-3-52-ft.obj",
+  "category": "Trees",
+  "group": "Conifer",
+  "size": [
+   408.6,
+   369.0,
+   624.0
+  ],
+  "triangles": 2392,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-pine-3-52-ft.png"
+ },
+ "Tree - Pine 4 (34 ft)": {
+  "file": "models/trees/tree-pine-4-34-ft.obj",
+  "category": "Trees",
+  "group": "Conifer",
+  "size": [
+   153.1,
+   170.0,
+   408.0
+  ],
+  "triangles": 1704,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-pine-4-34-ft.png"
+ },
+ "Tree - Pine 5 (60 ft)": {
+  "file": "models/trees/tree-pine-5-60-ft.obj",
+  "category": "Trees",
+  "group": "Conifer",
+  "size": [
+   393.5,
+   358.4,
+   720.0
+  ],
+  "triangles": 1576,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-pine-5-60-ft.png"
+ },
+ "Tree - Willow 1 (32 ft)": {
+  "file": "models/trees/tree-willow-1-32-ft.obj",
+  "category": "Trees",
+  "group": "Willow",
+  "size": [
+   195.6,
+   344.5,
+   384.0
+  ],
+  "triangles": 1946,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-willow-1-32-ft.png"
+ },
+ "Tree - Willow 2 (30 ft)": {
+  "file": "models/trees/tree-willow-2-30-ft.obj",
+  "category": "Trees",
+  "group": "Willow",
+  "size": [
+   211.7,
+   336.6,
+   360.0
+  ],
+  "triangles": 2752,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-willow-2-30-ft.png"
+ },
+ "Tree - Willow 3 (36 ft)": {
+  "file": "models/trees/tree-willow-3-36-ft.obj",
+  "category": "Trees",
+  "group": "Willow",
+  "size": [
+   242.1,
+   364.5,
+   432.0
+  ],
+  "triangles": 1044,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-willow-3-36-ft.png"
+ },
+ "Tree - Willow 4 (28 ft)": {
+  "file": "models/trees/tree-willow-4-28-ft.obj",
+  "category": "Trees",
+  "group": "Willow",
+  "size": [
+   217.0,
+   302.1,
+   336.0
+  ],
+  "triangles": 1568,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-willow-4-28-ft.png"
+ },
+ "Tree - Willow 5 (34 ft)": {
+  "file": "models/trees/tree-willow-5-34-ft.obj",
+  "category": "Trees",
+  "group": "Willow",
+  "size": [
+   170.6,
+   420.7,
+   408.0
+  ],
+  "triangles": 1624,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-willow-5-34-ft.png"
+ },
+ "Tree - Palm 1 (35 ft)": {
+  "file": "models/trees/tree-palm-1-35-ft.obj",
+  "category": "Trees",
+  "group": "Palm",
+  "size": [
+   270.2,
+   245.1,
+   420.0
+  ],
+  "triangles": 1772,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-palm-1-35-ft.png"
+ },
+ "Tree - Palm 2 (42 ft)": {
+  "file": "models/trees/tree-palm-2-42-ft.obj",
+  "category": "Trees",
+  "group": "Palm",
+  "size": [
+   402.1,
+   550.6,
+   504.0
+  ],
+  "triangles": 1232,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-palm-2-42-ft.png"
+ },
+ "Tree - Palm 3 (30 ft)": {
+  "file": "models/trees/tree-palm-3-30-ft.obj",
+  "category": "Trees",
+  "group": "Palm",
+  "size": [
+   263.6,
+   230.4,
+   360.0
+  ],
+  "triangles": 1496,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-palm-3-30-ft.png"
+ },
+ "Tree - Palm 4 (45 ft)": {
+  "file": "models/trees/tree-palm-4-45-ft.obj",
+  "category": "Trees",
+  "group": "Palm",
+  "size": [
+   363.9,
+   402.8,
+   540.0
+  ],
+  "triangles": 1052,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-palm-4-45-ft.png"
+ },
+ "Tree - Bare Deciduous 1 (28 ft)": {
+  "file": "models/trees/tree-bare-deciduous-1-28-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   158.1,
+   320.7,
+   336.0
+  ],
+  "triangles": 2360,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-deciduous-1-28-ft.png"
+ },
+ "Tree - Bare Deciduous 2 (24 ft)": {
+  "file": "models/trees/tree-bare-deciduous-2-24-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   129.4,
+   181.5,
+   288.0
+  ],
+  "triangles": 2360,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-deciduous-2-24-ft.png"
+ },
+ "Tree - Bare Deciduous 3 (32 ft)": {
+  "file": "models/trees/tree-bare-deciduous-3-32-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   81.3,
+   103.9,
+   384.0
+  ],
+  "triangles": 944,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-deciduous-3-32-ft.png"
+ },
+ "Tree - Bare Deciduous 4 (26 ft)": {
+  "file": "models/trees/tree-bare-deciduous-4-26-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   107.5,
+   142.7,
+   312.0
+  ],
+  "triangles": 1008,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-deciduous-4-26-ft.png"
+ },
+ "Tree - Bare Deciduous 5 (30 ft)": {
+  "file": "models/trees/tree-bare-deciduous-5-30-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   132.4,
+   188.2,
+   360.0
+  ],
+  "triangles": 1424,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-deciduous-5-30-ft.png"
+ },
+ "Tree - Bare Birch 1 (32 ft)": {
+  "file": "models/trees/tree-bare-birch-1-32-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   82.1,
+   277.8,
+   384.0
+  ],
+  "triangles": 820,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-birch-1-32-ft.png"
+ },
+ "Tree - Bare Birch 2 (28 ft)": {
+  "file": "models/trees/tree-bare-birch-2-28-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   87.9,
+   112.4,
+   336.0
+  ],
+  "triangles": 1312,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-birch-2-28-ft.png"
+ },
+ "Tree - Bare Birch 3 (36 ft)": {
+  "file": "models/trees/tree-bare-birch-3-36-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   98.1,
+   109.9,
+   432.0
+  ],
+  "triangles": 1346,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-birch-3-36-ft.png"
+ },
+ "Tree - Bare Willow 1 (30 ft)": {
+  "file": "models/trees/tree-bare-willow-1-30-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   66.8,
+   242.7,
+   360.0
+  ],
+  "triangles": 1128,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-willow-1-30-ft.png"
+ },
+ "Tree - Bare Willow 2 (26 ft)": {
+  "file": "models/trees/tree-bare-willow-2-26-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   129.1,
+   263.6,
+   312.0
+  ],
+  "triangles": 1860,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/trees/tree-bare-willow-2-26-ft.png"
+ },
+ "Tree - Bare Branching 1 (26 ft)": {
+  "file": "models/trees/tree-bare-branching-1-26-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   202.0,
+   188.9,
+   312.0
+  ],
+  "triangles": 6169,
+  "source": "Stylized Nature MegaKit (Standard)",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/stylized-nature-megakit",
+  "thumb": "thumbs/trees/tree-bare-branching-1-26-ft.png"
+ },
+ "Tree - Bare Branching 2 (30 ft)": {
+  "file": "models/trees/tree-bare-branching-2-30-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   210.9,
+   199.9,
+   360.0
+  ],
+  "triangles": 6557,
+  "source": "Stylized Nature MegaKit (Standard)",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/stylized-nature-megakit",
+  "thumb": "thumbs/trees/tree-bare-branching-2-30-ft.png"
+ },
+ "Tree - Bare Branching 3 (22 ft)": {
+  "file": "models/trees/tree-bare-branching-3-22-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   127.0,
+   127.8,
+   264.0
+  ],
+  "triangles": 5802,
+  "source": "Stylized Nature MegaKit (Standard)",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/stylized-nature-megakit",
+  "thumb": "thumbs/trees/tree-bare-branching-3-22-ft.png"
+ },
+ "Tree - Bare Branching 4 (34 ft)": {
+  "file": "models/trees/tree-bare-branching-4-34-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   254.3,
+   247.0,
+   408.0
+  ],
+  "triangles": 5702,
+  "source": "Stylized Nature MegaKit (Standard)",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/stylized-nature-megakit",
+  "thumb": "thumbs/trees/tree-bare-branching-4-34-ft.png"
+ },
+ "Tree - Bare Branching 5 (28 ft)": {
+  "file": "models/trees/tree-bare-branching-5-28-ft.obj",
+  "category": "Trees",
+  "group": "Bare (winter)",
+  "size": [
+   170.8,
+   172.0,
+   336.0
+  ],
+  "triangles": 5648,
+  "source": "Stylized Nature MegaKit (Standard)",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/stylized-nature-megakit",
+  "thumb": "thumbs/trees/tree-bare-branching-5-28-ft.png"
+ },
+ "Tree - Model Round (24 ft)": {
+  "file": "models/trees/tree-model-round-24-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   127.3,
+   110.3,
+   288.0
+  ],
+  "triangles": 114,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-round-24-ft.png"
+ },
+ "Tree - Model Oak (30 ft)": {
+  "file": "models/trees/tree-model-oak-30-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   188.1,
+   217.1,
+   360.0
+  ],
+  "triangles": 196,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-oak-30-ft.png"
+ },
+ "Tree - Model Broad (26 ft)": {
+  "file": "models/trees/tree-model-broad-26-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   204.8,
+   177.3,
+   312.0
+  ],
+  "triangles": 50,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-broad-26-ft.png"
+ },
+ "Tree - Model Tall (34 ft)": {
+  "file": "models/trees/tree-model-tall-34-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   96.6,
+   111.5,
+   408.0
+  ],
+  "triangles": 72,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-tall-34-ft.png"
+ },
+ "Tree - Model Slender (22 ft)": {
+  "file": "models/trees/tree-model-slender-22-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   120.5,
+   109.2,
+   264.0
+  ],
+  "triangles": 228,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-slender-22-ft.png"
+ },
+ "Tree - Model Simple (20 ft)": {
+  "file": "models/trees/tree-model-simple-20-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   56.0,
+   64.7,
+   240.0
+  ],
+  "triangles": 62,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-simple-20-ft.png"
+ },
+ "Tree - Model Detailed (28 ft)": {
+  "file": "models/trees/tree-model-detailed-28-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   213.6,
+   192.1,
+   336.0
+  ],
+  "triangles": 402,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-detailed-28-ft.png"
+ },
+ "Tree - Model Cone (24 ft)": {
+  "file": "models/trees/tree-model-cone-24-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   106.6,
+   106.6,
+   288.0
+  ],
+  "triangles": 132,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-cone-24-ft.png"
+ },
+ "Tree - Model Plateau (26 ft)": {
+  "file": "models/trees/tree-model-plateau-26-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   152.8,
+   163.5,
+   312.0
+  ],
+  "triangles": 215,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-plateau-26-ft.png"
+ },
+ "Tree - Model Blocks (24 ft)": {
+  "file": "models/trees/tree-model-blocks-24-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   145.8,
+   145.8,
+   288.0
+  ],
+  "triangles": 132,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-blocks-24-ft.png"
+ },
+ "Tree - Model Small (14 ft)": {
+  "file": "models/trees/tree-model-small-14-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   53.7,
+   62.0,
+   168.0
+  ],
+  "triangles": 62,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-small-14-ft.png"
+ },
+ "Tree - Model Pine, Round (36 ft)": {
+  "file": "models/trees/tree-model-pine-round-36-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   195.1,
+   225.2,
+   432.0
+  ],
+  "triangles": 204,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-pine-round-36-ft.png"
+ },
+ "Tree - Model Pine, Tall (48 ft)": {
+  "file": "models/trees/tree-model-pine-tall-48-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   145.5,
+   147.6,
+   576.0
+  ],
+  "triangles": 134,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-pine-tall-48-ft.png"
+ },
+ "Tree - Model Pine (40 ft)": {
+  "file": "models/trees/tree-model-pine-40-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   165.2,
+   165.2,
+   480.0
+  ],
+  "triangles": 230,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-pine-40-ft.png"
+ },
+ "Tree - Model Palm (36 ft)": {
+  "file": "models/trees/tree-model-palm-36-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   329.6,
+   329.6,
+   432.0
+  ],
+  "triangles": 190,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-palm-36-ft.png"
+ },
+ "Tree - Model Palm, Detailed (40 ft)": {
+  "file": "models/trees/tree-model-palm-detailed-40-ft.obj",
+  "category": "Trees",
+  "group": "Model (abstract)",
+  "size": [
+   348.8,
+   348.8,
+   480.0
+  ],
+  "triangles": 336,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/trees/tree-model-palm-detailed-40-ft.png"
+ }
+}

@@ -1,10 +1,343 @@
 {
-  "_comment": "Line-drawn people for section drawings (MCEntourage). generator 'person': pose front | walk, height, dress suit | coat | dress, arm down | bent, bag true | false, facing right | left (walk), stride (degrees, walk). See mindcanvas/entourage/shapes.py.",
-  "Person - Standing, Suit":        {"generator": "person", "pose": "front", "height": "5'-10\"", "dress": "suit"},
-  "Person - Standing, Coat":        {"generator": "person", "pose": "front", "height": "5'-9\"", "dress": "coat", "arm": "bent"},
-  "Person - Standing, Dress":       {"generator": "person", "pose": "front", "height": "5'-5\"", "dress": "dress", "bag": true},
-  "Person - Walking, Suit":         {"generator": "person", "pose": "walk", "height": "5'-11\"", "dress": "suit"},
-  "Person - Walking, Coat":         {"generator": "person", "pose": "walk", "height": "5'-8\"", "dress": "coat", "facing": "left", "bag": true},
-  "Person - Walking, Dress":        {"generator": "person", "pose": "walk", "height": "5'-5\"", "dress": "dress", "stride": 16},
-  "Person - Child":                 {"generator": "person", "pose": "front", "height": "3'-10\"", "dress": "suit"}
+ "_comment": "Entourage models (People), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Man - Standing": {
+  "file": "models/people/man-standing.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   22.9,
+   12.8,
+   70.8
+  ],
+  "triangles": 1060,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-standing.png"
+ },
+ "Man - Standing, Hands on Hips": {
+  "file": "models/people/man-standing-hands-on-hips.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   36.6,
+   13.3,
+   70.6
+  ],
+  "triangles": 1076,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-standing-hands-on-hips.png"
+ },
+ "Man - Waving": {
+  "file": "models/people/man-waving.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   28.9,
+   14.6,
+   82.5
+  ],
+  "triangles": 1108,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-waving.png"
+ },
+ "Man - Covering Eyes": {
+  "file": "models/people/man-covering-eyes.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   26.6,
+   17.1,
+   71.2
+  ],
+  "triangles": 1068,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-covering-eyes.png"
+ },
+ "Man - Looking Up": {
+  "file": "models/people/man-looking-up.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   36.7,
+   21.9,
+   68.8
+  ],
+  "triangles": 1060,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-looking-up.png"
+ },
+ "Man - Walking": {
+  "file": "models/people/man-walking.obj",
+  "category": "People",
+  "group": "Walking",
+  "size": [
+   22.5,
+   26.9,
+   71.0
+  ],
+  "triangles": 1076,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-walking.png"
+ },
+ "Man - Running": {
+  "file": "models/people/man-running.obj",
+  "category": "People",
+  "group": "Walking",
+  "size": [
+   22.4,
+   40.9,
+   71.0
+  ],
+  "triangles": 1108,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-running.png"
+ },
+ "Man - Picking Up": {
+  "file": "models/people/man-picking-up.obj",
+  "category": "People",
+  "group": "Active",
+  "size": [
+   29.4,
+   39.8,
+   43.0
+  ],
+  "triangles": 1068,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-picking-up.png"
+ },
+ "Man - Sitting": {
+  "file": "models/people/man-sitting.obj",
+  "category": "People",
+  "group": "Sitting",
+  "size": [
+   23.1,
+   26.3,
+   57.2
+  ],
+  "triangles": 1060,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-sitting.png"
+ },
+ "Man - Sitting, Cheering": {
+  "file": "models/people/man-sitting-cheering.obj",
+  "category": "People",
+  "group": "Sitting",
+  "size": [
+   26.7,
+   29.3,
+   66.7
+  ],
+  "triangles": 1076,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/man-sitting-cheering.png"
+ },
+ "Woman - Standing": {
+  "file": "models/people/woman-standing.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   17.9,
+   12.3,
+   65.2
+  ],
+  "triangles": 1732,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-standing.png"
+ },
+ "Woman - Standing, Hands on Hips": {
+  "file": "models/people/woman-standing-hands-on-hips.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   25.4,
+   12.3,
+   65.6
+  ],
+  "triangles": 1572,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-standing-hands-on-hips.png"
+ },
+ "Woman - Waving": {
+  "file": "models/people/woman-waving.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   18.7,
+   13.7,
+   74.1
+  ],
+  "triangles": 1646,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-waving.png"
+ },
+ "Woman - Covering Eyes": {
+  "file": "models/people/woman-covering-eyes.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   18.0,
+   16.6,
+   66.4
+  ],
+  "triangles": 1732,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-covering-eyes.png"
+ },
+ "Woman - Looking Up": {
+  "file": "models/people/woman-looking-up.obj",
+  "category": "People",
+  "group": "Standing",
+  "size": [
+   24.0,
+   18.8,
+   64.0
+  ],
+  "triangles": 1680,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-looking-up.png"
+ },
+ "Woman - Walking": {
+  "file": "models/people/woman-walking.obj",
+  "category": "People",
+  "group": "Walking",
+  "size": [
+   18.7,
+   23.8,
+   65.3
+  ],
+  "triangles": 1624,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-walking.png"
+ },
+ "Woman - Running": {
+  "file": "models/people/woman-running.obj",
+  "category": "People",
+  "group": "Walking",
+  "size": [
+   14.7,
+   36.3,
+   65.2
+  ],
+  "triangles": 1646,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-running.png"
+ },
+ "Woman - Picking Up": {
+  "file": "models/people/woman-picking-up.obj",
+  "category": "People",
+  "group": "Active",
+  "size": [
+   19.0,
+   36.8,
+   39.8
+  ],
+  "triangles": 1732,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-picking-up.png"
+ },
+ "Woman - Sitting": {
+  "file": "models/people/woman-sitting.obj",
+  "category": "People",
+  "group": "Sitting",
+  "size": [
+   18.0,
+   24.8,
+   52.3
+  ],
+  "triangles": 1732,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-sitting.png"
+ },
+ "Woman - Sitting, Cheering": {
+  "file": "models/people/woman-sitting-cheering.obj",
+  "category": "People",
+  "group": "Sitting",
+  "size": [
+   19.0,
+   25.9,
+   57.5
+  ],
+  "triangles": 1624,
+  "source": "Posed Background Characters",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-posed-humans",
+  "face_view": true,
+  "thumb": "thumbs/people/woman-sitting-cheering.png"
+ }
 }

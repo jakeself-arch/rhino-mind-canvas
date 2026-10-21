@@ -259,27 +259,44 @@ params), never from generated parts, so build order never matters.
   fake of `Rhino.Geometry` (straight polylines) for quick logic checks; geometry needs Rhino
   (`tests/test_phase7.py`).
 
-## UI, entourage, trims (Phase 8)
+## UI, entourage, trims (Phase 8; entourage rebuilt as a 3D model library 2026-10-20)
 - **Eto** (`mindcanvas/eto/`): views only; the logic is in plain modules (`asmedit.AssemblyModel`,
-  `entourage.place`, `trims`) so tests drive it without clicks. Under Rhino 8 CPython (pythonnet)
+  `entourage.place`, `entourage.catalog`, `trims`) so tests drive it without clicks. Under Rhino 8 CPython (pythonnet)
   Eto controls take no keyword properties in their constructors: use the helpers in
   `eto/widgets.py` (`label`, `button(text, handler)`, `dropdown(items, index, handler)`, `rows(...)`).
   Python lists work as `DataStore`. Modeless windows (`forms.Form`) are kept in a module list
   (`_OPEN`) so they outlive the command's script; handlers capture `self`. Tests build the views,
   set control values and call the `on_*` handlers (see `tests/test_phase8.py`).
-- **Entourage** (`mindcanvas/entourage/`): `shapes.py` is pure Python: a generator
-  `fn(params, random.Random) -> [Layer]` registered with `@generator("name")`; a `Layer` is one flat
-  card at a `depth` (smaller = nearer the viewer) with closed `loops` (unioned into the card) and
-  open `lines`, in inches (x across, y up from the ground). `place.py` builds blocks named
-  `MC Entourage <name> #<hash of the shape>` (definition in the XZ plane, facing -Y; cards
-  `GAP` = 1/4" apart in depth) and instances with `mc.kind = entourage`, `mc.entourage`,
-  `mc.params` (seed, mirror, overrides), `mc.role = entourage`, `mc.draw = nocut,notone`.
-  `drawing/scene.py` collects curves only from blocks whose name starts with `MC Entourage `
-  (`LINE_BLOCKS`); `pipeline.py` classes their HLD segments as `entourage`.
-  Quick offline check: `python -c "import sys; sys.path[:0]=['tests/offline/fake','.']; from
-  mindcanvas.entourage import shapes; ..."` (needs the fake `Rhino` only for `units`).
+- **Entourage** (`mindcanvas/entourage/`): a library of 3D models (OBJ + MTL + PNG picture) in
+  `library/entourage/`. Pure Python (no Rhino): `objfile.py` reads / writes OBJ + MTL (shared
+  vertices, faces per material, Kd colours, `# key: value` header), `catalog.py` the entries
+  (`file`, `thumb`, `category`, `group`, `size` in inches, `face_view`, `heading`, `mount`),
+  categories in display order, search, the normalising helpers and `add_model` / `remove_model`
+  (your own OBJ -> `models/my-models/` + `zz_user_entourage.json`), `thumbs.py` a z-buffer
+  renderer that writes the PNG pictures. Rhino: `place.py` builds one block per model,
+  `MC Entourage <name> #<hash of the file>` (a `(gray)` twin uses the layer colour), one mesh per
+  material, welded and unwelded at 40 degree creases so the HLD draws silhouettes and real creases;
+  instances carry `mc.kind = entourage`, `mc.entourage`, `mc.params` (height, mirror, color),
+  `mc.role = entourage`, `mc.draw = nocut,notone`; `pipeline.py` classes their HLD segments
+  `entourage`. Model convention: inches, Z up, origin on the ground at the footprint centre, front
+  -Y; `heading` models (vehicles) run along X, nose +X (`place.aim_angle`); `mount: ceiling`
+  models have the origin at their top. `cmd/entourage.py` is MCEntourage (ghost via DynamicDraw),
+  `eto/entourage.py` the picture window (MCEntourageLibrary).
+- **Building the library** (`tools/entourage/`): `build.py` reads `recipe.json` (sources: CC0
+  packs from OpenGameArt zips and Poly Haven's API; per category the models: pack file glob,
+  real size `height` / `length` / `width` / `scale`, `rotate` so the front faces -Y, `colors`,
+  hair `add`-ed onto a head), downloads into a cache (`%TEMP%/mindcanvas_entourage_cache`), turns
+  Y-up sources Z up, sizes, centres, writes the OBJ / MTL / PNG and the catalog JSON per category,
+  `CREDITS.md`, and deletes files no entry uses. Run it with Rhino's Python:
+  `%USERPROFILE%\.rhinocode\py39-rh8\python.exe -I tools/entourage/build.py` (add
+  `--only "regex"` to rebuild some models, `--sheet out.png` for a contact sheet). `gltf.py` reads
+  Poly Haven glTF (node transforms; a model whose size disagrees with Poly Haven's published
+  dimensions is rescaled). Hair of the posed people is fitted on the standing pose's head and
+  carried to each pose by the head's rigid motion (`rigid_fit`, Horn's method). Only CC0 sources:
+  the repository is public. Offline check: `tests/offline/test_entourage_library.py`; in Rhino:
+  `tests/test_entourage.py`.
 - **Capture** (`mindcanvas/capture.py`): `read(doc, curves, plane, base)` -> (loops, lines) in inches
-  (loops counter-clockwise, largest first); `profile_definition` / `entourage_definition`. Save with
+  (loops counter-clockwise, largest first); `profile_definition`. Save with
   `Library.save_entry(section, name, defn, filename=None)` (default `zz_user_<section>.json`);
   `remove_entry`, `is_user_entry`. Profiles of type `custom` may have `loops` (outline + holes).
 - **Sweep component** (`components/sweep.py`): an extra (assembly `extras` or the wall's
@@ -543,7 +560,7 @@ Add your own files rather than editing someone else's: `library/materials/<topic
 `library/profiles/curtainwall.json`, `library/materials/curtainwall.json`. Floors and roofs:
 `library/assemblies/floors.json`, `library/assemblies/roofs.json`, `library/framing/joists.json`,
 `library/profiles/floors_roofs.json`, `library/materials/floors_roofs.json`. Entourage:
-`library/entourage/*.json`; trims: `library/profiles/trim.json`.
+`library/entourage/*.json` (+ `models/`, `thumbs/`, built by `tools/entourage/build.py`); trims: `library/profiles/trim.json`.
 Material entries: see `library/materials/core.json` (color, render, section, print).
 
 ## Commands

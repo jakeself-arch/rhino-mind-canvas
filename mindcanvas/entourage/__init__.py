@@ -1,8 +1,11 @@
-"""Phase 8: line-drawn entourage (people, trees, shrubs) for section drawings.
+"""Entourage: a library of 3D models (people, trees, plants, vehicles, furniture, kitchen & bath,
+lighting, site) placed as blocks and drawn as fine lines.
 
-    shapes   pure-Python generators -> layered 2D outlines + lines (inches)
-    place    blocks, placement, FaceView (Rhino)
-    capture  curves drawn in Rhino -> a "custom" library entry (see mindcanvas/capture.py)
+    objfile  OBJ / MTL reading and writing (plain Python)
+    catalog  library entries, categories, search, adding your own OBJ (plain Python)
+    thumbs   PNG pictures of models (plain Python)
+    place    blocks, placement, FaceView, swap (Rhino)
 
-Entries live in library/entourage/*.json.
+Models live in library/entourage (<category>.json + models/ + thumbs/), built by
+tools/entourage/build.py from free CC0 sources (library/entourage/CREDITS.md).
 """

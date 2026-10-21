@@ -1,0 +1,5 @@
+newmtl Wood
+Kd 0.3333 0.298 0.2392
+
+newmtl Metal
+Kd 0.3765 0.3333 0.3137

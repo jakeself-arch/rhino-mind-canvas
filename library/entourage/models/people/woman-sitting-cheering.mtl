@@ -1,0 +1,14 @@
+newmtl Skin
+Kd 0.7922 0.6627 0.5333
+
+newmtl Shirt
+Kd 0.3294 0.5255 0.5961
+
+newmtl Pants
+Kd 0.2431 0.2902 0.4078
+
+newmtl Shoes
+Kd 0.3059 0.2392 0.1804
+
+newmtl Hair
+Kd 0.502 0.2902 0.1647

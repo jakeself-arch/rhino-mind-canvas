@@ -1,0 +1,5 @@
+newmtl electric_stove
+Kd 0.7059 0.7059 0.7059
+
+newmtl electric_stove_glass
+Kd 0.7059 0.7059 0.7059

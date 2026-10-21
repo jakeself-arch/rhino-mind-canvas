@@ -1,0 +1,381 @@
+{
+ "_comment": "Entourage models (Lighting), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Floor Lamp 1": {
+  "file": "models/lighting/floor-lamp-1.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   11.6,
+   12.2,
+   66.0
+  ],
+  "triangles": 226,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/floor-lamp-1.png"
+ },
+ "Floor Lamp 2": {
+  "file": "models/lighting/floor-lamp-2.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   17.0,
+   17.9,
+   66.0
+  ],
+  "triangles": 244,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/floor-lamp-2.png"
+ },
+ "Floor Lamp 3": {
+  "file": "models/lighting/floor-lamp-3.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   15.2,
+   15.2,
+   66.0
+  ],
+  "triangles": 244,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/floor-lamp-3.png"
+ },
+ "Table Lamp 1": {
+  "file": "models/lighting/table-lamp-1.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   10.8,
+   11.3,
+   26.0
+  ],
+  "triangles": 276,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/table-lamp-1.png"
+ },
+ "Table Lamp 2": {
+  "file": "models/lighting/table-lamp-2.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   12.5,
+   13.2,
+   28.0
+  ],
+  "triangles": 244,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/table-lamp-2.png"
+ },
+ "Table Lamp 3": {
+  "file": "models/lighting/table-lamp-3.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   11.9,
+   11.9,
+   26.0
+  ],
+  "triangles": 244,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/table-lamp-3.png"
+ },
+ "Desk Lamp": {
+  "file": "models/lighting/desk-lamp.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   8.8,
+   15.8,
+   20.0
+  ],
+  "triangles": 356,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/lighting/desk-lamp.png"
+ },
+ "Pendant - Dome": {
+  "file": "models/lighting/pendant-dome.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   16.1,
+   15.9,
+   30.0
+  ],
+  "triangles": 269,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-dome.png"
+ },
+ "Pendant - Cone": {
+  "file": "models/lighting/pendant-cone.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   12.8,
+   12.7,
+   36.0
+  ],
+  "triangles": 196,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-cone.png"
+ },
+ "Pendant - Cluster": {
+  "file": "models/lighting/pendant-cluster.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   28.7,
+   28.7,
+   48.0
+  ],
+  "triangles": 820,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-cluster.png"
+ },
+ "Pendant - Cube": {
+  "file": "models/lighting/pendant-cube.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   19.6,
+   19.6,
+   36.0
+  ],
+  "triangles": 368,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-cube.png"
+ },
+ "Pendant - Wire": {
+  "file": "models/lighting/pendant-wire.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   20.5,
+   19.6,
+   36.0
+  ],
+  "triangles": 1220,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-wire.png"
+ },
+ "Chandelier": {
+  "file": "models/lighting/chandelier.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   47.0,
+   47.0,
+   30.0
+  ],
+  "triangles": 972,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/chandelier.png"
+ },
+ "Ceiling Light - Flush": {
+  "file": "models/lighting/ceiling-light-flush.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   23.4,
+   24.6,
+   6.0
+  ],
+  "triangles": 116,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/ceiling-light-flush.png"
+ },
+ "Pendant - Modern": {
+  "file": "models/lighting/pendant-modern.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   17.0,
+   17.0,
+   37.5
+  ],
+  "triangles": 5602,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-modern.png"
+ },
+ "Pendant - Industrial": {
+  "file": "models/lighting/pendant-industrial.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   21.6,
+   21.6,
+   53.4
+  ],
+  "triangles": 9530,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/pendant-industrial.png"
+ },
+ "Ceiling Fan": {
+  "file": "models/lighting/ceiling-fan.obj",
+  "category": "Lighting",
+  "group": "Ceiling",
+  "size": [
+   57.6,
+   57.6,
+   20.3
+  ],
+  "triangles": 16356,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "mount": "ceiling",
+  "thumb": "thumbs/lighting/ceiling-fan.png"
+ },
+ "Desk Lamp - Arm": {
+  "file": "models/lighting/desk-lamp-arm.obj",
+  "category": "Lighting",
+  "group": "Floor & table",
+  "size": [
+   7.9,
+   24.2,
+   35.1
+  ],
+  "triangles": 24102,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/lighting/desk-lamp-arm.png"
+ },
+ "Street Lamp - Classic": {
+  "file": "models/lighting/street-lamp-classic.obj",
+  "category": "Lighting",
+  "group": "Street",
+  "size": [
+   27.7,
+   15.2,
+   152.4
+  ],
+  "triangles": 30610,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/lighting/street-lamp-classic.png"
+ },
+ "Wall Lantern": {
+  "file": "models/lighting/wall-lantern.obj",
+  "category": "Lighting",
+  "group": "Street",
+  "size": [
+   15.2,
+   31.8,
+   65.9
+  ],
+  "triangles": 20338,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/lighting/wall-lantern.png"
+ },
+ "Street Light - Single": {
+  "file": "models/lighting/street-light-single.obj",
+  "category": "Lighting",
+  "group": "Street",
+  "size": [
+   31.9,
+   31.9,
+   264.0
+  ],
+  "triangles": 1028,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/lighting/street-light-single.png"
+ },
+ "Street Light - Double": {
+  "file": "models/lighting/street-light-double.obj",
+  "category": "Lighting",
+  "group": "Street",
+  "size": [
+   31.6,
+   75.8,
+   264.0
+  ],
+  "triangles": 2486,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/lighting/street-light-double.png"
+ },
+ "Street Light - Triple": {
+  "file": "models/lighting/street-light-triple.obj",
+  "category": "Lighting",
+  "group": "Street",
+  "size": [
+   26.1,
+   62.5,
+   216.0
+  ],
+  "triangles": 2796,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/lighting/street-light-triple.png"
+ }
+}

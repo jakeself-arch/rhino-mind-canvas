@@ -1,0 +1,14 @@
+newmtl Black
+Kd 0.1961 0.1961 0.1961
+
+newmtl White
+Kd 0.6275 0.6235 0.6157
+
+newmtl LightMetal
+Kd 0.4039 0.4039 0.4039
+
+newmtl DarkMetal
+Kd 0.3059 0.3059 0.3059
+
+newmtl Glass
+Kd 0.8157 0.8157 0.8157

@@ -1,0 +1,8 @@
+newmtl Wood
+Kd 0.3843 0.2667 0.251
+
+newmtl Mushroom_Top
+Kd 0.3843 0.3294 0.3137
+
+newmtl Mushroom_Bottom
+Kd 0.5804 0.498 0.4667

@@ -1,14 +1,12 @@
-"""Profile capture: curves drawn in Rhino -> library entries (MCProfileCapture, MCEntourage Capture).
+"""Profile capture: curves drawn in Rhino -> library entries (MCProfileCapture).
 
 Curves are read in a plane (the active construction plane by default) relative to a base point
 and written in INCHES: plane x -> X, plane y -> Y. Arcs and splines are turned into polylines
 (1/64" tolerance, 5 degree angle steps).
 
     profile_definition(...)    {"type": "custom", "points" | "loops": ...}  -> library/profiles
-    entourage_definition(...)  {"generator": "custom", "loops": ..., "lines": ...} -> library/entourage
 
-A profile's first loop is its outline (the largest), the others are holes. For entourage, closed
-curves are the card outlines and open curves are lines drawn on the card.
+A profile's first loop is its outline (the largest), the others are holes.
 """
 
 import math
@@ -79,9 +77,3 @@ def profile_definition(doc, curves, plane=None, base=None, family=None, material
     d["captured"] = True
     return d
 
-
-def entourage_definition(doc, curves, plane=None, base=None):
-    loops, lines = read(doc, curves, plane, base)
-    if not loops and not lines:
-        raise ValueError("Select curves to capture.")
-    return {"generator": "custom", "loops": loops, "lines": lines, "captured": True}

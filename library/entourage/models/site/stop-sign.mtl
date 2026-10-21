@@ -1,0 +1,8 @@
+newmtl Pole
+Kd 0.5922 0.5922 0.5922
+
+newmtl White
+Kd 0.8157 0.8157 0.8157
+
+newmtl Red
+Kd 0.8157 0.2196 0.1804

@@ -53,9 +53,9 @@ mindcanvas/            Python package (the engine)
                        find.py (detection from drivers: walls, floors, roofs), geom.py (joined
                        outlines / solids, centerline, roof infill)
   engine.py            build / rebuild / delete for a driver (+ rebuild joined partners)
-  entourage/           phase 8: shapes.py (pure-Python figure generators: people, trees, shrubs,
-                       captured), place.py (card + line blocks, placement, FaceView)
-  capture.py           phase 8: curves drawn in Rhino -> custom profiles / figures in the library
+  entourage/           3D model library: objfile.py (OBJ / MTL), catalog.py (entries, import),
+                       thumbs.py (PNG pictures), place.py (mesh blocks, placement, FaceView)
+  capture.py           phase 8: curves drawn in Rhino -> custom profiles in the library
   trims.py             phase 8: per-wall trims (sweep extras in params["extras"])
   asmedit.py           phase 8: assembly editor model (no UI)
   eto/                 phase 8: Eto views: widgets.py, editor.py (assembly editor), panel.py (MCPanel)
@@ -77,9 +77,10 @@ library/
   framing/*.json       framing systems (wood, metal) — stud/plate/track rules
   assemblies/*.json    assembly definitions (stack of layers)
   styles/*.json        drawing styles per scale
-  entourage/*.json     line-drawn figures (generator + params, or captured outlines)
+  entourage/           276 CC0 3D models: <category>.json, models/*.obj, thumbs/*.png, CREDITS.md
 commands/              one Rhino entry script per command (MCWall.py, MCUpdate.py, ...)
 tools/install.py       registers command aliases in Rhino
+tools/entourage/       build.py + recipe.json: download, normalise and picture the entourage library
 tests/                 scripts run inside Rhino (via run_python) that build + assert
 docs/                  findings, user guide
 ```
@@ -128,6 +129,20 @@ docs/                  findings, user guide
 
 ## Resume here
 _Updated at every milestone. A new session should read this section, `docs/DEVELOPING.md`, then continue._
+
+**2026-10-20: entourage rebuilt as a 3D model library** on branch
+`claude/entourage-3d-asset-library-ce3a9a`. The user asked to remove the line-drawn figures (Phase 8
+`shapes.py`, `people.json`, `plants.json`, figure capture) and shop the web for free OBJ entourage.
+Shipped: 276 CC0 models (Quaternius, Kenney via OpenGameArt; Poly Haven via its API) in
+`library/entourage/` (OBJ + MTL + PNG picture, real size in inches), built reproducibly by
+`tools/entourage/build.py` from `recipe.json`; `MCEntourage` (ghost, Aim, RandomModel, Swap, Import
+your own OBJ) and the picture window `MCEntourageLibrary`; aliases `EN`, `EL`. CC0 only because the
+repository is public. Tests: `tests/offline/test_entourage_library.py`, `tests/test_entourage.py`,
+`tests/test_phase8.py` pass (drawings each in their own call). Not covered: the ghost and the Import
+dialogs by hand (macro-driven placement with Aim / RandomModel was run). Gaps: the posed people are
+low-poly (about 1,000 triangles) and the Quaternius buses are short (25' shuttle, 22' school bus);
+no realistic CC0 people were found; Google Drive (Quaternius' own host) refused downloads (quota),
+so the OpenGameArt mirrors are used.
 
 **2026-10-20: viewport editing + picking by sight** on branch `claude/ui-smoothness-visual-design-4af79f`
 (from main 797b2ed, with Phase 12 / PR jakeself-arch/rhino-mind-canvas#8 merged in because the

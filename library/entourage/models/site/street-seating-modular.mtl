@@ -1,0 +1,11 @@
+newmtl modular_street_seating_armrests
+Kd 0.7059 0.7059 0.7059
+
+newmtl modular_street_seating_supports
+Kd 0.7059 0.7059 0.7059
+
+newmtl modular_street_seating_timber
+Kd 0.7059 0.7059 0.7059
+
+newmtl modular_street_seating_connectors
+Kd 0.7059 0.7059 0.7059

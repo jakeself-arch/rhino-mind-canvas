@@ -1,0 +1,8 @@
+newmtl Black
+Kd 0.1961 0.1961 0.1961
+
+newmtl Brown
+Kd 0.3333 0.298 0.2392
+
+newmtl Plant_Green
+Kd 0.4784 0.5922 0.2392

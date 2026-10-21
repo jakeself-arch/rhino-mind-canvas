@@ -1,0 +1,5 @@
+newmtl hanging_industrial_lamp
+Kd 0.7059 0.7059 0.7059
+
+newmtl hanging_industrial_lamp_glass
+Kd 0.902 0.902 0.902

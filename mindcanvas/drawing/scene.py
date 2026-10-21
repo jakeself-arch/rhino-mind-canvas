@@ -72,7 +72,6 @@ def _material(doc, obj):
 
 
 DRAWABLE = (G.Brep, G.Extrusion, G.Surface, G.Mesh, G.SubD)
-LINE_BLOCKS = "MC Entourage "    # block definitions whose curves are drawn (entourage/place.py)
 
 
 class Scene(object):
@@ -93,12 +92,11 @@ class Scene(object):
         if out is not None:
             return out
         out = []
-        lines = idef.Name.startswith(LINE_BLOCKS)
         for o in idef.GetObjects():
             if isinstance(o, D.InstanceObject):
                 for k, g, lxf in self._flatten(o.InstanceDefinition):
                     out.append((k, g, o.InstanceXform * lxf))
-            elif isinstance(o.Geometry, DRAWABLE) or (lines and isinstance(o.Geometry, G.Curve)):
+            elif isinstance(o.Geometry, DRAWABLE):
                 k = key + ":" + str(o.Id)
                 out.append((k, o.Geometry, IDENT))
         for k, g, lxf in out:

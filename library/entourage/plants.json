@@ -1,10 +1,547 @@
 {
-  "_comment": "Line-drawn trees and shrubs (MCEntourage). generator 'tree': style bare (winter branching) | canopy (scalloped crown + foliage strokes) | conifer; height, spread (crown width / height), depth (branching levels, bare), trunk (diameter), strokes (canopy). generator 'shrub': height, width, bumps, strokes. 'seed' picks the random variation; MCEntourage Random=Yes gives every placement its own.",
-  "Tree - Bare, 30 ft":             {"generator": "tree", "style": "bare", "height": "30'", "depth": 6, "seed": 4},
-  "Tree - Bare, 18 ft":             {"generator": "tree", "style": "bare", "height": "18'", "depth": 5, "seed": 7},
-  "Tree - Canopy, 28 ft":           {"generator": "tree", "style": "canopy", "height": "28'", "spread": 0.7, "seed": 2},
-  "Tree - Canopy, 16 ft":           {"generator": "tree", "style": "canopy", "height": "16'", "spread": 0.6, "strokes": 45, "seed": 5},
-  "Tree - Conifer, 24 ft":          {"generator": "tree", "style": "conifer", "height": "24'", "seed": 3},
-  "Shrub - 3 ft":                   {"generator": "shrub", "height": "3'", "width": "5'", "seed": 1},
-  "Shrub - 2 ft Hedge":             {"generator": "shrub", "height": "2'", "width": "8'", "bumps": 16, "seed": 6}
+ "_comment": "Entourage models (Plants), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Shrub - Round 1": {
+  "file": "models/plants/shrub-round-1.obj",
+  "category": "Plants",
+  "group": "Shrubs",
+  "size": [
+   51.4,
+   65.3,
+   48.0
+  ],
+  "triangles": 364,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/shrub-round-1.png"
+ },
+ "Shrub - Round 2": {
+  "file": "models/plants/shrub-round-2.obj",
+  "category": "Plants",
+  "group": "Shrubs",
+  "size": [
+   50.9,
+   50.2,
+   42.0
+  ],
+  "triangles": 268,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/shrub-round-2.png"
+ },
+ "Shrub - Berries 1": {
+  "file": "models/plants/shrub-berries-1.obj",
+  "category": "Plants",
+  "group": "Shrubs",
+  "size": [
+   58.9,
+   72.7,
+   54.0
+  ],
+  "triangles": 892,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/shrub-berries-1.png"
+ },
+ "Shrub - Berries 2": {
+  "file": "models/plants/shrub-berries-2.obj",
+  "category": "Plants",
+  "group": "Shrubs",
+  "size": [
+   49.8,
+   49.6,
+   42.0
+  ],
+  "triangles": 796,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/shrub-berries-2.png"
+ },
+ "Plant - Leafy 1": {
+  "file": "models/plants/plant-leafy-1.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   71.0,
+   55.9,
+   30.0
+  ],
+  "triangles": 296,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/plant-leafy-1.png"
+ },
+ "Plant - Leafy 2": {
+  "file": "models/plants/plant-leafy-2.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   13.9,
+   13.9,
+   36.0
+  ],
+  "triangles": 218,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/plant-leafy-2.png"
+ },
+ "Plant - Leafy 3": {
+  "file": "models/plants/plant-leafy-3.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   27.7,
+   24.7,
+   24.0
+  ],
+  "triangles": 600,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/plant-leafy-3.png"
+ },
+ "Plant - Leafy 4": {
+  "file": "models/plants/plant-leafy-4.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   99.2,
+   109.7,
+   42.0
+  ],
+  "triangles": 512,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/plant-leafy-4.png"
+ },
+ "Plant - Leafy 5": {
+  "file": "models/plants/plant-leafy-5.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   22.7,
+   22.3,
+   18.0
+  ],
+  "triangles": 620,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/plant-leafy-5.png"
+ },
+ "Cactus 1": {
+  "file": "models/plants/cactus-1.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   32.7,
+   33.5,
+   60.0
+  ],
+  "triangles": 434,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/cactus-1.png"
+ },
+ "Cactus 2": {
+  "file": "models/plants/cactus-2.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   34.6,
+   52.0,
+   84.0
+  ],
+  "triangles": 720,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/cactus-2.png"
+ },
+ "Cactus 3": {
+  "file": "models/plants/cactus-3.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   11.6,
+   34.1,
+   48.0
+  ],
+  "triangles": 416,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/cactus-3.png"
+ },
+ "Grass Tuft": {
+  "file": "models/plants/grass-tuft.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   4.4,
+   3.9,
+   12.0
+  ],
+  "triangles": 192,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/grass-tuft.png"
+ },
+ "Flowers": {
+  "file": "models/plants/flowers.obj",
+  "category": "Plants",
+  "group": "Ground plants",
+  "size": [
+   7.1,
+   8.9,
+   12.0
+  ],
+  "triangles": 408,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/flowers.png"
+ },
+ "Houseplant 1": {
+  "file": "models/plants/houseplant-1.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   51.5,
+   46.5,
+   48.0
+  ],
+  "triangles": 245,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-1.png"
+ },
+ "Houseplant 2": {
+  "file": "models/plants/houseplant-2.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   19.5,
+   19.5,
+   30.0
+  ],
+  "triangles": 324,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-2.png"
+ },
+ "Houseplant 3": {
+  "file": "models/plants/houseplant-3.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   12.2,
+   12.0,
+   30.0
+  ],
+  "triangles": 412,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-3.png"
+ },
+ "Houseplant 4": {
+  "file": "models/plants/houseplant-4.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   6.6,
+   6.6,
+   18.0
+  ],
+  "triangles": 316,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-4.png"
+ },
+ "Houseplant 5": {
+  "file": "models/plants/houseplant-5.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   29.0,
+   29.9,
+   24.0
+  ],
+  "triangles": 492,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-5.png"
+ },
+ "Houseplant 6": {
+  "file": "models/plants/houseplant-6.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   65.1,
+   65.7,
+   60.0
+  ],
+  "triangles": 652,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-6.png"
+ },
+ "Houseplant 7": {
+  "file": "models/plants/houseplant-7.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   87.3,
+   91.3,
+   66.0
+  ],
+  "triangles": 449,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-7.png"
+ },
+ "Houseplant 8": {
+  "file": "models/plants/houseplant-8.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   12.0,
+   12.0,
+   36.0
+  ],
+  "triangles": 310,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/plants/houseplant-8.png"
+ },
+ "Potted Plant - Small": {
+  "file": "models/plants/potted-plant-small.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   6.6,
+   7.3,
+   10.5
+  ],
+  "triangles": 8929,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/plants/potted-plant-small.png"
+ },
+ "Planter Box 1": {
+  "file": "models/plants/planter-box-1.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   35.9,
+   16.3,
+   16.7
+  ],
+  "triangles": 8094,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/plants/planter-box-1.png"
+ },
+ "Planter Box 2": {
+  "file": "models/plants/planter-box-2.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   49.3,
+   18.4,
+   17.8
+  ],
+  "triangles": 10944,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/plants/planter-box-2.png"
+ },
+ "Planter Box 3": {
+  "file": "models/plants/planter-box-3.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   36.0,
+   25.8,
+   33.7
+  ],
+  "triangles": 13112,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/plants/planter-box-3.png"
+ },
+ "Planter Pot - Large": {
+  "file": "models/plants/planter-pot-large.obj",
+  "category": "Plants",
+  "group": "Potted",
+  "size": [
+   67.6,
+   58.6,
+   24.0
+  ],
+  "triangles": 68,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/plants/planter-pot-large.png"
+ },
+ "Rock 1": {
+  "file": "models/plants/rock-1.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   19.9,
+   19.1,
+   36.0
+  ],
+  "triangles": 70,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/rock-1.png"
+ },
+ "Rock 2": {
+  "file": "models/plants/rock-2.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   20.9,
+   21.0,
+   24.0
+  ],
+  "triangles": 80,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/rock-2.png"
+ },
+ "Rock 3": {
+  "file": "models/plants/rock-3.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   52.4,
+   57.0,
+   48.0
+  ],
+  "triangles": 72,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/rock-3.png"
+ },
+ "Rock 4": {
+  "file": "models/plants/rock-4.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   28.5,
+   47.9,
+   30.0
+  ],
+  "triangles": 128,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/rock-4.png"
+ },
+ "Rock 5": {
+  "file": "models/plants/rock-5.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   18.3,
+   25.2,
+   18.0
+  ],
+  "triangles": 90,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/rock-5.png"
+ },
+ "Tree Stump": {
+  "file": "models/plants/tree-stump.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   39.4,
+   29.9,
+   18.0
+  ],
+  "triangles": 232,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/tree-stump.png"
+ },
+ "Log": {
+  "file": "models/plants/log.obj",
+  "category": "Plants",
+  "group": "Rocks & logs",
+  "size": [
+   22.8,
+   96.0,
+   26.9
+  ],
+  "triangles": 464,
+  "source": "Ultimate Nature Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/low-poly-nature-pack-1",
+  "thumb": "thumbs/plants/log.png"
+ }
 }

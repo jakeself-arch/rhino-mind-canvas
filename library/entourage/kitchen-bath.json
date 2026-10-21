@@ -1,0 +1,483 @@
+{
+ "_comment": "Entourage models (Kitchen & Bath), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Base Cabinet - 1 Drawer": {
+  "file": "models/kitchen-bath/base-cabinet-1-drawer.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   22.6,
+   25.0,
+   36.0
+  ],
+  "triangles": 84,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/base-cabinet-1-drawer.png"
+ },
+ "Base Cabinet - 2 Drawers": {
+  "file": "models/kitchen-bath/base-cabinet-2-drawers.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   22.4,
+   24.8,
+   36.0
+  ],
+  "triangles": 148,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/base-cabinet-2-drawers.png"
+ },
+ "Base Cabinet - 3 Drawers": {
+  "file": "models/kitchen-bath/base-cabinet-3-drawers.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   22.4,
+   24.8,
+   36.0
+  ],
+  "triangles": 212,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/base-cabinet-3-drawers.png"
+ },
+ "Base Cabinet - Door": {
+  "file": "models/kitchen-bath/base-cabinet-door.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   23.2,
+   24.6,
+   36.0
+  ],
+  "triangles": 68,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/base-cabinet-door.png"
+ },
+ "Base Cabinet - Double Door": {
+  "file": "models/kitchen-bath/base-cabinet-double-door.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   23.2,
+   24.6,
+   36.0
+  ],
+  "triangles": 68,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/base-cabinet-double-door.png"
+ },
+ "Kitchen Sink Cabinet": {
+  "file": "models/kitchen-bath/kitchen-sink-cabinet.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   18.9,
+   21.0,
+   36.0
+  ],
+  "triangles": 444,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/kitchen-sink-cabinet.png"
+ },
+ "Range": {
+  "file": "models/kitchen-bath/range.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   22.5,
+   24.9,
+   36.0
+  ],
+  "triangles": 524,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/range.png"
+ },
+ "Range - Large": {
+  "file": "models/kitchen-bath/range-large.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   26.5,
+   24.2,
+   36.0
+  ],
+  "triangles": 528,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/range-large.png"
+ },
+ "Refrigerator": {
+  "file": "models/kitchen-bath/refrigerator.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   27.5,
+   27.5,
+   70.0
+  ],
+  "triangles": 404,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/refrigerator.png"
+ },
+ "Toilet": {
+  "file": "models/kitchen-bath/toilet.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   18.9,
+   26.7,
+   30.0
+  ],
+  "triangles": 402,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/toilet.png"
+ },
+ "Washing Machine": {
+  "file": "models/kitchen-bath/washing-machine.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   29.9,
+   30.6,
+   34.0
+  ],
+  "triangles": 304,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/washing-machine.png"
+ },
+ "Trash Can": {
+  "file": "models/kitchen-bath/trash-can.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   16.9,
+   16.9,
+   24.0
+  ],
+  "triangles": 380,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/trash-can.png"
+ },
+ "Trash Can - Step": {
+  "file": "models/kitchen-bath/trash-can-step.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   11.3,
+   6.9,
+   16.0
+  ],
+  "triangles": 260,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/trash-can-step.png"
+ },
+ "Bathtub": {
+  "file": "models/kitchen-bath/bathtub.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   24.7,
+   60.0,
+   19.4
+  ],
+  "triangles": 248,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/kitchen-bath/bathtub.png"
+ },
+ "Wall Cabinet": {
+  "file": "models/kitchen-bath/wall-cabinet.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   33.1,
+   16.9,
+   30.0
+  ],
+  "triangles": 80,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/wall-cabinet.png"
+ },
+ "Wall Cabinet - Double": {
+  "file": "models/kitchen-bath/wall-cabinet-double.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   33.1,
+   16.9,
+   30.0
+  ],
+  "triangles": 234,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/wall-cabinet-double.png"
+ },
+ "Refrigerator - Tall": {
+  "file": "models/kitchen-bath/refrigerator-tall.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   34.6,
+   23.5,
+   74.0
+  ],
+  "triangles": 250,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/refrigerator-tall.png"
+ },
+ "Microwave": {
+  "file": "models/kitchen-bath/microwave.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   22.6,
+   17.9,
+   14.0
+  ],
+  "triangles": 152,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/microwave.png"
+ },
+ "Coffee Machine": {
+  "file": "models/kitchen-bath/coffee-machine.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   15.0,
+   18.9,
+   14.0
+  ],
+  "triangles": 166,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/coffee-machine.png"
+ },
+ "Bar Counter": {
+  "file": "models/kitchen-bath/bar-counter.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   36.9,
+   18.0,
+   36.0
+  ],
+  "triangles": 76,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/bar-counter.png"
+ },
+ "Sink - Pedestal": {
+  "file": "models/kitchen-bath/sink-pedestal.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   20.6,
+   17.6,
+   34.0
+  ],
+  "triangles": 316,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/sink-pedestal.png"
+ },
+ "Medicine Cabinet": {
+  "file": "models/kitchen-bath/medicine-cabinet.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   14.2,
+   8.0,
+   24.0
+  ],
+  "triangles": 64,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/medicine-cabinet.png"
+ },
+ "Mirror": {
+  "file": "models/kitchen-bath/mirror.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   20.8,
+   10.0,
+   30.0
+  ],
+  "triangles": 72,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/mirror.png"
+ },
+ "Shower - Corner": {
+  "file": "models/kitchen-bath/shower-corner.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   43.1,
+   44.7,
+   84.0
+  ],
+  "triangles": 810,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/shower-corner.png"
+ },
+ "Bathtub - Built-in": {
+  "file": "models/kitchen-bath/bathtub-built-in.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   62.3,
+   29.3,
+   22.0
+  ],
+  "triangles": 602,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/bathtub-built-in.png"
+ },
+ "Toilet - Model": {
+  "file": "models/kitchen-bath/toilet-model.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   20.8,
+   31.7,
+   30.0
+  ],
+  "triangles": 232,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/toilet-model.png"
+ },
+ "Washer": {
+  "file": "models/kitchen-bath/washer.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   29.9,
+   29.9,
+   36.0
+  ],
+  "triangles": 720,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/washer.png"
+ },
+ "Dryer": {
+  "file": "models/kitchen-bath/dryer.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   29.9,
+   29.1,
+   36.0
+  ],
+  "triangles": 262,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/dryer.png"
+ },
+ "Washer / Dryer - Stacked": {
+  "file": "models/kitchen-bath/washer-dryer-stacked.obj",
+  "category": "Kitchen & Bath",
+  "group": "Bath & laundry",
+  "size": [
+   29.9,
+   29.9,
+   72.0
+  ],
+  "triangles": 992,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/kitchen-bath/washer-dryer-stacked.png"
+ },
+ "Stove - Vintage": {
+  "file": "models/kitchen-bath/stove-vintage.obj",
+  "category": "Kitchen & Bath",
+  "group": "Kitchen",
+  "size": [
+   19.8,
+   25.5,
+   33.8
+  ],
+  "triangles": 13914,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/kitchen-bath/stove-vintage.png"
+ }
+}

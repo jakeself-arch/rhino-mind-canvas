@@ -1,0 +1,5 @@
+newmtl desk_lamp_arm_01
+Kd 0.7059 0.7059 0.7059
+
+newmtl desk_lamp_arm_01_light
+Kd 0.7059 0.7059 0.7059

@@ -1,0 +1,8 @@
+newmtl carpetWhite
+Kd 0.9725 1 1
+
+newmtl metalLight
+Kd 0.8392 0.9098 0.8706
+
+newmtl metalDark
+Kd 0.1647 0.2078 0.2078

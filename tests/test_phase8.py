@@ -1,4 +1,4 @@
-"""Phase 8: UI + entourage (Eto panel, assembly editor, profile capture, line-drawn entourage).
+"""Phase 8: UI (Eto panel, assembly editor, profile capture, trims) + entourage in drawings.
 
 Run inside Rhino (e.g. via the MCP run_python tool), in an EMPTY, unsaved document (it is cleared):
 
@@ -8,18 +8,16 @@ Run inside Rhino (e.g. via the MCP run_python tool), in an EMPTY, unsaved docume
     from mindcanvas import dev; dev.reload_all()
     runpy.run_path(ROOT + r"\\tests\\test_phase8.py")["run"](__rhino_doc__, log=ROOT + r"\\phase8.log")
 
-Covers: every library figure (people, trees, shrubs) generates at its height, becomes a block of
-planar cards + line curves, shares blocks per shape, varies by seed, mirrors, turns to face a
-view; figures draw as class "entourage" lines and hide what is behind them (and are hidden by
-walls in front of them); capture of a figure and of a profile with a hole from curves; trims
+Covers: capture of a profile with a hole from curves; trims
 (sweep component) on a polyline wall with a door (mitered, cut at the door, takeoff length), with
 a captured profile, and removed again; the gable-wall gypsum stopping at an attic ceiling (Phase 7
 open item); the assembly editor model (fields, add / duplicate / move / mirror / core / options /
 settings JSON, save as, apply); the Eto assembly editor and the Mind Canvas panel driven through
 their handlers (no clicks); every command module imports. Library files the test writes
 (zz_test_phase8.json, zz_user_assemblies.json entries) are removed again.
-drawing_on=True writes g_section_perspective_quarter, g_entourage_sheet_quarter,
-g_trim_base_1-1-2 and g_trim_crown_1-1-2 to docs/drawings/.
+drawing_on=True writes g_section_perspective_quarter (3D entourage from the model library),
+g_trim_base_1-1-2 and g_trim_crown_1-1-2 to docs/drawings/. The entourage library itself is
+tested by tests/test_entourage.py.
 """
 
 import importlib
@@ -36,7 +34,7 @@ import Rhino
 
 from mindcanvas import asmedit, capture, docutil, engine, library, meta, profiles, trims, units
 from mindcanvas.drawing import tags
-from mindcanvas.entourage import place, shapes
+from mindcanvas.entourage import place
 
 G = Rhino.Geometry
 D = Rhino.DocObjects
@@ -122,148 +120,7 @@ def _def_geoms(obj):
     return [o.Geometry for o in obj.InstanceDefinition.GetObjects()]
 
 
-# -- entourage ------------------------------------------------------------------------------------
-def entourage_shapes(lib):
-    names = place.names(lib)
-    assert len(names) >= 12, names
-    gens = Counter(place.definition(lib, n).get("generator") for n in names)
-    assert gens["person"] >= 5 and gens["tree"] >= 4 and gens["shrub"] >= 2, gens
-    for n in names:
-        d = place.definition(lib, n)
-        layers = place.layers_for(lib, n)
-        c = shapes.count(layers)
-        assert c["loops"] >= 1, (n, c)
-        x0, y0, x1, y1 = shapes.bounds(layers)
-        H = units.parse_length(d.get("height", 0))
-        assert y0 > -1.0, (n, y0)
-        if d["generator"] == "person":
-            assert abs(y1 - H) < 2.0, (n, y1, H)
-        elif d["generator"] == "tree":
-            assert abs(y1 - H) / H < 0.08, (n, y1, H)
-            assert c["lines"] >= 4, (n, c)
-        else:
-            assert 0.9 * H < y1 < 1.35 * H, (n, y1, H)
-        for ly in layers:
-            for lp in ly.loops:
-                assert len(lp) >= 3
-    # seeds: same seed -> same shape, another seed -> another tree
-    a = place.layers_for(lib, "Tree - Bare, 18 ft", seed=11)
-    b = place.layers_for(lib, "Tree - Bare, 18 ft", seed=11)
-    c = place.layers_for(lib, "Tree - Bare, 18 ft", seed=12)
-    assert place._tag("t", a) == place._tag("t", b) and place._tag("t", a) != place._tag("t", c)
-    # overrides: height scales a person
-    tall = place.layers_for(lib, "Person - Standing, Suit", height=80)
-    assert abs(shapes.bounds(tall)[3] - 80) < 2.0
-    say("  {} figures generate ({})".format(len(names), dict(gens)))
-    return names
-
-
-def entourage_place(doc, lib, names, x0=-200.0, y0=-600.0):
-    f = lambda v: _ft(doc, v)
-    s = units.inch_scale(doc)
-    objs = []
-    x = x0
-    for n in names:
-        bx = shapes.bounds(place.layers_for(lib, n))
-        x += -bx[0] / 12.0
-        o = place.place(doc, lib, n, G.Point3d(f(x), f(y0), 0))
-        objs.append(o)
-        geoms = _def_geoms(o)
-        breps = [g for g in geoms if isinstance(g, G.Brep)]
-        crvs = [g for g in geoms if isinstance(g, G.Curve)]
-        layers = place.layers_for(lib, n)
-        assert breps, n
-        assert len(crvs) == shapes.count(layers)["lines"], (n, len(crvs), shapes.count(layers))
-        for b in breps:
-            assert all(fc.IsPlanar(doc.ModelAbsoluteTolerance) for fc in b.Faces), n
-        bb = o.Geometry.GetBoundingBox(True)
-        assert abs(bb.Min.Z) < s * 1.0, (n, bb.Min.Z)
-        assert place.is_entourage(o) and meta.get(o, place.NAME) == n
-        assert "notone" in tags.flags(doc, o) and "nocut" in tags.flags(doc, o)
-        x += bx[2] / 12.0 + 3
-    # identical figures share a block
-    o2 = place.place(doc, lib, names[0], G.Point3d(f(x0), f(y0 - 15), 0))
-    assert o2.InstanceDefinition.Index == objs[0].InstanceDefinition.Index
-    # face the Perspective camera, from any start angle
-    v = [vv for vv in doc.Views if vv.ActiveViewport.Name == "Perspective"][0]
-    vp = v.ActiveViewport
-    vp.ChangeToPerspectiveProjection(True, 35)
-    vp.SetCameraLocations(G.Point3d(f(x0 + 20), f(y0), f(5)), G.Point3d(f(x0 - 30), f(y0 - 80), f(12)))
-    n = place.face_view(doc, [doc.Objects.FindId(o.Id) for o in objs], vp)
-    assert n == len(objs)
-    for o in objs:
-        o = doc.Objects.FindId(o.Id)
-        d = vp.CameraLocation - place.origin(o)
-        d.Z = 0
-        d.Unitize()
-        assert place.facing(o) * d > 0.999, (meta.get(o, place.NAME), place.facing(o), d)
-    # mirror + reseed keep the place, change the block
-    o = doc.Objects.FindId(objs[-1].Id)
-    p0 = place.origin(o)
-    new = place.rebuild(doc, lib, o, seed=99, mirror=True)
-    assert place.origin(new).DistanceTo(p0) < s * 0.01
-    assert meta.params(new)["mirror"] is True and meta.params(new)["seed"] == 99
-    assert new.InstanceXform.Determinant < 0, "mirrored figure should have a mirrored transform"
-    doc.Objects.Delete(o2, True)
-    say("  placed {} figures, FaceView / share / mirror / reseed OK".format(len(objs)))
-    return [doc.Objects.FindId(o.Id) for o in objs[:-1]] + [new]
-
-
-def entourage_hiding(doc, lib, x0=-500.0, y0=-160.0):
-    """A figure behind a wall is hidden; one in front hides the wall's lines."""
-    from mindcanvas.drawing import pipeline, styles
-    f = lambda v: _ft(doc, v)
-    w = _wall(doc, lib, WOOD, (x0 - 10, y0), (x0 + 10, y0), height=96, lod="schematic")
-    st = styles.get("1/4", lib)
-    view = _front(doc, G.Point3d(f(x0), f(y0), f(4)))
-    _clear_clips(doc)
-    box = G.BoundingBox(G.Point3d(f(x0 - 12), f(y0 - 30), f(-1)), G.Point3d(f(x0 + 12), f(y0 + 30), f(10)))
-
-    def count():
-        view.ActiveViewport.ZoomBoundingBox(box)
-        doc.Views.Redraw()
-        dwg = pipeline.make(doc, view, st, False, False, window=[box.Min, box.Max])
-        return Counter(c for _, c, _ in dwg.lines)
-
-    base = count()
-    # the Front view looks along +y: y > the wall is behind it
-    behind = place.place(doc, lib, "Person - Standing, Suit", G.Point3d(f(x0), f(y0 + 5), 0))
-    c_behind = count()
-    assert c_behind["entourage"] == 0, c_behind
-    doc.Objects.Delete(behind, True)
-    front = place.place(doc, lib, "Person - Standing, Suit", G.Point3d(f(x0), f(y0 - 5), 0))
-    place.face_view(doc, [front], view.ActiveViewport)
-    c_front = count()
-    assert c_front["entourage"] >= 10, c_front
-    say("  hiding: behind the wall {} entourage lines, in front {} (wall lines {} -> {})".format(
-        c_behind["entourage"], c_front["entourage"], base["silhouette"] + base["edge"],
-        c_front["silhouette"] + c_front["edge"]))
-    doc.Objects.Delete(front, True)
-    engine.delete_parts(doc, w.driver_id)
-    doc.Objects.Delete(w.driver_id, True)
-
-
 # -- capture --------------------------------------------------------------------------------------
-def capture_figure(doc, lib):
-    s = units.inch_scale(doc)
-    front = G.Plane(G.Point3d(0, 0, 0), G.Vector3d.XAxis, G.Vector3d.ZAxis)
-    P = lambda x, z: G.Point3d(x * s + 1000 * s, 0, z * s)
-    outline = G.PolylineCurve([P(-6, 0), P(6, 0), P(4, 30), P(-4, 30), P(-6, 0)])
-    head = G.ArcCurve(G.Circle(G.Plane(P(0, 36), G.Vector3d.XAxis, G.Vector3d.ZAxis), 5 * s))
-    line = G.LineCurve(P(-3, 15), P(3, 15))
-    d = capture.entourage_definition(doc, [outline, head, line], front, P(0, 0))
-    assert len(d["loops"]) == 2 and len(d["lines"]) == 1, d
-    assert abs(min(p[1] for p in d["loops"][0] + d["loops"][1])) < 1e-6
-    assert abs(max(p[1] for lp in d["loops"] for p in lp) - 41) < 0.05
-    lib.save_entry("entourage", "Test - Captured Figure", d, TEST_FILE)
-    assert "Test - Captured Figure" in place.names(lib)
-    o = place.place(doc, lib, "Test - Captured Figure", G.Point3d(-150 * 12 * s, -200 * 12 * s, 0))
-    geoms = _def_geoms(o)
-    assert sum(1 for g in geoms if isinstance(g, G.Brep)) >= 1 and sum(1 for g in geoms if isinstance(g, G.Curve)) == 1
-    doc.Objects.Delete(o, True)
-    say("  captured figure: {} loops, {} line".format(len(d["loops"]), len(d["lines"])))
-
-
 def capture_profile(doc, lib):
     s = units.inch_scale(doc)
     P = lambda x, y: G.Point3d(x * s + 500 * s, y * s + 500 * s, 0)
@@ -487,16 +344,17 @@ def panel_eto(doc, lib, wall_id, figures):
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     # entourage tab
-    names = place.names(lib)
-    p.lb_ent.SelectedIndex = names.index("Person - Walking, Coat")
+    p.dd_ent_cat.SelectedIndex = p.dd_ent_cat.DataStore.index("People")
+    names = place.names(lib, "People")
+    p.lb_ent.SelectedIndex = names.index("Woman - Walking")
     p.tb_ent_h.Text = "5'-2\""
     st = p._ent_settings()
-    assert st["name"] == "Person - Walking, Coat" and abs(st["height"] - 62) < 1e-6
+    assert st["name"] == "Woman - Walking" and abs(st["height"] - 62) < 1e-6, st
     v = _view(doc, "Perspective")
     assert p.face_view() == len(place.all_figures(doc))
     # library tab, build buttons -> command scripts
     p.reload_library()
-    assert "figures" in p.lb_lib.Text
+    assert "entourage models" in p.lb_lib.Text
     for label, cmd in panel.BUILD:
         assert os.path.exists(os.path.join(ROOT, "commands", cmd + ".py")), cmd
     p.show()
@@ -505,11 +363,11 @@ def panel_eto(doc, lib, wall_id, figures):
 
 
 def commands_import():
-    for name in ("entourage", "trim", "profilecapture", "assemblyeditor", "panel"):
+    for name in ("entourage", "entouragelibrary", "trim", "profilecapture", "assemblyeditor", "panel"):
         mod = importlib.import_module("mindcanvas.cmd." + name)
         assert hasattr(mod, "run"), name
         assert os.path.exists(os.path.join(ROOT, "commands", "MC{}.py".format(
-            {"entourage": "Entourage", "trim": "Trim", "profilecapture": "ProfileCapture",
+            {"entourage": "Entourage", "entouragelibrary": "EntourageLibrary", "trim": "Trim", "profilecapture": "ProfileCapture",
              "assemblyeditor": "AssemblyEditor", "panel": "Panel"}[name])))
 
 
@@ -540,14 +398,14 @@ def section_perspective(doc, lib):
     tags.set_flags(doc, doc.Objects.FindId(gid), add=["ground"])
     figs = []
     # cut across the ridge at x0 + 15 (keeps x > the cut), looking +x from the street
-    for n, x, y in (("Person - Standing, Suit", 19, 6), ("Person - Standing, Dress", 21.5, 9),
-                    ("Person - Walking, Coat", 23, 13.5), ("Person - Child", 20.5, 16),
-                    ("Person - Walking, Suit", 19, -7), ("Person - Standing, Coat", 24, 27),
-                    ("Shrub - 3 ft", 22, -3), ("Shrub - 2 ft Hedge", 30, 24),
-                    ("Tree - Canopy, 28 ft", 34, -14), ("Tree - Bare, 30 ft", 40, 32),
-                    ("Tree - Conifer, 24 ft", 60, 10)):
+    for n, x, y in (("Man - Standing", 19, 6), ("Woman - Standing", 21.5, 9),
+                    ("Woman - Walking", 23, 13.5), ("Man - Sitting", 20.5, 16),
+                    ("Man - Walking", 19, -7), ("Woman - Standing, Hands on Hips", 24, 27),
+                    ("Shrub - Round 1", 22, -3), ("Shrub - Round 2", 30, 24),
+                    ("Tree - Deciduous 1 (30 ft)", 34, -14), ("Tree - Bare Branching 2 (30 ft)", 40, 32),
+                    ("Tree - Pine 4 (34 ft)", 60, 10)):
         outside = not (0 < x < W and 0 < y < Dp)
-        figs.append(place.place(doc, lib, n, G.Point3d(f(x0 + x), f(y0 + y), f(-0.5) if outside else 0), seed=7))
+        figs.append(place.place(doc, lib, n, G.Point3d(f(x0 + x), f(y0 + y), f(-0.5) if outside else 0)))
     st = styles.get("1/4", lib)
     view = _view(doc, "Perspective")
     vp = view.ActiveViewport
@@ -573,34 +431,6 @@ def section_perspective(doc, lib):
     assert dwg.stats["regions"] >= 6 and dwg.stats["dots"] > 200, dwg.stats
     _clear_clips(doc)
     return dwg
-
-
-def entourage_sheet(doc, lib, figures):
-    """Front elevation of every library figure at 1/4"."""
-    from mindcanvas.drawing import pipeline, styles
-    s = units.inch_scale(doc)
-    st = styles.get("1/4", lib)
-    first = doc.Objects.FindId(figures[0].Id)
-    view = _front(doc, place.origin(first))
-    _clear_clips(doc)
-    place.face_view(doc, [doc.Objects.FindId(o.Id) for o in figures if doc.Objects.FindId(o.Id)], view.ActiveViewport)
-    bb = G.BoundingBox.Empty
-    for o in figures:
-        o = doc.Objects.FindId(o.Id)
-        if o is not None:
-            bb.Union(o.Geometry.GetBoundingBox(True))
-    lo = G.Point3d(bb.Min.X - 24 * s, bb.Min.Y - 24 * s, -12 * s)
-    hi = G.Point3d(bb.Max.X + 24 * s, bb.Max.Y + 24 * s, bb.Max.Z + 12 * s)
-    gid = doc.Objects.AddBrep(G.Box(G.Plane.WorldXY, G.Interval(lo.X, hi.X), G.Interval(bb.Min.Y - 12 * s, bb.Max.Y + 120 * s),
-                                    G.Interval(-6 * s, 0)).ToBrep())
-    view.ActiveViewport.ZoomBoundingBox(G.BoundingBox(lo, hi))
-    doc.Views.Redraw()
-    dwg = pipeline.make(doc, view, st, False, False, window=[lo, hi])
-    pipeline.write(dwg, os.path.join(OUT, "g_entourage_sheet_quarter"))
-    cls = Counter(c for _, c, _ in dwg.lines)
-    say("  drawing g_entourage_sheet_quarter: {}".format(dict(cls)))
-    assert cls["entourage"] > 500, cls
-    doc.Objects.Delete(gid, True)
 
 
 def trim_sections(doc, lib, wall_id):
@@ -664,11 +494,9 @@ def run(doc, clear=True, drawing_on=True, captures=True, log=None):
     t0 = time.time()
     try:
         say("-- entourage")
-        names = entourage_shapes(lib)
-        figures = entourage_place(doc, lib, names)
-        entourage_hiding(doc, lib)
+        figures = [place.place(doc, lib, n, G.Point3d(_ft(doc, -200 + 4 * i), _ft(doc, -600), 0))
+                   for i, n in enumerate(("Man - Standing", "Woman - Walking", "Tree - Birch 1 (36 ft)"))]
         say("-- capture")
-        capture_figure(doc, lib)
         captured = capture_profile(doc, lib)
         say("-- trims")
         trim_id = trim_walls(doc, lib, captured)
@@ -697,7 +525,6 @@ def run(doc, clear=True, drawing_on=True, captures=True, log=None):
         if drawing_on:
             say("-- drawings")
             trim_sections(doc, lib, trim_id)
-            entourage_sheet(doc, lib, figures)
             section_perspective(doc, lib)
     finally:
         _cleanup_library(lib, backup)

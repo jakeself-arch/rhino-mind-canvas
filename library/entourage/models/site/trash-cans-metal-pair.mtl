@@ -1,0 +1,5 @@
+newmtl metal_trash_can
+Kd 0.7059 0.7059 0.7059
+
+newmtl metal_trash_can_rust
+Kd 0.7059 0.7059 0.7059

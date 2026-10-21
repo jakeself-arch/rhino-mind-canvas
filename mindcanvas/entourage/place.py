@@ -1,24 +1,26 @@
-"""Entourage figures in the model: block definitions built from entourage/shapes.py layers.
+"""Entourage models in the model: one block definition per library model, built from its OBJ file.
 
-A figure is a block whose definition stands in the XZ plane (x across, z up, origin on the
-ground at the figure's centre). Each shapes.Layer becomes one flat card at y = depth x GAP
-(the loops of a layer are unioned into planar Breps) plus its lines (curves on the card). The
-figure faces -Y: a front arm (depth -1) sits nearer a viewer on the -Y side. In drawings the
-cards hide what is behind them and draw their outlines; the lines are drawn on top
-(drawing/scene.py collects the curves of entourage blocks; class "entourage").
+The block holds one mesh per material of the model, in model units, origin on the ground at the
+footprint centre, front facing -Y (catalog.py). Meshes are welded and unwelded again at 40 degree
+creases so drawings (MCDrawing) show the silhouette and the real creases, not every facet.
+Each mesh takes its colour from the model's MTL file (Color = Model) or from the instance's
+layer (Color = Gray, a second block "... (gray)").
 
-Instances carry user text mc.kind = entourage, mc.entourage = library name, mc.params (seed,
-height, mirror, ...), mc.role = entourage, mc.draw = notone,nocut.
+Instances carry user text mc.kind = entourage, mc.entourage = library name, mc.params (height,
+mirror, color), mc.role = entourage, mc.draw = nocut,notone; drawings class their lines
+"entourage" (style classes.entourage).
 """
 
 import hashlib
 import json
 import math
+import os
 
 import Rhino
+import System
 
 from .. import docutil, library, meta, units
-from . import shapes
+from . import catalog, objfile
 
 G = Rhino.Geometry
 D = Rhino.DocObjects
@@ -27,99 +29,127 @@ KIND = "entourage"
 NAME = "mc.entourage"
 LAYER = docutil.ROOT_LAYER + "::Entourage"
 BLOCK_PREFIX = "MC Entourage "
-GAP = 0.25               # inches between stacked cards
 COLOR = (70, 70, 70)
-OVERRIDES = ("height", "pose", "dress", "style", "spread", "bag", "arm", "facing", "width")
+CREASE = math.radians(40.0)
+_MESHES = {}     # (path, mtime, scale) -> [(material, rgb, Mesh)]
 
 
-def names(lib=None, generator=None):
-    lib = lib or library.get()
-    return sorted(n for n, d in lib.data["entourage"].items()
-                  if generator is None or d.get("generator", "custom") == generator)
+def names(lib=None, category=None):
+    return catalog.names(lib or library.get(), category)
 
 
-def definition(lib, name):
-    d = lib.data["entourage"].get(name)
-    if d is None:
-        raise library.LibraryError("Entourage '{}' not found in library/entourage".format(name))
-    return d
-
-
-def layers_for(lib, name, seed=None, **ov):
-    return shapes.build(definition(lib, name), seed, **dict((k, v) for k, v in ov.items() if k in OVERRIDES))
-
-
-def _tag(name, layers):
-    raw = json.dumps([(ly.depth, ly.loops, ly.lines) for ly in layers], sort_keys=True)
-    return "{}{} #{}".format(BLOCK_PREFIX, name, hashlib.md5(raw.encode("utf-8")).hexdigest()[:8])
-
-
-def geometry(doc, layers):
-    """[(GeometryBase)] of a figure in model units: card Breps + line curves."""
+# -- geometry -------------------------------------------------------------------------------
+def meshes(doc, lib, name):
+    """[(material, (r, g, b) or None, Mesh)] of a model in model units (cached per file)."""
+    path = catalog.model_path(lib, name)
     s = units.inch_scale(doc)
-    tol = doc.ModelAbsoluteTolerance
+    key = (path, os.path.getmtime(path), s)
+    out = _MESHES.get(key)
+    if out is not None:
+        return out
+    m = objfile.read(path)
     out = []
-    for ly in layers:
-        y = ly.depth * GAP * s
-        P = lambda q: G.Point3d(q[0] * s, y, q[1] * s)
-        crvs = []
-        for lp in ly.loops:
-            pts = [P(q) for q in lp]
-            pts.append(pts[0])
-            c = G.PolylineCurve(pts)
-            if c.IsClosed and c.GetLength() > tol * 10:
-                crvs.append(c)
-        if len(crvs) > 1:
-            u = G.Curve.CreateBooleanUnion(crvs, tol)
-            if u:
-                crvs = list(u)
-        breps = G.Brep.CreatePlanarBreps(crvs, tol) or []
-        if not breps and crvs:
-            breps = [b for c in crvs for b in (G.Brep.CreatePlanarBreps(c, tol) or [])]
-        out.extend(breps)
-        for ln in ly.lines:
-            c = G.PolylineCurve([P(q) for q in ln])
-            if c.GetLength() > tol:
-                out.append(c)
+    for g in m.groups:
+        mesh = G.Mesh()
+        index = {}
+        for f in g.faces:
+            ids = []
+            for i in f:
+                j = index.get(i)
+                if j is None:
+                    v = m.vertices[i]
+                    j = index[i] = mesh.Vertices.Add(v[0] * s, v[1] * s, v[2] * s)
+                ids.append(j)
+            if len(ids) == 4:
+                mesh.Faces.AddFace(ids[0], ids[1], ids[2], ids[3])
+            else:
+                for k in range(1, len(ids) - 1):
+                    mesh.Faces.AddFace(ids[0], ids[k], ids[k + 1])
+        if mesh.Faces.Count == 0:
+            continue
+        mesh.Vertices.CombineIdentical(True, True)
+        mesh.Normals.ComputeNormals()
+        mesh.Unweld(CREASE, True)
+        mesh.Compact()
+        out.append((g.material, m.colors.get(g.material), mesh))
+    _MESHES[key] = out
     return out
 
 
 def ensure_layer(doc):
-    idx = docutil.ensure_layer(doc, LAYER, COLOR)
-    return idx
+    return docutil.ensure_layer(doc, LAYER, COLOR)
 
 
-def block(doc, lib, name, seed=None, **ov):
-    """Block definition index for a figure (shared by every instance with the same shape)."""
-    layers = layers_for(lib, name, seed, **ov)
-    bname = _tag(name, layers)
+def block_name(lib, name, gray=False):
+    path = catalog.model_path(lib, name)
+    stamp = "{}|{}".format(os.path.getsize(path), int(os.path.getmtime(path)))
+    tag = hashlib.md5(stamp.encode("utf-8")).hexdigest()[:6]
+    return "{}{}{} #{}".format(BLOCK_PREFIX, name, " (gray)" if gray else "", tag)
+
+
+def block(doc, lib, name, gray=False):
+    """Block definition index of a model (shared by all its instances)."""
+    bname = block_name(lib, name, gray)
     idef = doc.InstanceDefinitions.Find(bname)
     if idef is not None and not idef.IsDeleted:
         return idef.Index
-    geoms = geometry(doc, layers)
-    if not geoms:
-        raise ValueError("Entourage '{}' made no geometry.".format(name))
-    return docutil.ensure_block(doc, bname, geoms, ensure_layer(doc), "Rhino Mind Canvas entourage")
+    parts = meshes(doc, lib, name)
+    if not parts:
+        raise ValueError("Entourage '{}' has no faces.".format(name))
+    layer = ensure_layer(doc)
+    geoms, attrs = [], []
+    for mat, rgb, mesh in parts:
+        a = D.ObjectAttributes()
+        a.LayerIndex = layer
+        a.Name = mat
+        if rgb and not gray:
+            a.ColorSource = D.ObjectColorSource.ColorFromObject
+            a.ObjectColor = System.Drawing.Color.FromArgb(rgb[0], rgb[1], rgb[2])
+        else:
+            a.ColorSource = D.ObjectColorSource.ColorFromParent
+        a.MaterialSource = D.ObjectMaterialSource.MaterialFromLayer
+        a.PlotWeightSource = D.ObjectPlotWeightSource.PlotWeightFromParent
+        a.PlotColorSource = D.ObjectPlotColorSource.PlotColorFromParent
+        a.SectionAttributesSource = D.ObjectSectionAttributesSource.FromParent
+        geoms.append(mesh.DuplicateMesh())
+        attrs.append(a)
+    return doc.InstanceDefinitions.Add(bname, "Rhino Mind Canvas entourage ({})".format(name),
+                                       G.Point3d.Origin, geoms, attrs)
 
 
-def xform(point, angle=0.0, mirror=False):
+# -- placement ------------------------------------------------------------------------------
+def size_factor(lib, name, height=None):
+    if not height:
+        return 1.0
+    h = catalog.height(lib, name)
+    return float(height) / h if h > 0 else 1.0
+
+
+def xform(point, angle=0.0, mirror=False, k=1.0):
+    """Model -> world: scale k, mirror left / right (x -> -x), turn by `angle` about Z, move to point."""
     xf = G.Transform.Translation(G.Vector3d(point)) * G.Transform.Rotation(angle, G.Vector3d.ZAxis, G.Point3d.Origin)
+    if k != 1.0:
+        xf = xf * G.Transform.Scale(G.Point3d.Origin, k)
     if mirror:
         xf = xf * G.Transform.Scale(G.Plane.WorldXY, -1, 1, 1)
     return xf
 
 
-def place(doc, lib, name, point, angle=0.0, mirror=False, seed=None, **ov):
-    """Insert a figure at `point` (on the ground), facing (sin a, -cos a). Returns the object."""
-    idx = block(doc, lib, name, seed, **ov)
-    prm = dict((k, v) for k, v in ov.items() if k in OVERRIDES and v is not None)
-    prm.update({"seed": seed, "mirror": bool(mirror)})
+def place(doc, lib, name, point, angle=0.0, mirror=False, height=None, gray=False):
+    """Insert a model at `point` (its base; the top for ceiling models), its front facing
+    (sin a, -cos a). height: inches (None = the library size). Returns the object."""
+    idx = block(doc, lib, name, gray)
+    k = size_factor(lib, name, height)
+    prm = {"mirror": bool(mirror), "color": "gray" if gray else "model"}
+    if height:
+        prm["height"] = float(height)
     attrs = D.ObjectAttributes()
     attrs.LayerIndex = ensure_layer(doc)
-    for k, v in ((meta.KIND, KIND), (NAME, name), (meta.PARAMS, json.dumps(prm, sort_keys=True)),
-                 (meta.ROLE, KIND), (meta.MATERIAL, "Entourage"), ("mc.draw", "nocut,notone")):
-        attrs.SetUserString(k, v)
-    oid = doc.Objects.AddInstanceObject(idx, xform(point, angle, mirror), attrs)
+    attrs.Name = name
+    for key, v in ((meta.KIND, KIND), (NAME, name), (meta.PARAMS, json.dumps(prm, sort_keys=True)),
+                   (meta.ROLE, KIND), (meta.MATERIAL, "Entourage"), ("mc.draw", "nocut,notone")):
+        attrs.SetUserString(key, v)
+    oid = doc.Objects.AddInstanceObject(idx, xform(point, angle, mirror, k), attrs)
     return doc.Objects.FindId(oid)
 
 
@@ -138,12 +168,17 @@ def origin(obj):
 
 
 def facing(obj):
-    """Horizontal unit vector the figure faces (its block -Y axis)."""
+    """Horizontal unit vector the model's front faces (its block -Y axis)."""
     v = -G.Vector3d.YAxis
     v.Transform(obj.InstanceXform)
     v.Z = 0
     v.Unitize()
     return v
+
+
+def angle_of(obj):
+    f = facing(obj)
+    return math.atan2(f.X, -f.Y)
 
 
 def face_angle(obj, vp):
@@ -159,31 +194,51 @@ def face_angle(obj, vp):
     return math.atan2(d.X, -d.Y)
 
 
+def aim_angle(v, heading=False):
+    """Turn that points a model's front (-Y), or with `heading` its nose (+X), along v."""
+    if G.Vector3d(v.X, v.Y, 0).Length < 1e-9:
+        return 0.0
+    return math.atan2(v.Y, v.X) if heading else math.atan2(v.X, -v.Y)
+
+
+def turn(doc, obj, angle):
+    """Turn a model about its base point so its front faces angle `angle`."""
+    k = size_factor(library.get(), meta.get(obj, NAME), meta.params(obj).get("height"))
+    new = xform(origin(obj), angle, meta.params(obj).get("mirror", False), k)
+    ok, inv = obj.InstanceXform.TryGetInverse()
+    if ok:
+        doc.Objects.Transform(obj.Id, new * inv, True)
+    return ok
+
+
 def face_view(doc, objs, vp):
-    """Turn figures about their base point to face the camera of `vp`. Returns the count."""
+    """Turn models about their base point to face the camera of `vp`. Returns the count."""
     n = 0
     for obj in objs:
         a = face_angle(obj, vp)
-        if a is None:
-            continue
-        prm = meta.params(obj)
-        new = xform(origin(obj), a, prm.get("mirror", False))
-        ok, inv = obj.InstanceXform.TryGetInverse()
-        if ok:
-            doc.Objects.Transform(obj.Id, new * inv, True)
+        if a is not None and turn(doc, obj, a):
             n += 1
     return n
 
 
 def rebuild(doc, lib, obj, **changes):
-    """Replace a figure with the same placement and new params (seed, height, mirror, ...)."""
+    """Replace a model with the same placement and new settings (name, height, mirror, gray)."""
     prm = meta.params(obj)
-    prm.update(dict((k, v) for k, v in changes.items()))
     name = changes.get("name") or meta.get(obj, NAME)
-    o = origin(obj)
-    f = facing(obj)
-    angle = math.atan2(f.X, -f.Y)
-    ov = dict((k, prm.get(k)) for k in OVERRIDES if prm.get(k) is not None)
-    new = place(doc, lib, name, o, angle, prm.get("mirror", False), prm.get("seed"), **ov)
+    height = changes["height"] if "height" in changes else prm.get("height")
+    mirror = changes["mirror"] if "mirror" in changes else prm.get("mirror", False)
+    gray = changes["gray"] if "gray" in changes else prm.get("color") == "gray"
+    o, a = origin(obj), angle_of(obj)
+    attrs = obj.Attributes
+    new = place(doc, lib, name, o, a, mirror, height, gray)
+    if new is not None:
+        na = new.Attributes.Duplicate()
+        na.LayerIndex = attrs.LayerIndex
+        doc.Objects.ModifyAttributes(new, na, True)
     doc.Objects.Delete(obj, True)
-    return new
+    return doc.Objects.FindId(new.Id) if new is not None else None
+
+
+def preview(doc, lib, name):
+    """Meshes for the placement ghost (model units, model coordinates)."""
+    return [msh for _, _, msh in meshes(doc, lib, name)]

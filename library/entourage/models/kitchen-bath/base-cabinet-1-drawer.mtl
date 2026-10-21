@@ -1,0 +1,8 @@
+newmtl Kitchen
+Kd 0.3529 0.4 0.3725
+
+newmtl White
+Kd 0.6275 0.6235 0.6157
+
+newmtl KitchenTop
+Kd 0.502 0.498 0.4941

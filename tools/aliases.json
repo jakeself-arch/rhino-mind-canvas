@@ -15,5 +15,7 @@
   "PA": "MCPalette",
   "AL": "MCAssemblyLayers",
   "DM": "MCDress",
-  "VH": "MCHandles"
+  "VH": "MCHandles",
+  "EN": "MCEntourage",
+  "EL": "MCEntourageLibrary"
 }

@@ -1,0 +1,8 @@
+newmtl White
+Kd 0.6275 0.6235 0.6157
+
+newmtl Black
+Kd 0.1961 0.1961 0.1961
+
+newmtl Grey
+Kd 0.4902 0.4863 0.4824

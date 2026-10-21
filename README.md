@@ -112,7 +112,8 @@ section drawings.
 | `MCSectionCut` | Click a wall, curtain wall, floor or roof: clipping plane perpendicular to it + a saved section view (floors are cut along the joists, roofs along the slope of the face you click). `Plan=Yes`: a horizontal cut at the picked height (or `CutHeightInches` above the base) and a top view, for plan details |
 | `MCDisplaySetup` | Apply a drawing scale's section styles and the *MC Section* display mode to the view |
 | `MCDrawing` | Finished 2D drawing of the current view (SVG with true line weights + PNG, or baked curves): cut poché, material hatches, tone hatching, stipple. `Window` crops it |
-| `MCEntourage` | Place line-drawn people, trees and shrubs (click points; each faces the view). Options: Type, HeightInches, Random, Mirror, FaceView (turn figures to the current view), Reseed, Capture (your own figure from curves) |
+| `MCEntourage` (`EN`) | Place **3D entourage** from the model library: people, trees, plants, vehicles, furniture, kitchen & bath, lighting, site (a ghost follows the cursor; click points). Options: Category, Model, Library, Height, RandomModel, RandomTurn, Turn, Aim, Mirror, Color, FaceView, Swap, Import (your own OBJ) |
+| `MCEntourageLibrary` (`EL`) | The **entourage library window**: a picture of every model by category / group, with search; click = place next, double-click = place now; Swap selected, Face view, Add OBJ... |
 | `MCDrawingTag` | Mark objects as Ground (stippled), NoTone, Exclude or NoCut for drawings |
 
 Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
@@ -125,8 +126,9 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
     offset or detail level and *Apply*; *Edit assembly...* opens the editor on the first one.
   - **Drawing**: scale, tone, stipple, SetLOD and folder; *Draw the active view* writes the SVG +
     PNG at once (same as MCDrawing); section cut, display setup, drawing tags.
-  - **Entourage**: pick a figure, an optional height, Random / Mirror, then *Place...*; *Face the
-    view* turns the selected figures (or all) toward the active view's camera.
+  - **Entourage**: pick a category and a model, an optional height, Random model / Mirror, then
+    *Place...*; *Pictures...* opens the library window; *Face the view* turns the selected models
+    (or all) toward the active view's camera; *Add OBJ...* adds your own model.
   - **Library**: reload, open the folder, assembly editor, capture a profile.
   The buttons run the MC commands, so run `tools/install.py` once after updating.
 - **`MCAssemblyEditor`** (or *Edit assembly...*): choose a kind and an assembly; the layers are
@@ -137,21 +139,46 @@ Drawing guide: [docs/DRAWING.md](docs/DRAWING.md).
   are never overwritten); *Apply to selected* gives the assemblies selected in the model the
   saved assembly.
 
-## Entourage (Phase 8)
-- `MCEntourage` places **line-drawn figures** in the spirit of 1960s-70s section perspectives:
-  people (standing in front view, walking in profile; suit, coat or dress; with a bag; a child),
-  trees (bare winter branching, scalloped canopy with foliage strokes, conifer) and shrubs.
-  They are flat cards: each faces the view you place it in; after moving the camera, use
-  `FaceView` (or *Face the view* in the panel). `Random=Yes` gives every tree / shrub its own
-  branching; `Reseed` changes selected ones.
-- In `MCDrawing` figures draw as fine outlines (class `entourage`), hide what is behind them, are
-  hidden by walls in front of them, and get no tone or poche. See
-  `docs/drawings/g_section_perspective_quarter.png` and `g_entourage_sheet_quarter.png`.
-- **Your own figures**: draw closed curves (outlines) and open curves (detail lines) in a Front
-  view, run `MCEntourage` -> `Capture`, pick the base point (where it stands) and a name. It is
-  saved to `library/entourage/zz_user_entourage.json`.
-- Figures are data: `library/entourage/*.json` (`generator` person / tree / shrub / custom and
-  its options, see the comments at the top of `people.json` and `plants.json`).
+## Entourage: the 3D model library
+- **276 free 3D models** ship in `library/entourage/` as OBJ files (+ MTL colours + a PNG picture
+  each), all **CC0 / public domain** (free for any use, no credit needed; credited anyway in
+  `library/entourage/CREDITS.md`):
+
+  | Category | Models | From |
+  |---|---|---|
+  | People | 20 posed men and women: standing, hands on hips, waving, looking up, walking, running, picking up, sitting | Quaternius |
+  | Trees | 55: deciduous, birch, pine, willow, palm, bare winter trees, abstract "model" trees | Quaternius, Kenney |
+  | Plants | 34: shrubs, leafy plants, cacti, houseplants, planters, rocks, stump, log | Quaternius, Poly Haven, Kenney |
+  | Vehicles | 20: sedan, hatchback, crossover, SUV, coupe, sports, taxi, police, van, pickup, delivery / garbage / fire trucks, ambulances, shuttle and school buses, tram, bicycles | Quaternius, Kenney |
+  | Furniture | 78: chairs, armchairs, sofas, stools, tables, desks, beds, dressers, shelving, rugs, office | Poly Haven (realistic), Quaternius, Kenney |
+  | Kitchen & Bath | 30: base and wall cabinets, range, refrigerators, microwave, sink, toilet, tub, shower, washer / dryer | Quaternius, Kenney, Poly Haven |
+  | Lighting | 23: floor, table and desk lamps, pendants, chandelier, ceiling fan, street lights, wall lantern | Quaternius, Poly Haven |
+  | Site | 16: picnic table, outdoor set, street seating, bins, AC units, fire pit, traffic lights, signs, cone, fences | Poly Haven, Quaternius, Kenney |
+
+- Every model is at **real size in inches**, Z up, origin on the ground at the middle of its
+  footprint, front facing -Y (vehicles run along X, nose toward +X); pendants and ceiling fans hang
+  from their top (click the ceiling).
+- **`MCEntourage`** (`EN`): a ghost of the model follows the cursor; click points to place, Enter
+  to finish. People turn to face the view. `Aim=Yes`: a second click sets where the front (a
+  vehicle: its nose) points. `RandomModel=Yes`: each click places another model of the same group
+  (a row of different trees or people); `RandomTurn` turns each one at random. `Height` resizes
+  (0 = the library size), `Mirror` flips left / right, `Color=Gray` uses the layer colour instead
+  of the model colours. `Swap` turns the selected models into the current one in place; `FaceView`
+  turns models to the current view.
+- **`MCEntourageLibrary`** (`EL`, or *Pictures...* in the panel): the picture window. Pick a
+  category and group or type in *Find*; click a picture (blue frame = next), double-click to place
+  it. Models of the selection get an orange frame; *Swap selected* replaces them.
+- In `MCDrawing` the models draw as fine lines (class `entourage`): silhouettes and real creases,
+  not every facet; they hide what is behind them, are hidden by walls in front of them, and get
+  no tone or poche. See `docs/drawings/g_entourage_sheet_quarter.png` and
+  `g_section_perspective_quarter.png`.
+- **Your own models**: `MCEntourage` -> `Import` (or *Add OBJ...*): pick an OBJ file (any
+  exporter: SketchUp, Blender, 3ds Max, downloads), give it a name, its units (inches, feet, mm,
+  cm, m), up axis (most exporters: Y), an optional real height and a turn so its front faces -Y.
+  It is copied, normalised and pictured into `library/entourage/models/my-models/`, listed under
+  **My Models** (`library/entourage/zz_user_entourage.json`).
+- The library is rebuilt from its sources by `tools/entourage/build.py` (see
+  `docs/DEVELOPING.md`); `tools/entourage/recipe.json` lists every source pack and model.
 
 ## Trims and captured profiles (Phase 8)
 - `MCTrim` sweeps a profile along a wall face: `Trim - Base 3-1/2`, `Base 5-1/4`,
@@ -449,8 +476,10 @@ files load alphabetically and later entries with the same name win. Run `MCLibra
   systems (member family, spacing, rim plies, blocking, strap, ridge family, typical spans,
   member names). Members are profiles in `library/profiles/floors_roofs.json` (lumber, I-joists
   `"type": "i_joist"`, rim boards, metal C-joists + joist tracks, composite decks).
-- **Entourage** (`library/entourage/*.json`): `{"generator": "tree", "style": "canopy", "height":
-  "28'", "spread": 0.7, "seed": 2}`; generators and options in `mindcanvas/entourage/shapes.py`.
+- **Entourage** (`library/entourage/<category>.json`): `{"file": "models/trees/....obj",
+  "thumb": "thumbs/trees/....png", "category": "Trees", "group": "Conifer", "size": [w, d, h]}`
+  (inches; see `mindcanvas/entourage/catalog.py`). Add models with `MCEntourage` -> `Import`, or
+  to the shipped library through `tools/entourage/recipe.json`.
 - **Trim profile** (`library/profiles/*.json`, `"family": "trim"`): a `custom` outline with X = out of
   the wall face and Y = up from the trim height (see `library/profiles/trim.json`).
 - **Layer preset** (`library/layers/*.json`): a reusable layer ("Gypsum Board 5/8",

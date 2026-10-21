@@ -8,7 +8,8 @@ Tabs
                "Edit assembly" opens the assembly editor on the first one
     Drawing    scale, tone, stipple, SetLOD, output folder -> Draw the active view now; section
                cut, display setup, drawing tags
-    Entourage  pick a figure, height, Random / Mirror -> Place; Face view; Capture
+    Entourage  pick a 3D model (category, model), height, Random model / Mirror -> Place; the
+               picture window (MCEntourageLibrary); Face view; Add OBJ...
     Library    reload, assembly editor, capture a profile, open the folder
 
 Command buttons run the MC commands (Rhino.RhinoApp.RunScript) so they behave exactly as typed.
@@ -22,7 +23,7 @@ import Rhino
 import scriptcontext
 
 from .. import engine, library, meta, units
-from ..entourage import place
+from ..entourage import catalog, place
 from . import editor as editor_mod
 from . import widgets as w
 
@@ -121,21 +122,26 @@ class MindCanvasPanel(object):
                       None)
 
     def _entourage_tab(self):
-        st = scriptcontext.sticky.get("mindcanvas.entourage.settings", {})
-        names = place.names(self.lib)
-        self.lb_ent = w.listbox(names, 200)
-        if st.get("name") in names:
-            self.lb_ent.SelectedIndex = names.index(st["name"])
-        elif names:
-            self.lb_ent.SelectedIndex = 0
+        from ..cmd import entourage as ent
+        st = ent.settings()
+        cats = catalog.categories(self.lib)
+        cur = ent.current(self.lib, st)
+        cat = catalog.entry(self.lib, cur).get("category") if cur else (cats[0] if cats else None)
+        self.dd_ent_cat = w.dropdown(cats, cats.index(cat) if cat in cats else 0, self._ent_category, 160)
+        self.lb_ent = w.listbox([], 200)
+        self._ent_category(cur)
         self.tb_ent_h = w.textbox(units.format_inches(st.get("height", 0)) if st.get("height") else "", None, 110)
-        self.ck_rand = w.checkbox("Random variation", st.get("random", True))
+        self.ck_rand = w.checkbox("Random model (same group)", st.get("random_model", False))
         self.ck_mirror = w.checkbox("Mirror", st.get("mirror", False))
-        return w.rows(self.lb_ent, (w.label("Height (blank = library)"), self.tb_ent_h), self.ck_rand, self.ck_mirror,
-                      (w.button("Place...", self.place_entourage), w.button("Face the view", self.face_view)),
-                      (w.button("Capture from curves...", lambda: self.command("MCEntourage _Capture")),
-                       w.button("Reload list", self.reload_entourage)),
+        return w.rows((w.label("Category"), self.dd_ent_cat), self.lb_ent,
+                      (w.label("Height (blank = library)"), self.tb_ent_h), self.ck_rand, self.ck_mirror,
+                      (w.button("Place...", self.place_entourage), w.button("Pictures...", lambda: self.command("MCEntourageLibrary"))),
+                      (w.button("Face the view", self.face_view), w.button("Add OBJ...", lambda: self.command("MCEntourage _Import"))),
                       None)
+
+    def _ent_category(self, select=None):
+        names = catalog.names(self.lib, w.selected(self.dd_ent_cat))
+        w.set_items(self.lb_ent, names, select)
 
     def _library_tab(self):
         self.lb_lib = w.label("", wrap=True)
@@ -260,17 +266,22 @@ class MindCanvasPanel(object):
         return paths
 
     def _ent_settings(self):
-        names = place.names(self.lib)
+        from ..cmd import entourage as ent
+        names = catalog.names(self.lib, w.selected(self.dd_ent_cat))
         i = self.lb_ent.SelectedIndex
         name = names[i] if 0 <= i < len(names) else (names[0] if names else None)
         try:
             h = units.parse_length(self.tb_ent_h.Text) if self.tb_ent_h.Text.strip() else 0.0
         except ValueError:
             h = 0.0
-        return {"name": name, "height": h, "random": bool(self.ck_rand.Checked), "mirror": bool(self.ck_mirror.Checked)}
+        st = ent.settings()
+        st.update({"name": name, "category": w.selected(self.dd_ent_cat), "height": h,
+                   "random_model": bool(self.ck_rand.Checked), "mirror": bool(self.ck_mirror.Checked)})
+        return st
 
     def place_entourage(self):
-        scriptcontext.sticky["mindcanvas.entourage.settings"] = self._ent_settings()
+        from ..cmd import entourage as ent
+        ent.save_settings(self._ent_settings())
         return self.command("MCEntourage")
 
     def face_view(self):
@@ -278,12 +289,13 @@ class MindCanvasPanel(object):
         figs = figs or place.all_figures(self.doc)
         n = place.face_view(self.doc, figs, self.doc.Views.ActiveView.ActiveViewport)
         self.doc.Views.Redraw()
-        self.say("Turned {} figure(s) to face '{}'.".format(n, self.doc.Views.ActiveView.ActiveViewport.Name))
+        self.say("Turned {} model(s) to face '{}'.".format(n, self.doc.Views.ActiveView.ActiveViewport.Name))
         return n
 
     def reload_entourage(self):
         self.lib.refresh()
-        w.set_items(self.lb_ent, place.names(self.lib))
+        w.set_items(self.dd_ent_cat, catalog.categories(self.lib), w.selected(self.dd_ent_cat))
+        self._ent_category()
 
     def reload_library(self):
         self.lib = library.get(force_reload=True)
@@ -293,8 +305,8 @@ class MindCanvasPanel(object):
 
     def update_library_label(self):
         d = self.lib.data
-        self.lb_lib.Text = "{} assemblies, {} materials, {} profiles, {} figures{}".format(
-            len(d["assemblies"]), len(d["materials"]), len(d["profiles"]), len(d["entourage"]),
+        self.lb_lib.Text = "{} assemblies, {} materials, {} profiles, {} entourage models{}".format(
+            len(d["assemblies"]), len(d["materials"]), len(d["profiles"]), len(catalog.names(self.lib)),
             "\nwarning: " + self.lib.warnings[0] if self.lib.warnings else "")
 
     def open_folder(self):

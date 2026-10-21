@@ -1,0 +1,11 @@
+newmtl Bike
+Kd 0.8157 0.8157 0.8157
+
+newmtl Handle
+Kd 0.8157 0.8157 0.8157
+
+newmtl Wheel
+Kd 0.8157 0.8157 0.8157
+
+newmtl Material_003
+Kd 0.8157 0.8157 0.8157

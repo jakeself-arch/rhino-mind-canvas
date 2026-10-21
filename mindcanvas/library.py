@@ -9,7 +9,7 @@ Sections:
                 {"preset": "<name>", ...overrides}
     styles      name -> drawing style (phase 3)
     openings    name -> window / door type (phase 4, see mindcanvas/openings)
-    entourage   name -> line-drawn figure (phase 8, see mindcanvas/entourage)
+    entourage   name -> 3D entourage model (OBJ file + picture, see mindcanvas/entourage)
 
 Adding content never requires code: drop a new .json file into the right
 folder. Keys starting with "_" (e.g. "_comment") are ignored. Later files

@@ -1,0 +1,5 @@
+newmtl LightMetal
+Kd 0.4039 0.4039 0.4039
+
+newmtl White
+Kd 0.6275 0.6235 0.6157

@@ -1,0 +1,8 @@
+newmtl street_lamp_02
+Kd 0.7059 0.7059 0.7059
+
+newmtl street_lamp_02_glass
+Kd 0.7059 0.7059 0.7059
+
+newmtl street_lamp_02_bulb
+Kd 0.7059 0.7059 0.7059

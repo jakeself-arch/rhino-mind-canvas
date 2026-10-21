@@ -1,0 +1,1251 @@
+{
+ "_comment": "Entourage models (Furniture), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Armchair - Classic": {
+  "file": "models/furniture/armchair-classic.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   33.4,
+   30.1,
+   41.9
+  ],
+  "triangles": 5626,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/armchair-classic.png"
+ },
+ "Armchair - Modern": {
+  "file": "models/furniture/armchair-modern.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   32.3,
+   38.8,
+   40.3
+  ],
+  "triangles": 8916,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/armchair-modern.png"
+ },
+ "Lounge Chair - Mid-Century": {
+  "file": "models/furniture/lounge-chair-mid-century.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   39.7,
+   46.9,
+   46.0
+  ],
+  "triangles": 6148,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/lounge-chair-mid-century.png"
+ },
+ "Chair - Upholstered": {
+  "file": "models/furniture/chair-upholstered.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   26.5,
+   26.2,
+   41.7
+  ],
+  "triangles": 4213,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chair-upholstered.png"
+ },
+ "Chair - Dining": {
+  "file": "models/furniture/chair-dining.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   17.1,
+   22.7,
+   38.3
+  ],
+  "triangles": 22013,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chair-dining.png"
+ },
+ "Chair - Plastic": {
+  "file": "models/furniture/chair-plastic.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   25.3,
+   24.7,
+   34.6
+  ],
+  "triangles": 3356,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chair-plastic.png"
+ },
+ "Chair - School": {
+  "file": "models/furniture/chair-school.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   22.3,
+   26.6,
+   39.6
+  ],
+  "triangles": 5072,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chair-school.png"
+ },
+ "Chair - Spindle": {
+  "file": "models/furniture/chair-spindle.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   22.9,
+   23.8,
+   40.7
+  ],
+  "triangles": 11560,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chair-spindle.png"
+ },
+ "Chair - Painted Wood": {
+  "file": "models/furniture/chair-painted-wood.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   17.0,
+   21.3,
+   37.7
+  ],
+  "triangles": 724,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chair-painted-wood.png"
+ },
+ "Rocking Chair": {
+  "file": "models/furniture/rocking-chair.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   27.9,
+   32.8,
+   39.2
+  ],
+  "triangles": 11866,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/rocking-chair.png"
+ },
+ "Stool - Bar": {
+  "file": "models/furniture/stool-bar.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   19.0,
+   19.1,
+   29.5
+  ],
+  "triangles": 14373,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/stool-bar.png"
+ },
+ "Stool - Metal": {
+  "file": "models/furniture/stool-metal.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   17.6,
+   18.6,
+   18.0
+  ],
+  "triangles": 6532,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/stool-metal.png"
+ },
+ "Stool - Wood": {
+  "file": "models/furniture/stool-wood.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   16.7,
+   17.4,
+   17.2
+  ],
+  "triangles": 10946,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/stool-wood.png"
+ },
+ "Ottoman": {
+  "file": "models/furniture/ottoman.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   34.8,
+   24.5,
+   24.6
+  ],
+  "triangles": 4240,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/ottoman.png"
+ },
+ "Sofa - Classic": {
+  "file": "models/furniture/sofa-classic.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   61.9,
+   25.9,
+   31.4
+  ],
+  "triangles": 4101,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/sofa-classic.png"
+ },
+ "Sofa - Tufted": {
+  "file": "models/furniture/sofa-tufted.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   71.1,
+   32.2,
+   27.9
+  ],
+  "triangles": 2728,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/sofa-tufted.png"
+ },
+ "Sofa - Large": {
+  "file": "models/furniture/sofa-large.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   107.5,
+   36.4,
+   44.0
+  ],
+  "triangles": 8004,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/sofa-large.png"
+ },
+ "Bench - Painted Wood": {
+  "file": "models/furniture/bench-painted-wood.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   45.9,
+   19.5,
+   35.0
+  ],
+  "triangles": 630,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/bench-painted-wood.png"
+ },
+ "Coffee Table - Wood": {
+  "file": "models/furniture/coffee-table-wood.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   60.6,
+   38.3,
+   20.6
+  ],
+  "triangles": 10404,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/coffee-table-wood.png"
+ },
+ "Coffee Table - Round": {
+  "file": "models/furniture/coffee-table-round.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   51.2,
+   51.2,
+   19.3
+  ],
+  "triangles": 4044,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/coffee-table-round.png"
+ },
+ "Coffee Table - Modern": {
+  "file": "models/furniture/coffee-table-modern.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   23.6,
+   47.3,
+   15.4
+  ],
+  "triangles": 4504,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/coffee-table-modern.png"
+ },
+ "Dining Table": {
+  "file": "models/furniture/dining-table.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   88.8,
+   54.7,
+   34.5
+  ],
+  "triangles": 1048,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/dining-table.png"
+ },
+ "Table - Farmhouse": {
+  "file": "models/furniture/table-farmhouse.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   94.7,
+   44.8,
+   37.7
+  ],
+  "triangles": 600,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/table-farmhouse.png"
+ },
+ "Table - Simple Wood": {
+  "file": "models/furniture/table-simple-wood.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   44.7,
+   27.8,
+   31.5
+  ],
+  "triangles": 196,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/table-simple-wood.png"
+ },
+ "Table - Round Pedestal": {
+  "file": "models/furniture/table-round-pedestal.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   55.1,
+   55.1,
+   39.6
+  ],
+  "triangles": 8640,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/table-round-pedestal.png"
+ },
+ "Cafe Table - Round": {
+  "file": "models/furniture/cafe-table-round.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   31.3,
+   31.3,
+   29.4
+  ],
+  "triangles": 4254,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/cafe-table-round.png"
+ },
+ "Side Table": {
+  "file": "models/furniture/side-table.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   21.7,
+   17.7,
+   21.7
+  ],
+  "triangles": 2756,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/side-table.png"
+ },
+ "Desk - Metal Office": {
+  "file": "models/furniture/desk-metal-office.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   78.7,
+   37.3,
+   31.0
+  ],
+  "triangles": 6898,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/desk-metal-office.png"
+ },
+ "Desk - School": {
+  "file": "models/furniture/desk-school.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   28.0,
+   21.5,
+   34.7
+  ],
+  "triangles": 4162,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/desk-school.png"
+ },
+ "Bookshelf - Wood": {
+  "file": "models/furniture/bookshelf-wood.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   54.1,
+   22.9,
+   81.2
+  ],
+  "triangles": 10106,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/bookshelf-wood.png"
+ },
+ "Shelving - Steel": {
+  "file": "models/furniture/shelving-steel.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   43.2,
+   19.8,
+   84.3
+  ],
+  "triangles": 4348,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/shelving-steel.png"
+ },
+ "Shelving - Steel, Wide": {
+  "file": "models/furniture/shelving-steel-wide.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   92.6,
+   28.4,
+   91.0
+  ],
+  "triangles": 8396,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/shelving-steel-wide.png"
+ },
+ "Display Shelves": {
+  "file": "models/furniture/display-shelves.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   14.6,
+   42.4,
+   61.3
+  ],
+  "triangles": 3174,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/display-shelves.png"
+ },
+ "Cabinet - Drawers": {
+  "file": "models/furniture/cabinet-drawers.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   44.9,
+   19.2,
+   74.1
+  ],
+  "triangles": 26406,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/cabinet-drawers.png"
+ },
+ "Sideboard - Modern": {
+  "file": "models/furniture/sideboard-modern.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   96.1,
+   20.5,
+   26.8
+  ],
+  "triangles": 24976,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/sideboard-modern.png"
+ },
+ "Cabinet - Painted": {
+  "file": "models/furniture/cabinet-painted.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   47.0,
+   24.3,
+   46.5
+  ],
+  "triangles": 2227,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/cabinet-painted.png"
+ },
+ "Chest of Drawers": {
+  "file": "models/furniture/chest-of-drawers.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   67.5,
+   39.6,
+   42.9
+  ],
+  "triangles": 5184,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/chest-of-drawers.png"
+ },
+ "Nightstand - Classic": {
+  "file": "models/furniture/nightstand-classic.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   22.4,
+   16.7,
+   27.6
+  ],
+  "triangles": 2002,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/nightstand-classic.png"
+ },
+ "Daybed": {
+  "file": "models/furniture/daybed.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   77.7,
+   33.7,
+   44.4
+  ],
+  "triangles": 2715,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/furniture/daybed.png"
+ },
+ "Sofa - Three Seat": {
+  "file": "models/furniture/sofa-three-seat.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   83.2,
+   30.3,
+   32.0
+  ],
+  "triangles": 1460,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/sofa-three-seat.png"
+ },
+ "Sofa - Three Seat 2": {
+  "file": "models/furniture/sofa-three-seat-2.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   78.8,
+   30.2,
+   32.0
+  ],
+  "triangles": 1332,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/sofa-three-seat-2.png"
+ },
+ "Sofa - Two Seat": {
+  "file": "models/furniture/sofa-two-seat.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   78.5,
+   36.9,
+   32.0
+  ],
+  "triangles": 1012,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/sofa-two-seat.png"
+ },
+ "Sofa - Two Seat 2": {
+  "file": "models/furniture/sofa-two-seat-2.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   73.8,
+   32.7,
+   32.0
+  ],
+  "triangles": 924,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/sofa-two-seat-2.png"
+ },
+ "Armchair - Club": {
+  "file": "models/furniture/armchair-club.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   48.3,
+   36.9,
+   32.0
+  ],
+  "triangles": 852,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/armchair-club.png"
+ },
+ "Armchair - Lounge": {
+  "file": "models/furniture/armchair-lounge.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   53.3,
+   50.2,
+   32.0
+  ],
+  "triangles": 468,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/armchair-lounge.png"
+ },
+ "Sofa - Sectional": {
+  "file": "models/furniture/sofa-sectional.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   79.4,
+   61.2,
+   32.0
+  ],
+  "triangles": 1428,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/sofa-sectional.png"
+ },
+ "Chair - Wood 1": {
+  "file": "models/furniture/chair-wood-1.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   15.5,
+   16.8,
+   36.0
+  ],
+  "triangles": 216,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/chair-wood-1.png"
+ },
+ "Chair - Wood 2": {
+  "file": "models/furniture/chair-wood-2.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   17.1,
+   18.6,
+   38.0
+  ],
+  "triangles": 352,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/chair-wood-2.png"
+ },
+ "Chair - Wood 3": {
+  "file": "models/furniture/chair-wood-3.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   17.1,
+   18.8,
+   38.0
+  ],
+  "triangles": 428,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/chair-wood-3.png"
+ },
+ "Chair - Wood 4": {
+  "file": "models/furniture/chair-wood-4.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   15.5,
+   16.8,
+   36.0
+  ],
+  "triangles": 264,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/chair-wood-4.png"
+ },
+ "Stool - Counter": {
+  "file": "models/furniture/stool-counter.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   14.8,
+   15.5,
+   30.0
+  ],
+  "triangles": 500,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/stool-counter.png"
+ },
+ "Dining Table - Round": {
+  "file": "models/furniture/dining-table-round.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   99.4,
+   51.9,
+   30.0
+  ],
+  "triangles": 592,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/dining-table-round.png"
+ },
+ "Table - Round Small": {
+  "file": "models/furniture/table-round-small.obj",
+  "category": "Furniture",
+  "group": "Tables",
+  "size": [
+   50.8,
+   50.8,
+   30.0
+  ],
+  "triangles": 592,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/table-round-small.png"
+ },
+ "Nightstand 1": {
+  "file": "models/furniture/nightstand-1.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   27.7,
+   27.7,
+   24.0
+  ],
+  "triangles": 172,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/nightstand-1.png"
+ },
+ "Nightstand 2": {
+  "file": "models/furniture/nightstand-2.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   24.2,
+   24.2,
+   24.0
+  ],
+  "triangles": 184,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/nightstand-2.png"
+ },
+ "Dresser 1": {
+  "file": "models/furniture/dresser-1.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   66.1,
+   26.5,
+   32.0
+  ],
+  "triangles": 404,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/dresser-1.png"
+ },
+ "Dresser 2": {
+  "file": "models/furniture/dresser-2.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   99.0,
+   27.4,
+   32.0
+  ],
+  "triangles": 436,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/dresser-2.png"
+ },
+ "Media Console": {
+  "file": "models/furniture/media-console.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   63.2,
+   20.3,
+   24.0
+  ],
+  "triangles": 604,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/media-console.png"
+ },
+ "Bookshelf - Open": {
+  "file": "models/furniture/bookshelf-open.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   37.6,
+   12.3,
+   72.0
+  ],
+  "triangles": 120,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/bookshelf-open.png"
+ },
+ "Shelving - Large": {
+  "file": "models/furniture/shelving-large.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   64.0,
+   14.3,
+   84.0
+  ],
+  "triangles": 220,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/shelving-large.png"
+ },
+ "Fireplace": {
+  "file": "models/furniture/fireplace.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   60.9,
+   21.7,
+   48.0
+  ],
+  "triangles": 360,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/fireplace.png"
+ },
+ "Sofa - Sectional, Long": {
+  "file": "models/furniture/sofa-sectional-long.obj",
+  "category": "Furniture",
+  "group": "Seating",
+  "size": [
+   132.0,
+   56.3,
+   20.3
+  ],
+  "triangles": 1300,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/sofa-sectional-long.png"
+ },
+ "Bed - King": {
+  "file": "models/furniture/bed-king.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   80.0,
+   103.2,
+   31.7
+  ],
+  "triangles": 676,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/bed-king.png"
+ },
+ "Bed - Twin": {
+  "file": "models/furniture/bed-twin.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   42.0,
+   83.6,
+   28.7
+  ],
+  "triangles": 536,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/bed-twin.png"
+ },
+ "Bed - Bunk": {
+  "file": "models/furniture/bed-bunk.obj",
+  "category": "Furniture",
+  "group": "Beds",
+  "size": [
+   44.0,
+   81.1,
+   61.5
+  ],
+  "triangles": 960,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/bed-bunk.png"
+ },
+ "Rug - Rectangular": {
+  "file": "models/furniture/rug-rectangular.obj",
+  "category": "Furniture",
+  "group": "Rugs",
+  "size": [
+   96.0,
+   139.3,
+   1.7
+  ],
+  "triangles": 108,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/rug-rectangular.png"
+ },
+ "Rug - Large": {
+  "file": "models/furniture/rug-large.obj",
+  "category": "Furniture",
+  "group": "Rugs",
+  "size": [
+   120.0,
+   123.4,
+   1.4
+  ],
+  "triangles": 98,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/rug-large.png"
+ },
+ "Rug - Round": {
+  "file": "models/furniture/rug-round.obj",
+  "category": "Furniture",
+  "group": "Rugs",
+  "size": [
+   84.0,
+   85.3,
+   0.5
+  ],
+  "triangles": 128,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/furniture/rug-round.png"
+ },
+ "Desk": {
+  "file": "models/furniture/desk.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   57.3,
+   30.6,
+   30.0
+  ],
+  "triangles": 198,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/desk.png"
+ },
+ "Desk - Corner": {
+  "file": "models/furniture/desk-corner.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   76.1,
+   76.1,
+   30.0
+  ],
+  "triangles": 250,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/desk-corner.png"
+ },
+ "Chair - Office": {
+  "file": "models/furniture/chair-office.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   20.9,
+   19.7,
+   38.0
+  ],
+  "triangles": 588,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/chair-office.png"
+ },
+ "Computer Monitor": {
+  "file": "models/furniture/computer-monitor.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   24.0,
+   6.4,
+   18.0
+  ],
+  "triangles": 72,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/computer-monitor.png"
+ },
+ "Laptop": {
+  "file": "models/furniture/laptop.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   14.7,
+   13.4,
+   9.0
+  ],
+  "triangles": 68,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/laptop.png"
+ },
+ "Television": {
+  "file": "models/furniture/television.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   45.2,
+   8.5,
+   30.0
+  ],
+  "triangles": 72,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/television.png"
+ },
+ "TV Cabinet": {
+  "file": "models/furniture/tv-cabinet.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   51.6,
+   16.1,
+   20.0
+  ],
+  "triangles": 154,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/tv-cabinet.png"
+ },
+ "Speaker - Floor": {
+  "file": "models/furniture/speaker-floor.obj",
+  "category": "Furniture",
+  "group": "Office",
+  "size": [
+   8.8,
+   8.8,
+   38.0
+  ],
+  "triangles": 228,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/speaker-floor.png"
+ },
+ "Coat Rack": {
+  "file": "models/furniture/coat-rack.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   24.4,
+   24.4,
+   69.0
+  ],
+  "triangles": 190,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/coat-rack.png"
+ },
+ "Cardboard Box": {
+  "file": "models/furniture/cardboard-box.obj",
+  "category": "Furniture",
+  "group": "Storage",
+  "size": [
+   13.6,
+   13.6,
+   18.0
+  ],
+  "triangles": 60,
+  "source": "Furniture Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/furniture-kit",
+  "thumb": "thumbs/furniture/cardboard-box.png"
+ }
+}

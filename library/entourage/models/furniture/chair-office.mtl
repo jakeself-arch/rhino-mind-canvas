@@ -1,0 +1,5 @@
+newmtl metalMedium
+Kd 0.3686 0.4667 0.4667
+
+newmtl carpet
+Kd 0.9098 0.4824 0.302

@@ -1,0 +1,259 @@
+{
+ "_comment": "Entourage models (Site), built by tools/entourage/build.py from recipe.json. Units inches, Z up, origin on the ground at the footprint centre, front facing -Y.",
+ "Picnic Table": {
+  "file": "models/site/picnic-table.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   88.2,
+   119.0,
+   29.4
+  ],
+  "triangles": 10210,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/site/picnic-table.png"
+ },
+ "Outdoor Table Set": {
+  "file": "models/site/outdoor-table-set.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   29.2,
+   67.6,
+   33.8
+  ],
+  "triangles": 9828,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/site/outdoor-table-set.png"
+ },
+ "Street Seating - Modular": {
+  "file": "models/site/street-seating-modular.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   170.9,
+   30.3,
+   37.4
+  ],
+  "triangles": 25156,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/site/street-seating-modular.png"
+ },
+ "Trash Cans - Metal (pair)": {
+  "file": "models/site/trash-cans-metal-pair.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   70.0,
+   21.9,
+   35.7
+  ],
+  "triangles": 13960,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/site/trash-cans-metal-pair.png"
+ },
+ "AC Condensers (pair)": {
+  "file": "models/site/ac-condensers-pair.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   70.9,
+   14.7,
+   36.5
+  ],
+  "triangles": 18986,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/site/ac-condensers-pair.png"
+ },
+ "Fire Pit": {
+  "file": "models/site/fire-pit.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   57.0,
+   56.4,
+   15.3
+  ],
+  "triangles": 3887,
+  "source": "Poly Haven",
+  "author": "Poly Haven",
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/models",
+  "thumb": "thumbs/site/fire-pit.png"
+ },
+ "Trash Bin - Wheeled": {
+  "file": "models/site/trash-bin-wheeled.obj",
+  "category": "Site",
+  "group": "Furnishings",
+  "size": [
+   23.1,
+   30.2,
+   42.0
+  ],
+  "triangles": 739,
+  "source": "Ultimate House Interior Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-house-interior-pack",
+  "thumb": "thumbs/site/trash-bin-wheeled.png"
+ },
+ "Traffic Light": {
+  "file": "models/site/traffic-light.obj",
+  "category": "Site",
+  "group": "Traffic",
+  "size": [
+   20.3,
+   14.8,
+   144.0
+  ],
+  "triangles": 352,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/site/traffic-light.png"
+ },
+ "Traffic Light - Arm": {
+  "file": "models/site/traffic-light-arm.obj",
+  "category": "Site",
+  "group": "Traffic",
+  "size": [
+   23.4,
+   127.8,
+   216.0
+  ],
+  "triangles": 398,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/site/traffic-light-arm.png"
+ },
+ "Stop Sign": {
+  "file": "models/site/stop-sign.obj",
+  "category": "Site",
+  "group": "Traffic",
+  "size": [
+   3.6,
+   21.6,
+   84.0
+  ],
+  "triangles": 300,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/site/stop-sign.png"
+ },
+ "No Parking Sign": {
+  "file": "models/site/no-parking-sign.obj",
+  "category": "Site",
+  "group": "Traffic",
+  "size": [
+   4.2,
+   21.7,
+   84.0
+  ],
+  "triangles": 244,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/site/no-parking-sign.png"
+ },
+ "Yield Sign": {
+  "file": "models/site/yield-sign.obj",
+  "category": "Site",
+  "group": "Traffic",
+  "size": [
+   5.4,
+   24.4,
+   84.0
+  ],
+  "triangles": 60,
+  "source": "LowPoly Modular Street Pack",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-modular-street-pack",
+  "thumb": "thumbs/site/yield-sign.png"
+ },
+ "Traffic Cone": {
+  "file": "models/site/traffic-cone.obj",
+  "category": "Site",
+  "group": "Traffic",
+  "size": [
+   22.2,
+   22.2,
+   28.0
+  ],
+  "triangles": 140,
+  "source": "LowPoly Public Transport",
+  "author": "Quaternius",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/lowpoly-public-transport",
+  "thumb": "thumbs/site/traffic-cone.png"
+ },
+ "Fence - Rail": {
+  "file": "models/site/fence-rail.obj",
+  "category": "Site",
+  "group": "Fences",
+  "size": [
+   121.7,
+   8.5,
+   42.0
+  ],
+  "triangles": 64,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/site/fence-rail.png"
+ },
+ "Fence - Plank": {
+  "file": "models/site/fence-plank.obj",
+  "category": "Site",
+  "group": "Fences",
+  "size": [
+   121.7,
+   11.7,
+   42.0
+  ],
+  "triangles": 96,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/site/fence-plank.png"
+ },
+ "Fence - Gate": {
+  "file": "models/site/fence-gate.obj",
+  "category": "Site",
+  "group": "Fences",
+  "size": [
+   121.7,
+   8.5,
+   42.0
+  ],
+  "triangles": 524,
+  "source": "Nature Kit",
+  "author": "Kenney",
+  "license": "CC0 1.0",
+  "url": "https://opengameart.org/content/nature-kit",
+  "thumb": "thumbs/site/fence-gate.png"
+ }
+}

@@ -1,0 +1,8 @@
+newmtl wood
+Kd 0.6196 0.4784 0.3373
+
+newmtl woodDark
+Kd 0.4627 0.3529 0.2588
+
+newmtl stone
+Kd 0.7216 0.8863 0.9098

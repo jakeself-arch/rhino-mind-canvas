@@ -1,0 +1,11 @@
+newmtl Black
+Kd 0.1961 0.1961 0.1961
+
+newmtl Brown
+Kd 0.3333 0.298 0.2392
+
+newmtl DarkGreen
+Kd 0.298 0.3843 0.251
+
+newmtl LightOrange
+Kd 0.6863 0.5451 0.3216
